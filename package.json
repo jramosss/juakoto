@@ -1,0 +1,23 @@
+{
+  "name": "discordbot",
+  "version": "1.0.0",
+  "description": "Puede servir para trollear",
+  "main": "index.js",
+  "scripts": {
+    "test": "ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jramosss/Discord-Bot.git"
+  },
+  "author": "Shuls",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jramosss/Discord-Bot/issues"
+  },
+  "homepage": "https://github.com/jramosss/Discord-Bot#readme",
+  "dependencies": {
+    "discord.js": "^12.2.0",
+    "ms": "^2.1.2"
+  }
+}

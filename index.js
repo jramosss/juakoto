@@ -1,10 +1,16 @@
 const Discord = require('discord.js');
+const ytdl = require('ytdl-core');
+const ms = require('ms')
+var search = require('youtube-search');
 const bot = new Discord.Client();
 const token = 'NzQxNzk2MjQ1NzUxNzI2MTMz.Xy8xlg.CMBi93nVuyEwre-1RHsyd1bF5s0';
 var PREFIX = 'juakoto ';
-const ytdl = require('ytdl-core');
 var servers = []
-const ms = require('ms')
+var opts = {
+    maxResults: 10,
+    key: 'AIzaSyCf4haCXTfyKHn82yE5fU7Z9Majn2aBhwY'
+};
+
 
 bot.login(token);
 
@@ -12,33 +18,83 @@ bot.on('ready', () => {
     console.log("Buendiaaa");
 })
 
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+//Play link
+async function play (msg,link) {
+    let vc = msg.member.voice.channel;
+    if (!vc) 
+        return msg.channel.send("No estas en un canal brrreeeo\n");
+    let permissions = vc.permissionsFor(msg.client.user);
+
+    if (!permissions.has('CONNECT') || !permissions.has('SPEAK'))
+        return msg.channel.send("No me diste permisos breeeo\n");
+    try {
+        let connection = await vc.join();
+        let dispatcher = connection.play(ytdl(link))
+        //.on('finish',() =>{
+        //    vc.leave()
+        /*})*/.on('error',error => {
+            console.log(error)
+        })
+        dispatcher.setVolumeLogarithmic(5 / 5)
+    }
+    catch (error){
+        console.log("There was an error joining the voice channel\n");
+        console.log(error);
+        return msg.channel.send("Paso algo raro brreeeoo\n");
+    }
+}
+
+function get_song_length(msg,song){
+    ytdl.getInfo(song)
+}
+
+
+//function get_song_linl
+//Search and play
+async function splay(msg,song) {
+    search(song, opts, function(err, results) {
+        if(err) return console.log(err);
+        get_song_length(msg,results[0].link);
+        play(msg,results[0].link);
+    });
+}
+
 //msg.reply("message") para responder a un usuario especifico
 
 bot.on('message',async msg => {
+    let queue = [];
     let args = msg.content.substring(PREFIX.length).split(" ");
-    //msg.channel.send("Holabuenass\n");
     switch (args[0]){
         case "p":
-            const vc = msg.member.voice.channel;
-            if (!vc) 
-                return msg.channel.send("No estas en un canal brrreeeo\n");
-            const permissions = vc.permissionsFor(msg.client.user);
-            if (!permissions.has('CONNECT') || !permissions.has('SPEAK'))
-                return msg.channel.send("No me diste permisos breeeo\n");
-            try {
-                let connection = await vc.join();
-                const dispatcher = connection.play(ytdl(args[1]))
-                .on('finish',() =>{
-                    vc.leave()
-                }).on('error',error => {
-                    console.log(error)
-                })
-                dispatcher.setVolumeLogarithmic(5 / 5)
+            let current_song;
+            let i = 0;
+            let str1 = "";
+            while (args[i] != null){
+                if(args[i] == "p")
+                    continue;
+                str1 += args[i];
+                i++;
             }
-            catch (error){
-                console.log("There was an error joining the voice channel\n");
-                return msg.channel.send("Paso algo raro brreeeoo\n");
+            console.log("STR: " +str1);
+            if (queue == []){
+                splay(msg,str1);
             }
+            else {
+                while (queue != []){
+                    current_song = queue.pop();
+                    splay(msg,current_song);
+                }
+            }
+            break;
+        case "q":
+            msg.channel.send(queue);
+            break;
+        case "pl":
+            play(msg,args[1]);
             break;
         case "l":
             if(!msg.member.voice.channel)
@@ -50,7 +106,7 @@ bot.on('message',async msg => {
 
         case "nazi":
             args[1] = "https://www.youtube.com/watch?v=MSDfzlALzQo";
-            msg.channel.send(PREFIX + "p " + args[1]);
+            play(msg,args[1]);
             break;
 
         case "callate":
@@ -76,6 +132,7 @@ bot.on('message',async msg => {
                                 msg.channel.send("No hay un tiempo especificado, por default 5 segundos");
                                 time = ms(5000,true);
                             }
+                            
                             target.roles.remove(mainrole.id);
                             target.roles.add(mute.id);
                             msg.channel.send("Mal callate " 
@@ -107,12 +164,6 @@ bot.on('message',async msg => {
             case "showprefix":
                 msg.channel.send(PREFIX);
             case "mogolicodeldia":
-                /*
-                let members = msg.channel.members;
-                let number = Math.random(0,members);
-                members.forEach(x => {
-                    
-                });*/
                 break;
             case "pyc":
                 let from;
@@ -131,9 +182,36 @@ bot.on('message',async msg => {
                 else{
                     to = args[2];
                 }
-                for (var i = from; i < to; i++){
-                    msg.channel.send(PREFIX + "previa y cachengue " + i);
+                for (var j = from; j < to; j++){
+                    splay(msg,"previa y cachengue " + j);
                 }
-            
+                break;
+            case "spam":
+                let message = args[1]
+                let times = args[2];
+                if (!args[1] || !args[2])
+                    msg.channel.send("No me mandaste argumentos mogolico\n");
+                for (let i = 0; i < times; i++){
+                    msg.channel.send(message);
+                    await sleep(1000);
+                }
+                break;
+            case "anakin":
+            case "ANAKIN":
+                msg.channel.send("??????????\n");
+                await sleep(1000);
+                msg.channel.send("Wait...\n");
+                await sleep(1000);
+                play(msg,"https://www.youtube.com/watch?v=bh6uhboa2v4");
+                sleep(3000);
+                msg.channel.send("AAAAAAAAAAAAAAAAAAAAAAAAAAA\n");
+                break;
+            case "cancha":
+                play(msg, "https://www.youtube.com/watch?v=mBmcuw4CRpQ");
+                break;
+            case "quenoplante":
+                play(msg,"https://www.youtube.com/watch?v=Qt3ubcGoeoE");
+                break;
+
     }
 })

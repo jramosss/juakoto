@@ -47,21 +47,28 @@ async function play (msg,link) {
         return msg.channel.send("Paso algo raro brreeeoo\n");
     }
 }
-
-function get_song_length(msg,song){
-    ytdl.getInfo(song)
+/*
+function get_song_length(song){
+    console.log(ytdl.getInfo(song));
 }
-
-
-//function get_song_linl
+*/
+/*
+async function get_song_link (msg,song){
+    try {
+        return search(song, opts, function(err, results) {
+            if(err) return console.log(err);
+            return new Promise(getlink => {
+                setTimeout(() => {
+                    getlink(results[0].link);
+                }, 7000);
+            })
+        });
+    }
+    catch (e) {
+        console.log(e);
+    }
+}*/
 //Search and play
-async function splay(msg,song) {
-    search(song, opts, function(err, results) {
-        if(err) return console.log(err);
-        get_song_length(msg,results[0].link);
-        play(msg,results[0].link);
-    });
-}
 
 //msg.reply("message") para responder a un usuario especifico
 
@@ -74,21 +81,28 @@ bot.on('message',async msg => {
             let i = 0;
             let str1 = "";
             while (args[i] != null){
-                if(args[i] == "p")
+                //console.log(args[i]);
+                if(args[i] == "p"){
+                    i++;
                     continue;
+                }
                 str1 += args[i];
                 i++;
             }
+            queue.push(str1);
             console.log("STR: " +str1);
-            if (queue == []){
-                splay(msg,str1);
+            while (queue.length != 0){
+                current_song = queue.pop();
+                console.log("CURRENT SONG: " + current_song);
+                let res = await get_song_link(msg,current_song)
+                console.log("LINK: " + res);
+                play(msg,res[0].link);
             }
-            else {
-                while (queue != []){
-                    current_song = queue.pop();
-                    splay(msg,current_song);
-                }
-            }
+            break;
+        case "andate":
+        case "leave":
+            let vc = msg.member.voice.channel;
+            vc.leave();
             break;
         case "q":
             msg.channel.send(queue);

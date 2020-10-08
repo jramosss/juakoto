@@ -178,6 +178,7 @@ bot.on('message',async msg => {
                 msg.channel.send("Argumento Invalido");
             }
             else {
+                //Mensaje para que me deje pushear
                 try {
                     const target = msg.guild.member(
                         msg.mentions.users.first() || msg.guild.members.cache.find(args[1]))

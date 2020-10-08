@@ -144,6 +144,7 @@ bot.on('message',async msg => {
     let args = msg.content.substring(PREFIX.length).split(" ");
     switch (args[0]){
         case "p":
+<<<<<<< HEAD
             enqueue(msg,adaptar_input(args));
             break;
         case "andate":
@@ -155,6 +156,35 @@ bot.on('message',async msg => {
         case "hola":
             let vc1 = msg.member.voice.channel;
             vc1.join();
+=======
+            let current_song;
+            let i = 0;
+            let str1 = "";
+            while (args[i] != null){
+                //console.log(args[i]);
+                if(args[i] == "p"){
+                    i++;
+                    continue;
+                }
+                str1 += args[i];
+                i++;
+            }
+            queue.push(str1);
+            console.log("STR: " +str1);
+            while (queue.length != 0){
+                current_song = queue.pop();
+                console.log("CURRENT SONG: " + current_song);
+                let res = await get_song_link(msg,current_song)
+                console.log("LINK: " + res);
+                play(msg,res[0].link);
+            }
+            break;
+        case "andate":
+        case "leave":
+            let vc = msg.member.voice.channel;
+            vc.leave();
+            break;
+>>>>>>> master
         case "q":
             msg.channel.send(queue);
             break;

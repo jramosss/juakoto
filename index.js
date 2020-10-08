@@ -22,6 +22,16 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+function validURL(str) {
+    var pattern = new RegExp('^(https?:\\/\\/)?'+ // protocol
+      '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|'+ // domain name
+      '((\\d{1,3}\\.){3}\\d{1,3}))'+ // OR ip (v4) address
+      '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*'+ // port and path
+      '(\\?[;&a-z\\d%_.~+=-]*)?'+ // query string
+      '(\\#[-a-z\\d_]*)?$','i'); // fragment locator
+    return !!pattern.test(str);
+}
+
 //Play link
 async function play (msg,link) {
     let vc = msg.member.voice.channel;
@@ -33,7 +43,6 @@ async function play (msg,link) {
         return msg.channel.send("No me diste permisos breeeo\n");
     try {
         let connection = await vc.join();
-        console.log("El verdadero link que llega: " + link);
         let dispatcher = connection.play(ytdl(link))
         //.on('finish',() =>{
         //    vc.leave()
@@ -49,13 +58,14 @@ async function play (msg,link) {
     }
 }
 
-async function song_length (song) {
+async function song_info (song) {
     return new Promise((resolve,reject) => {
         ytdl.getInfo(song).then(resolve,reject);
     })
 }
 
 async function get_link(song) {
+    console.log("SONG: " + song);
     return new Promise((resolve, reject) => {
         search(song, opts, function(err, results) {
             if (err) {
@@ -67,43 +77,35 @@ async function get_link(song) {
     })
 }
 
+let queue = [];
+let playing = false;
+
 async function enqueue (msg,song) {
-    let current_song;
+    let current_song = "";
     let i = 0;
-    let str1 = "";
-    let queue = [];
-    if (!song.startsWith("https://www.youtube.com/")){
-        while (song[i] != null){
-            if(song[i] == "p"){
-                i++;
-                continue;
-            }
-            str1 += song[i];
-            str1 += " ";
-            i++;
-        }
-    }
-    else 
-        str1 = song;
-    queue.push(str1);
+    queue.push(song);
     console.log("QUEUE: " + queue);
-    let playing = false;
     let len = 10000;
+    let info = "";
     let link = "";
     while (queue.length != 0){
         if (!playing){
             try {
                 current_song = queue.pop();
                 console.log("CURRENT SONG: " + current_song);
-                if (!song.startsWith("https://www.youtube.com/"))
-                    link = await get_link(msg,current_song)
-                else 
+                if (!validURL(current_song)){
+                    link = await get_link(current_song)
+                    console.log("TRUE LINK: " + link)
+                }
+                else {
                     link = current_song;
-                console.log("LINK: " + link);
-                len = await song_length(link);
-                console.log("LEN: " + len.videoDetails.lengthSeconds);
+                    console.log("ELSE: " + link);
+                }
+                info = await song_info(link);
+                len = info.videoDetails.lengthSeconds;
+                console.log("LEN: " + len);
                 play(msg,link);
-                msg.channel.send("Suena " + len.videoDetails.title);
+                msg.channel.send("Suena " + "`" +info.videoDetails.title + "`" +"\n" + link);
                 playing = true;
             }
             catch (e) {
@@ -111,11 +113,30 @@ async function enqueue (msg,song) {
             }
         }
         else {
-            window.setTimeout(playing,len*1000);
+            msg.channel.send("Dale banca ahi la pongo\n");
+            //window.setTimeout(playing,len*1000);
+            //TODO implementar
+            //VER, se rompe cuando pones un tema, tecnicamente lo encola pero
+            //el otro se deja de reproducir
         }
     }
 }
 //Search and play
+
+function adaptar_input(arr) {
+    let str1 = "";
+    let i = 0;
+    while (arr[i] != null){
+        if(arr[i] == "p"){
+            i++;
+            continue;
+        }
+        str1 += arr[i];
+        str1 += " ";
+        i++;
+    }
+    return str1;
+}
 
 //msg.reply("message") para responder a un usuario especifico
 
@@ -123,7 +144,7 @@ bot.on('message',async msg => {
     let args = msg.content.substring(PREFIX.length).split(" ");
     switch (args[0]){
         case "p":
-    
+            enqueue(msg,adaptar_input(args));
             break;
         case "andate":
         case "leave":

@@ -22,6 +22,7 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+//Check if a string is an url
 function validURL(str) {
     var pattern = new RegExp('^(https?:\\/\\/)?'+ // protocol
       '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|'+ // domain name
@@ -32,7 +33,7 @@ function validURL(str) {
     return !!pattern.test(str);
 }
 
-//Play link
+//Play song link
 async function play (msg,link) {
     let vc = msg.member.voice.channel;
     if (!vc) 
@@ -58,12 +59,14 @@ async function play (msg,link) {
     }
 }
 
+//Da info sobre el video de la cancion
 async function song_info (song) {
     return new Promise((resolve,reject) => {
         ytdl.getInfo(song).then(resolve,reject);
     })
 }
 
+//Obtiene el link de una cancion
 async function get_link(song) {
     console.log("SONG: " + song);
     return new Promise((resolve, reject) => {
@@ -80,6 +83,7 @@ async function get_link(song) {
 let queue = [];
 let playing = false;
 
+//Reproduce y encola canciones
 async function enqueue (msg,song) {
     let current_song = "";
     let i = 0;
@@ -121,8 +125,8 @@ async function enqueue (msg,song) {
         }
     }
 }
-//Search and play
 
+//Toma un mensaje y lo adapta para que lo pueda leer get_link()
 function adaptar_input(arr) {
     let str1 = "";
     let i = 0;
@@ -138,71 +142,45 @@ function adaptar_input(arr) {
     return str1;
 }
 
-//msg.reply("message") para responder a un usuario especifico
-
+//Funcion principal
 bot.on('message',async msg => {
     let args = msg.content.substring(PREFIX.length).split(" ");
     switch (args[0]){
+        //Reproducir una cancion con input en lenguaje natural
         case "p":
-<<<<<<< HEAD
             enqueue(msg,adaptar_input(args));
             break;
+
+        //Sacar bot del canal de voz
         case "andate":
         case "leave":
             let vc = msg.member.voice.channel;
             vc.leave();
             break;
+        
+        //Invocar al bot en el canal de voz 
         case "veni":
         case "hola":
             let vc1 = msg.member.voice.channel;
             vc1.join();
-=======
-            let current_song;
-            let i = 0;
-            let str1 = "";
-            while (args[i] != null){
-                //console.log(args[i]);
-                if(args[i] == "p"){
-                    i++;
-                    continue;
-                }
-                str1 += args[i];
-                i++;
-            }
-            queue.push(str1);
-            console.log("STR: " +str1);
-            while (queue.length != 0){
-                current_song = queue.pop();
-                console.log("CURRENT SONG: " + current_song);
-                let res = await get_song_link(msg,current_song)
-                console.log("LINK: " + res);
-                play(msg,res[0].link);
-            }
             break;
-        case "andate":
-        case "leave":
-            let vc = msg.member.voice.channel;
-            vc.leave();
-            break;
->>>>>>> master
+
+        //Printear Cola WIP
         case "q":
             msg.channel.send(queue);
             break;
-        case "pl":
-            play(msg,args[1]);
-            break;
-        case "l":
-            if(!msg.member.voice.channel)
-                return msg.channel.send("No estas en un canal brreeeeo\n");
-            msg.member.voice.channel.leave();
+
+        //Saludar al estilo de joacoto
         case "wendia":
             msg.channel.send("AAAAAAAAAH!!!!!!!!!");
             break;
 
+        //Reproduce el mejor clip del tata, ideal para momentos epicos
         case "nazi":
             enqueue(msg,"https://www.youtube.com/watch?v=MSDfzlALzQo");
             break;
 
+        //Mutear (abandonado por frustracion)
         case "callate":
             if (!args[1]){
                 msg.channel.send("Argumento Invalido");
@@ -246,9 +224,11 @@ bot.on('message',async msg => {
                     msg.channel.send("Unhandled Exception (se pudrio el guiso)");
                     console.log(exc)
                 }
-                break;
-                
             }
+            break;
+
+            //Modificar Prefix
+            //TODO crear base de datos para que se guarde el prefix
             case "prefix":
                 if (!args[1]){
                     msg.channel.send("Parametro invalido/inexistente");
@@ -265,6 +245,8 @@ bot.on('message',async msg => {
                     console.log(user);
                 }
                 break;
+
+            //Encola las sesiones de previa y cachengue desde n hasta m especificados
             case "previaycachengue":
             case "pyc":
                 let from;
@@ -287,6 +269,8 @@ bot.on('message',async msg => {
                     enqueue(msg,"previa y cachengue " + j);
                 }
                 break;
+
+            //Spamear s mensaje n veces
             case "spam":
                 let message = args[1]
                 let times = args[2];
@@ -297,6 +281,8 @@ bot.on('message',async msg => {
                     await sleep(1000);
                 }
                 break;
+            
+            //Juju on that beat
             case "anakin":
             case "ANAKIN":
                 msg.channel.send("??????????\n");
@@ -307,13 +293,16 @@ bot.on('message',async msg => {
                 sleep(3000);
                 msg.channel.send("AAAAAAAAAAAAAAAAAAAAAAAAAAA\n");
                 break;
+
+            //Reproduce una cancion de cancha
             case "cancha":
                 enqueue(msg, "https://www.youtube.com/watch?v=mBmcuw4CRpQ");
                 break;
+            
+            //QUENOPLANTE QUE NOPLANTE CARAJO
             case "qnp":
             case "quenoplante":
                 enqueue(msg,"https://www.youtube.com/watch?v=Qt3ubcGoeoE");
                 break;
-
     }
 })

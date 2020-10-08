@@ -11,7 +11,6 @@ var opts = {
     key: 'AIzaSyCf4haCXTfyKHn82yE5fU7Z9Majn2aBhwY'
 };
 
-
 bot.login(token);
 
 bot.on('ready', () => {
@@ -33,8 +32,26 @@ function validURL(str) {
     return !!pattern.test(str);
 }
 
+//Toma un mensaje y lo adapta para que lo pueda leer get_link()
+function adaptar_input(arr) {
+    let str1 = "";
+    let i = 0;
+    while (arr[i] != null){
+        if(arr[i] == "p"){
+            i++;
+            continue;
+        }
+        str1 += arr[i];
+        str1 += " ";
+        i++;
+    }
+    return str1;
+}
+
+let queue = [];
+
 //Play song link
-async function play (msg,link) {
+async function play (msg,song) {
     let vc = msg.member.voice.channel;
     if (!vc) 
         return msg.channel.send("No estas en un canal brrreeeo\n");
@@ -44,12 +61,26 @@ async function play (msg,link) {
         return msg.channel.send("No me diste permisos breeeo\n");
     try {
         let connection = await vc.join();
-        let dispatcher = connection.play(ytdl(link))
+        let current_song_link = queue[0]
+        console.log("CURRENT_SONG_link: " + current_song_link);
+        let info = await song_info(current_song_link);
+        let title = info.videoDetails.title;
+        console.log("TITLE; " + title);
+        msg.channel.send("Suena " + "`" + title + "`" + "\n" + current_song_link);
+        let dispatcher = connection.play(ytdl(current_song_link))
+        .on('finish',() => {
+            if (queue[0]){
+                queue.shift();
+                play(msg,queue[0]);
+                console.log("AHORA REPRODUCIMOS: " + queue[0]);
+            }
+        })
+        //TODO LA PAPA ESTA ACA
         //.on('finish',() =>{
         //    vc.leave()
-        /*})*/.on('error',error => {
+        /*}).on('error',error => {
             console.log(error)
-        })
+        })*/
         dispatcher.setVolumeLogarithmic(5 / 5)
     }
     catch (error){
@@ -68,7 +99,6 @@ async function song_info (song) {
 
 //Obtiene el link de una cancion
 async function get_link(song) {
-    console.log("SONG: " + song);
     return new Promise((resolve, reject) => {
         search(song, opts, function(err, results) {
             if (err) {
@@ -80,75 +110,23 @@ async function get_link(song) {
     })
 }
 
-let queue = [];
-let playing = false;
-
-//Reproduce y encola canciones
-async function enqueue (msg,song) {
-    let current_song = "";
-    let i = 0;
-    queue.push(song);
-    console.log("QUEUE: " + queue);
-    let len = 10000;
-    let info = "";
-    let link = "";
-    while (queue.length != 0){
-        if (!playing){
-            try {
-                current_song = queue.pop();
-                console.log("CURRENT SONG: " + current_song);
-                if (!validURL(current_song)){
-                    link = await get_link(current_song)
-                    console.log("TRUE LINK: " + link)
-                }
-                else {
-                    link = current_song;
-                    console.log("ELSE: " + link);
-                }
-                info = await song_info(link);
-                len = info.videoDetails.lengthSeconds;
-                console.log("LEN: " + len);
-                play(msg,link);
-                msg.channel.send("Suena " + "`" +info.videoDetails.title + "`" +"\n" + link);
-                playing = true;
-            }
-            catch (e) {
-                console.log(e);
-            }
-        }
-        else {
-            msg.channel.send("Dale banca ahi la pongo\n");
-            //window.setTimeout(playing,len*1000);
-            //TODO implementar
-            //VER, se rompe cuando pones un tema, tecnicamente lo encola pero
-            //el otro se deja de reproducir
-        }
-    }
-}
-
-//Toma un mensaje y lo adapta para que lo pueda leer get_link()
-function adaptar_input(arr) {
-    let str1 = "";
-    let i = 0;
-    while (arr[i] != null){
-        if(arr[i] == "p"){
-            i++;
-            continue;
-        }
-        str1 += arr[i];
-        str1 += " ";
-        i++;
-    }
-    return str1;
-}
-
 //Funcion principal
 bot.on('message',async msg => {
     let args = msg.content.substring(PREFIX.length).split(" ");
     switch (args[0]){
         //Reproducir una cancion con input en lenguaje natural
         case "p":
-            enqueue(msg,adaptar_input(args));
+            let link1 = await get_link(adaptar_input(args));
+            queue.push(link1);
+            console.log("PUSHEANDO: " + link1);
+            console.log("QUEUE_LEN: " + queue.length);
+            if (queue.length == 1){
+                play(msg,queue[0]);
+            }
+            else {
+                let titl = await song_info(link1);
+                msg.channel.send("Cancion añadida a la cola " + titl.videoDetails.title);
+            }
             break;
 
         //Sacar bot del canal de voz

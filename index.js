@@ -33,6 +33,7 @@ async function play (msg,link) {
         return msg.channel.send("No me diste permisos breeeo\n");
     try {
         let connection = await vc.join();
+        console.log("El verdadero link que llega: " + link);
         let dispatcher = connection.play(ytdl(link))
         //.on('finish',() =>{
         //    vc.leave()
@@ -48,48 +49,91 @@ async function play (msg,link) {
     }
 }
 
-function get_song_length(msg,song){
-    ytdl.getInfo(song)
+async function song_length (song) {
+    return new Promise((resolve,reject) => {
+        ytdl.getInfo(song).then(resolve,reject);
+    })
 }
 
+async function get_link(song) {
+    return new Promise((resolve, reject) => {
+        search(song, opts, function(err, results) {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(results[0].link);
+            }
+        });
+    })
+}
 
-//function get_song_linl
+async function enqueue (msg,song) {
+    let current_song;
+    let i = 0;
+    let str1 = "";
+    let queue = [];
+    if (!song.startsWith("https://www.youtube.com/")){
+        while (song[i] != null){
+            if(song[i] == "p"){
+                i++;
+                continue;
+            }
+            str1 += song[i];
+            str1 += " ";
+            i++;
+        }
+    }
+    else 
+        str1 = song;
+    queue.push(str1);
+    console.log("QUEUE: " + queue);
+    let playing = false;
+    let len = 10000;
+    let link = "";
+    while (queue.length != 0){
+        if (!playing){
+            try {
+                current_song = queue.pop();
+                console.log("CURRENT SONG: " + current_song);
+                if (!song.startsWith("https://www.youtube.com/"))
+                    link = await get_link(msg,current_song)
+                else 
+                    link = current_song;
+                console.log("LINK: " + link);
+                len = await song_length(link);
+                console.log("LEN: " + len.videoDetails.lengthSeconds);
+                play(msg,link);
+                msg.channel.send("Suena " + len.videoDetails.title);
+                playing = true;
+            }
+            catch (e) {
+                console.log(e);
+            }
+        }
+        else {
+            window.setTimeout(playing,len*1000);
+        }
+    }
+}
 //Search and play
-async function splay(msg,song) {
-    search(song, opts, function(err, results) {
-        if(err) return console.log(err);
-        get_song_length(msg,results[0].link);
-        play(msg,results[0].link);
-    });
-}
 
 //msg.reply("message") para responder a un usuario especifico
 
 bot.on('message',async msg => {
-    let queue = [];
     let args = msg.content.substring(PREFIX.length).split(" ");
     switch (args[0]){
         case "p":
-            let current_song;
-            let i = 0;
-            let str1 = "";
-            while (args[i] != null){
-                if(args[i] == "p")
-                    continue;
-                str1 += args[i];
-                i++;
-            }
-            console.log("STR: " +str1);
-            if (queue == []){
-                splay(msg,str1);
-            }
-            else {
-                while (queue != []){
-                    current_song = queue.pop();
-                    splay(msg,current_song);
-                }
-            }
+    
             break;
+        case "andate":
+        case "leave":
+            let vc = msg.member.voice.channel;
+            vc.leave();
+            break;
+        case "veni":
+        case "hola":
+            let vc1 = msg.member.voice.channel;
+            vc1.join();
         case "q":
             msg.channel.send(queue);
             break;
@@ -105,8 +149,7 @@ bot.on('message',async msg => {
             break;
 
         case "nazi":
-            args[1] = "https://www.youtube.com/watch?v=MSDfzlALzQo";
-            play(msg,args[1]);
+            enqueue(msg,"https://www.youtube.com/watch?v=MSDfzlALzQo");
             break;
 
         case "callate":
@@ -164,7 +207,13 @@ bot.on('message',async msg => {
             case "showprefix":
                 msg.channel.send(PREFIX);
             case "mogolicodeldia":
+                let vc2 = msg.member.voice.channel;
+                let arr = vc2.members.array;
+                for (let user in vc2.members.array){
+                    console.log(user);
+                }
                 break;
+            case "previaycachengue":
             case "pyc":
                 let from;
                 let to;
@@ -183,7 +232,7 @@ bot.on('message',async msg => {
                     to = args[2];
                 }
                 for (var j = from; j < to; j++){
-                    splay(msg,"previa y cachengue " + j);
+                    enqueue(msg,"previa y cachengue " + j);
                 }
                 break;
             case "spam":
@@ -202,15 +251,16 @@ bot.on('message',async msg => {
                 await sleep(1000);
                 msg.channel.send("Wait...\n");
                 await sleep(1000);
-                play(msg,"https://www.youtube.com/watch?v=bh6uhboa2v4");
+                enqueue(msg,"https://www.youtube.com/watch?v=bh6uhboa2v4");
                 sleep(3000);
                 msg.channel.send("AAAAAAAAAAAAAAAAAAAAAAAAAAA\n");
                 break;
             case "cancha":
-                play(msg, "https://www.youtube.com/watch?v=mBmcuw4CRpQ");
+                enqueue(msg, "https://www.youtube.com/watch?v=mBmcuw4CRpQ");
                 break;
+            case "qnp":
             case "quenoplante":
-                play(msg,"https://www.youtube.com/watch?v=Qt3ubcGoeoE");
+                enqueue(msg,"https://www.youtube.com/watch?v=Qt3ubcGoeoE");
                 break;
 
     }

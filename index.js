@@ -3,13 +3,14 @@ const ytdl = require('ytdl-core');
 const ms = require('ms')
 var search = require('youtube-search');
 const bot = new Discord.Client();
-const token = 'NzQxNzk2MjQ1NzUxNzI2MTMz.Xy8xlg.CMBi93nVuyEwre-1RHsyd1bF5s0';
+const token = 'NzY0NjUzODAwMDY4NzQzMTk5.X4JZWA.EcKUVFJwr8GCJe244ElwqZwG3bA';
 var PREFIX = 'juakoto ';
 var servers = []
 var opts = {
     maxResults: 10,
     key: 'AIzaSyCf4haCXTfyKHn82yE5fU7Z9Majn2aBhwY'
 };
+let dispatcher;
 
 bot.login(token);
 
@@ -18,7 +19,7 @@ bot.on('ready', () => {
 })
 
 function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise(resolve => setTimeout(resolve, ms)).catch("EXCEPCION EN SLEEP\n");
 }
 
 //Check if a string is an url
@@ -67,8 +68,8 @@ async function play (msg,song) {
         let title = info.videoDetails.title;
         console.log("TITLE; " + title);
         msg.channel.send("Suena " + "`" + title + "`" + "\n" + current_song_link);
-        let dispatcher = connection.play(ytdl(current_song_link))
-        .on('finish',() => {
+        dispatcher = connection.play(ytdl(current_song_link))
+        dispatcher.on('finish',() => {
             if (queue[0]){
                 queue.shift();
                 play(msg,queue[0]);
@@ -94,7 +95,7 @@ async function play (msg,song) {
 async function song_info (song) {
     return new Promise((resolve,reject) => {
         ytdl.getInfo(song).then(resolve,reject);
-    })
+    }).catch(console.log("EXCEPCION EN SONG_INFO\n"));
 }
 
 //Obtiene el link de una cancion
@@ -102,13 +103,14 @@ async function get_link(song) {
     return new Promise((resolve, reject) => {
         search(song, opts, function(err, results) {
             if (err) {
+                console.log("HOLA\n");
                 reject(err);
             } else {
                 resolve(results[0].link);
             }
         });
-    })
-}
+    }).catch(console.log("EXCEPCION EN GET_LINK\n"));
+} 
 
 //Funcion principal
 bot.on('message',async msg => {
@@ -116,13 +118,13 @@ bot.on('message',async msg => {
     switch (args[0]){
         //Reproducir una cancion con input en lenguaje natural
         case "p":
-            let link1 = await get_link(adaptar_input(args));
+            let formatted_song = adaptar_input(args);
+            let link1 = await get_link(formatted_song);
             queue.push(link1);
             console.log("PUSHEANDO: " + link1);
             console.log("QUEUE_LEN: " + queue.length);
-            if (queue.length == 1){
+            if (queue.length == 1)
                 play(msg,queue[0]);
-            }
             else {
                 let titl = await song_info(link1);
                 msg.channel.send("Cancion añadida a la cola " + titl.videoDetails.title);
@@ -132,22 +134,46 @@ bot.on('message',async msg => {
         //Sacar bot del canal de voz
         case "andate":
         case "leave":
-            let vc = msg.member.voice.channel;
-            vc.leave();
+            msg.member.voice.channel.leave();
+            queue = [];
             break;
-        
+        case "s":
+        case "stop":
+            dispatcher.stop();
+            break;
+        case "pause":
+            dispatcher.pause();
+            break;
+        case "skip":
+        case "n":
+        case "next":
+            let song = queue.shift();
+            play(msg,song);
+            //dispatcher.stop();
+            break;
+        case "r":
+        case "resume":
+            dispatcher.resume();
+            break;
         //Invocar al bot en el canal de voz 
         case "veni":
         case "hola":
-            let vc1 = msg.member.voice.channel;
-            vc1.join();
+            msg.member.voice.channel.join();
             break;
 
         //Printear Cola WIP
         case "q":
-            msg.channel.send(queue);
+            if (queue.length == 0)
+                msg.channel.send("Cola vacia\n");
+            else 
+                msg.channel.send(queue);
             break;
-
+        
+        //Limpia la cola de canciones
+        case "c":
+        case "clear":
+            queue = [];
+            break;
         //Saludar al estilo de joacoto
         case "wendia":
             msg.channel.send("AAAAAAAAAH!!!!!!!!!");

@@ -3,7 +3,7 @@ const ytdl = require('ytdl-core');
 const ms = require('ms')
 var search = require('youtube-search');
 const bot = new Discord.Client();
-const token = 'NzY0NjUzODAwMDY4NzQzMTk5.X4JZWA.EcKUVFJwr8GCJe244ElwqZwG3bA';
+const token = 'NzY0NjUzODAwMDY4NzQzMTk5.X4JZWA.WLFREy6em53RtqdYJUV-L7MyAAQ';
 var PREFIX = 'juakoto ';
 var servers = []
 var opts = {
@@ -72,16 +72,10 @@ async function play (msg,song) {
         dispatcher.on('finish',() => {
             let next = queue.shift();
             if (next){
-                play(msg,next);
                 console.log("AHORA REPRODUCIMOS: " + next);
+                play(msg,next);
             }
         })
-        //TODO LA PAPA ESTA ACA
-        //.on('finish',() =>{
-        //    vc.leave()
-        /*}).on('error',error => {
-            console.log(error)
-        })*/
         dispatcher.setVolumeLogarithmic(5 / 5)
     }
     catch (error){
@@ -103,7 +97,6 @@ async function get_link(song) {
     return new Promise((resolve, reject) => {
         search(song, opts, function(err, results) {
             if (err) {
-                console.log("HOLA\n");
                 reject(err);
             } else {
                 resolve(results[0].link);
@@ -114,10 +107,26 @@ async function get_link(song) {
 
 async function enqueue (msg,args) {
     let link1;
-    if (!validURL(args))
-        link1 = await get_link(adaptar_input(args));
-    else 
-        link1 = await get_link(args);
+    console.log("ARGS: " + args);
+    if (args[0] == 'p')
+        args[0] = "";
+    console.log("ARGS: " + args);
+    if (!validURL(args)){
+        let url = args[1]
+        if (!validURL(url)){
+            console.log("No es URL\n");
+            link1 = await get_link(adaptar_input(args))
+            .catch(msg.channel.send("Los servers estan caidos\n"));
+        }
+        else {
+            console.log("URL: " + url);
+            link1 = url;
+        }
+    }
+    else {
+        link1 = args;
+        console.log("URL: " + link1);
+    }
     queue.push(link1);
     console.log("PUSHEANDO: " + link1);
     console.log("QUEUE_LEN: " + queue.length);

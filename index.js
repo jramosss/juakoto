@@ -1,3 +1,7 @@
+/*
+npm i discord.js && npm i opusscript && npm i node-opus && npm i ffmpeg && npm i ffmpeg-static
+*/
+
 const Discord = require('discord.js');
 const ytdl = require('ytdl-core');
 const ms = require('ms')
@@ -20,6 +24,11 @@ bot.on('ready', () => {
 
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms)).catch("EXCEPCION EN SLEEP\n");
+}
+
+function check (msg){
+    if (!msg)
+        msg = "";
 }
 
 //Check if a string is an url
@@ -52,7 +61,7 @@ function adaptar_input(arr) {
 let queue = [];
 
 //Play song link
-async function play (msg,song) {
+async function play (msg) {
     let vc = msg.member.voice.channel;
     if (!vc) 
         return msg.channel.send("No estas en un canal brrreeeo\n");
@@ -62,7 +71,7 @@ async function play (msg,song) {
         return msg.channel.send("No me diste permisos breeeo\n");
     try {
         let connection = await vc.join();
-        let current_song_link = queue[0]
+        let current_song_link = queue[0];
         console.log("CURRENT_SONG_link: " + current_song_link);
         let info = await song_info(current_song_link);
         let title = info.videoDetails.title;
@@ -70,11 +79,14 @@ async function play (msg,song) {
         msg.channel.send("Suena " + "`" + title + "`" + "\n" + current_song_link);
         dispatcher = connection.play(ytdl(current_song_link))
         dispatcher.on('finish',() => {
+            queue.shift();
             let next = queue.shift();
             if (next){
                 console.log("AHORA REPRODUCIMOS: " + next);
-                play(msg,next);
+                play(msg);
             }
+            else 
+                return 0;
         })
         dispatcher.setVolumeLogarithmic(5 / 5)
     }
@@ -89,7 +101,7 @@ async function play (msg,song) {
 async function song_info (song) {
     return new Promise((resolve,reject) => {
         ytdl.getInfo(song).then(resolve,reject);
-    }).catch(console.log("EXCEPCION EN SONG_INFO\n"));
+    });
 }
 
 //Obtiene el link de una cancion
@@ -102,39 +114,30 @@ async function get_link(song) {
                 resolve(results[0].link);
             }
         });
-    }).catch(console.log("EXCEPCION EN GET_LINK\n"));
+    });
 } 
 
 async function enqueue (msg,args) {
     let link1;
-    console.log("ARGS: " + args);
     if (args[0] == 'p')
         args[0] = "";
-    console.log("ARGS: " + args);
     if (!validURL(args)){
         let url = args[1]
-        if (!validURL(url)){
-            console.log("No es URL\n");
+        if (!validURL(url))
             link1 = await get_link(adaptar_input(args))
-            .catch(msg.channel.send("Los servers estan caidos\n"));
-        }
-        else {
-            console.log("URL: " + url);
+        else
             link1 = url;
-        }
     }
-    else {
+    else 
         link1 = args;
-        console.log("URL: " + link1);
-    }
+
     queue.push(link1);
     console.log("PUSHEANDO: " + link1);
-    console.log("QUEUE_LEN: " + queue.length);
     if (queue.length == 1)
-        play(msg,queue[0]);
+        play(msg);
     else {
         let titl = await song_info(link1);
-        msg.channel.send("Cancion añadida a la cola " + titl.videoDetails.title);
+        msg.channel.send("Cancion añadida a la cola `" + titl.videoDetails.title + "`");
     }
 }
 
@@ -142,6 +145,25 @@ async function enqueue (msg,args) {
 bot.on('message',async msg => {
     let args = msg.content.substring(PREFIX.length).split(" ");
     switch (args[0]){
+
+        //Sacar bot del canal de voz
+        case "andate":
+        case "leave":
+            msg.member.voice.channel.leave();
+            queue = [];
+            break;
+        
+        //Reproduce una cancion de cancha
+        case "cancha":
+            enqueue(msg, "https://www.youtube.com/watch?v=mBmcuw4CRpQ");
+            break;
+        
+        //Limpia la cola de canciones
+        case "c":
+        case "clear":
+            queue = [];
+            //TODO, hacer que esto pause la ejecucion
+            break;
 
         case "h":
         case "help":
@@ -169,101 +191,42 @@ bot.on('message',async msg => {
             "*qnp* / *quenoplante* = QUENOPLANTE QUENOPLANTE\n")
             break;
 
-        //Reproducir una cancion con input en lenguaje natural
-        case "play":
-        case "p":
-            enqueue(msg,args)
-            break;
-
-        //Sacar bot del canal de voz
-        case "andate":
-        case "leave":
-            msg.member.voice.channel.leave();
-            queue = [];
-            break;
-        case "s":
-        case "stop":
-            dispatcher.pause();
-            break;
-        case "pause":
-            dispatcher.pause();
-            break;
-        case "skip":
-        case "n":
-        case "next":
-            let song = queue.shift();
-            play(msg,song);
-            //dispatcher.stop();
-            break;
-        case "r":
-        case "resume":
-            dispatcher.resume();
-            break;
         //Invocar al bot en el canal de voz 
-        case "veni":
         case "hola":
+        case "veni":
             msg.member.voice.channel.join();
-            break;
-
-        //Definir el volument del bot
-        case "vs":
-        case "volumeset":
-            if (args[1]){
-                dispatcher.setVolume(args[1]);
-                msg.channel.send("Volumen seteado a " + args[1]);
-            }
-            else 
-                msg.channel.send("No me pasaste parametros, juakoto vs/volumeset <volume>\n");
-            break;
-
-        //jewjejejje
-        case "satura":
-        case "earrape":
-            dispatcher.setVolume(10);
-            msg.channel.send("Espero que nadie este por hacer un clutch\n");
-            break;
-
-        //Printear Cola
-        case "q":
-        case "queue":
-            if (queue.length == 0)
-                msg.channel.send("Cola vacia\n");
-            else 
-                msg.channel.send(queue);
-            break;
-        
-        //Limpia la cola de canciones
-        case "c":
-        case "clear":
-            queue = [];
-            break;
-        //Saludar al estilo de joacoto
-        case "wendia":
-            msg.channel.send("AAAAAAAAAH!!!!!!!!!");
             break;
 
         //Reproduce el mejor clip del tata, ideal para momentos epicos
         case "nazi":
             enqueue(msg,"https://www.youtube.com/watch?v=MSDfzlALzQo");
             break;  
-
-        //Modificar Prefix
-        //TODO crear base de datos para que se guarde el prefix
-        case "prefix":
-            if (!args[1]){
-                msg.channel.send("Parametro invalido/inexistente");
+        
+        case "n":
+        case "next":
+        case "skip":
+            queue.shift();
+            try {
+                let next_song = queue[0];
+                if (next_song)
+                    play(msg);
+                else
+                    dispatcher.pause();
             }
-            PREFIX = args[1];
-            msg.channel.send("Prefix cambiado a " + PREFIX);
+            catch(e){
+                msg.channel.send("Excepcion\n");
+                console.log(e.trace);
+            }
             break;
-        case "showprefix":
-            msg.channel.send(PREFIX);
-        case "mogolicodeldia":
-            let vc2 = msg.member.voice.channel;
-            let arr = vc2.members.array;
-            for (let user in vc2.members.array){
-                console.log(user);
-            }
+
+        case "pause":
+            dispatcher.pause();
+            break;
+
+        //Reproducir una cancion con input en lenguaje natural
+        case "p":
+        case "play":
+            enqueue(msg,args)
             break;
 
         //Encola las sesiones de previa y cachengue desde n hasta m especificados
@@ -293,6 +256,79 @@ bot.on('message',async msg => {
             }
             break;
 
+        //Modificar Prefix
+        //TODO crear base de datos para que se guarde el prefix
+        case "prefix":
+            if (!args[1])
+                msg.channel.send("Parametro invalido/inexistente");
+
+            PREFIX = args[1];
+            msg.channel.send("Prefix cambiado a " + PREFIX);
+            break;
+        
+        case "showprefix":
+            msg.channel.send(PREFIX);
+        
+        //Printear Cola
+        case "q":
+        case "cola":
+        case "queue":
+            if (queue.length == 0)
+                msg.channel.send("Cola vacia\n");
+            else {
+                msg.channel.send("Cola: \n");
+                let v_song_info;
+                let v_song_title;
+                let v_song_link;
+                let v_song_len;
+                let message = "";
+                let aux = queue;
+                let s = aux.shift();
+                while(s) {
+                    try{
+                        if (s){
+                            v_song_info = await song_info(s);
+                            v_song_title = v_song_info.videoDetails.title;
+                            v_song_link = v_song_info.videoDetails.video_url;
+                            message += v_song_title + " " + v_song_link + "\n";
+                            s = aux.shift();
+                        }
+                        else
+                            break;
+                    }
+                    catch(error) {
+                        console.log(error);
+                        break;
+                    }
+                }
+                msg.channel.send("```" + message + "```")
+                .catch(console.log("No podes mandar mensajes vacios"));
+            }
+            break;
+
+        case "r":
+        case "resume":
+            dispatcher.resume();
+            break;
+
+        case "skip":
+        case "n":
+        case "next":
+            queue.shift();
+            let elem = queue.shift();
+            if(elem)
+                play(msg);
+            else
+                dispatcher.pause();
+            break;
+
+        //jewjejejje
+        case "satura":
+        case "earrape":
+            dispatcher.setVolume(10);
+            msg.channel.send("Espero que nadie este por hacer un clutch\n");
+            break;
+
         //Spamear s mensaje n veces
         case "spam":
             let message = args[1]
@@ -305,21 +341,15 @@ bot.on('message',async msg => {
             }
             break;
         
-        //Juju on that beat
-        case "anakin":
-        case "ANAKIN":
-            msg.channel.send("??????????\n");
-            await sleep(1000);
-            msg.channel.send("Wait...\n");
-            await sleep(1000);
-            enqueue(msg,"https://www.youtube.com/watch?v=bh6uhboa2v4");
-            sleep(3000);
-            msg.channel.send("AAAAAAAAAAAAAAAAAAAAAAAAAAA\n");
-            break;
-
-        //Reproduce una cancion de cancha
-        case "cancha":
-            enqueue(msg, "https://www.youtube.com/watch?v=mBmcuw4CRpQ");
+        //Definir el volument del bot
+        case "vs":
+        case "volumeset":
+            if (args[1]){
+                dispatcher.setVolume(args[1]);
+                msg.channel.send("Volumen seteado a " + args[1]);
+            }
+            else 
+                msg.channel.send("No me pasaste parametros, juakoto vs/volumeset <volume>\n");
             break;
         
         //QUENOPLANTE QUE NOPLANTE CARAJO
@@ -328,18 +358,10 @@ bot.on('message',async msg => {
             enqueue(msg,"https://www.youtube.com/watch?v=Qt3ubcGoeoE");
             break;
         
-        case "skip":
-        case "next":
-        case "n":
-            queue.shift();
-            try {
-                let next_song = queue.shift();
-                if (next_song)
-                    play(msg,next_song);
-            }
-            catch(e){
-                msg.channel.send("Excepcion\n");
-                console.log(e.trace);
-            }
+        //Saludar al estilo de joacoto
+        case "wendia":
+            msg.channel.send("AAAAAAAAAH!!!!!!!!!");
+            break;
+        
     }
 })

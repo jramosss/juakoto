@@ -1,16 +1,12 @@
-/*
-npm i discord.js && npm i opusscript && npm i node-opus && npm i ffmpeg && npm i ffmpeg-static
-*/
-
 const Discord = require('discord.js');
 const ytdl = require('ytdl-core');
-const ms = require('ms')
 var search = require('youtube-search');
 const bot = new Discord.Client();
-const token = 'NzY0NjUzODAwMDY4NzQzMTk5.X4JZWA.WLFREy6em53RtqdYJUV-L7MyAAQ';
+const token = 
+'NzY0NjUzODAwMDY4NzQzMTk5.X4JZWA.WLFREy6em53RtqdYJUV-L7MyAAQ';
+const ULTIMO_PREVIA_Y_CACHENGUE = 34;
 var PREFIX = 'juakoto ';
-var servers = []
-var opts = {
+const opts = {
     maxResults: 10,
     key: 'AIzaSyCf4haCXTfyKHn82yE5fU7Z9Majn2aBhwY'
 };
@@ -23,12 +19,8 @@ bot.on('ready', () => {
 })
 
 function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms)).catch("EXCEPCION EN SLEEP\n");
-}
-
-function check (msg){
-    if (!msg)
-        msg = "";
+    return new Promise(resolve => setTimeout(resolve, ms))
+    .catch("EXCEPCION EN SLEEP\n");
 }
 
 //Check if a string is an url
@@ -75,9 +67,12 @@ async function play (msg) {
         console.log("CURRENT_SONG_link: " + current_song_link);
         let info = await song_info(current_song_link);
         let title = info.videoDetails.title;
+
         console.log("TITLE; " + title);
-        msg.channel.send("Suena " + "`" + title + "`" + "\n" + current_song_link);
+        msg.channel.send("Suena " + "`" + title + "`" + "\n" 
+                                        + current_song_link);
         dispatcher = connection.play(ytdl(current_song_link))
+
         dispatcher.on('finish',() => {
             queue.shift();
             let next = queue.shift();
@@ -88,6 +83,7 @@ async function play (msg) {
             else 
                 return 0;
         })
+
         dispatcher.setVolumeLogarithmic(5 / 5)
     }
     catch (error){
@@ -108,11 +104,8 @@ async function song_info (song) {
 async function get_link(song) {
     return new Promise((resolve, reject) => {
         search(song, opts, function(err, results) {
-            if (err) {
-                reject(err);
-            } else {
-                resolve(results[0].link);
-            }
+            if (err) reject(err);
+            else resolve(results[0].link);
         });
     });
 } 
@@ -137,7 +130,8 @@ async function enqueue (msg,args) {
         play(msg);
     else {
         let titl = await song_info(link1);
-        msg.channel.send("Cancion añadida a la cola `" + titl.videoDetails.title + "`");
+        msg.channel.send("Cancion añadida a la cola `" 
+                         + titl.videoDetails.title + "`");
     }
 }
 
@@ -162,7 +156,12 @@ bot.on('message',async msg => {
         case "c":
         case "clear":
             queue = [];
+            msg.channel.send("Cola vaciada\n");
             //TODO, hacer que esto pause la ejecucion
+            break;
+        
+        case "gracias":
+            msg.channel.send("De nada " + msg.member.user.username);
             break;
 
         case "h":
@@ -226,6 +225,10 @@ bot.on('message',async msg => {
         //Reproducir una cancion con input en lenguaje natural
         case "p":
         case "play":
+            if (!args)
+                msg.channel.send("Que queres que meta en la cola? Pasame algo,"+
+                                 "Por que me encanta meterme cosas en la cola\n",
+                                 "usage = juakoto play/p <song name/song youtube link>")
             enqueue(msg,args)
             break;
 
@@ -243,8 +246,10 @@ bot.on('message',async msg => {
 
             if (!args[2]){
                 msg.channel.send("No especificaste desde donde,terrible mogolico,defaulteando a 34\n")
-                to = 34;
+                to = ULTIMO_PREVIA_Y_CACHENGUE;
             }
+            if (!args[1] || !args[2])
+                msg.channel.send("usage = juakoto pyc <from> <to>");
             else
                 to = args[2];
 
@@ -260,7 +265,8 @@ bot.on('message',async msg => {
         //TODO crear base de datos para que se guarde el prefix
         case "prefix":
             if (!args[1])
-                msg.channel.send("Parametro invalido/inexistente");
+                msg.channel.send("Parametro invalido/inexistente \n" + 
+                                 "usage juakoto prefix <prefix>");
 
             PREFIX = args[1];
             msg.channel.send("Prefix cambiado a " + PREFIX);
@@ -268,6 +274,7 @@ bot.on('message',async msg => {
         
         case "showprefix":
             msg.channel.send(PREFIX);
+            break;
         
         //Printear Cola
         case "q":
@@ -334,7 +341,8 @@ bot.on('message',async msg => {
             let message = args[1]
             let times = args[2];
             if (!args[1] || !args[2])
-                msg.channel.send("No me mandaste argumentos mogolico\n");
+                msg.channel.send("No me mandaste argumentos mogolico\n" + 
+                                 "usage = juakoto spam <message> <times>");
             for (let i = 0; i < times; i++){
                 msg.channel.send(message);
                 await sleep(1000);
@@ -349,7 +357,8 @@ bot.on('message',async msg => {
                 msg.channel.send("Volumen seteado a " + args[1]);
             }
             else 
-                msg.channel.send("No me pasaste parametros, juakoto vs/volumeset <volume>\n");
+                msg.channel.send("No me pasaste parametros\n" +
+                                "usage = juakoto vs/volumeset <volume>\n");
             break;
         
         //QUENOPLANTE QUE NOPLANTE CARAJO

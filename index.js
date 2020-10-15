@@ -195,6 +195,17 @@ bot.on('message',async msg => {
         case "veni":
             msg.member.voice.channel.join();
             break;
+        
+        case "juernes":
+        case "JUERNES":
+        case "JUERNES PERRO":
+        case "juernes perro":
+            queue = [];
+            queue.push("https://www.youtube.com/watch?v=QkngZ1P3aKw");
+            play(msg);
+            dispatcher.setVolume(10);
+            msg.channel.send("JUERNES PERRITO");
+            break;
 
         //Reproduce el mejor clip del tata, ideal para momentos epicos
         case "nazi":

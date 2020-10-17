@@ -226,7 +226,12 @@ bot.on('message',async msg => {
         case "n":
         case "next":
         case "skip":
-        case "porfavor pasa esta cancion asquerosa":
+        case "porfavor":
+            if (args[0] == "porfavor"){
+                if (!(args[1] == "saca" && args[2] == "esta" &&
+                    args[3] == "cancion" && args[4] == "asquerosa"))
+                        break;
+            }
             queue.shift();
             try {
                 let next_song = queue[0];
@@ -290,6 +295,11 @@ bot.on('message',async msg => {
             break;
 
 
+        case "mute":
+            dispatcher.setVolume(0);
+            msg.channel.send("Seteando el volumen a 0");
+            break;
+            
         case "pause":
             dispatcher.pause();
             break;
@@ -310,15 +320,17 @@ bot.on('message',async msg => {
         case "playI":
         case "playi":
             queue = [];
+            if (!validURL(args))
+                queue.push(adaptar_input(args));
+            else
+                queue.push(args[1]);
             play(msg);
             break;
         
         case "paraguayo":
         case "paradoja":
-            let cosa_que_se_va_a_romper = 40/0;
-            console.log(cosa_que_se_va_a_romper);
             msg.channel.send("Perdon por trollear :(");
-            break;
+            throw ArithmeticException;
 
         //Encola las sesiones de previa y cachengue desde n hasta m especificados
         case "previaycachengue":
@@ -369,6 +381,7 @@ bot.on('message',async msg => {
         case "bailedeltroleo":
             arr = "https://www.youtube.com/watch?v=qe5-ywmuKOg";
             await enqueue(msg,arr);
+            sleep(4000); //Por que tiene que esperar un poco mas y no quiero pensar una forma mas elegante de hacerlo
             dispatcher.setVolume(10);
             break;
         //Printear Cola

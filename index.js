@@ -143,6 +143,8 @@ bot.on('message',async msg => {
         //Sacar bot del canal de voz
         case "andate":
         case "leave":
+        case "tomatela":
+        case "shu":
             msg.member.voice.channel.leave();
             queue = [];
             break;
@@ -166,34 +168,43 @@ bot.on('message',async msg => {
 
         case "h":
         case "help":
-            msg.channel.send("*PREFIX* = juakoto con esto le decis a juakoto que comando ejecutar\n" +
-            "*play* <song> / *p* <song> : Reproduce una cancion (No funciona con listas por que no me pagan lo suficiente)\n" +
-            "*andate* / *leave* = Hace que juakoto se vaya del canal\n" +
-            "*pause* = Pausa la cancion que se esta reproduciendo actualmente\n" +
-            "*stop* / *s* = Lo mismo que pause pero la quise caretear\n" +
-            "*skip* / *n* / *next* = Pasa a la siguiente cancion de la cola\n" +
-            "*resume* / *r* = Despausar\n" +
-            "*hola* / *veni* = Invoca al dios juakoto en el canal de voz\n" +
-            "*volumeset* <volume> / *vs* <volume> = Setea el volumen del bot a <volume>\n" +
-            "*satura* / *earrape* = Hace volumeset en 10, ideal para trolear y tiltear a joacoto, provocando que todos los usuarios del server tengan al bot insta muteado\n" +
-            "*q* / *queue* = Muestra la cola actual de canciones\n" +
-            "*clear* / *c* = Vacia la cola de canciones\n" +
-            "*wendia* = Un saludito que nunca viene mal\n" +
-            "*nazi* = Pone en la cola el clip del momo\n" +
-            "*prefix* <prefix> = Setea un nuevo prefix para el bot\n" +
-            "*showprefix* = Muestra el prefix actual del bot\n" +
-            "*mogolicodeldia* = No funciona, pero la idea es que muestre un mogolico del server\n" +
-            "*previaycachengue* / *pyc* <from> <to> = Encola todos los previa y cachengue del ferpa desde <from> hasta <to>\n" +
-            "*spam* <mensaje> <numero> = spamea <mensaje> <numero> veces\n" +
-            "*ANAKIN* / *anakin* = Juju on that beat\n" +
+            msg.channel.send(
+            "*andate* / *leave* / *shu* = Hace que juakoto se vaya del canal\n" +
             "*cancha* = Escuchen, corran la bola\n" +
-            "*qnp* / *quenoplante* = QUENOPLANTE QUENOPLANTE\n")
+            "*clear* / *c* = Vacia la cola de canciones\n" +
+            "*hola* / *veni* / *te invoco* = Invoca al dios juakoto en el canal de voz\n" +
+            "*juernes* / *JUERNES PERRO* / *juernes perro* : JUERNES PERRO\n" +
+            "*nazi* = Pone en la cola el clip del momo\n" +
+            "*mogolicodeldia* = No funciona, pero la idea es que muestre un mogolico del server\n" +
+            "mood <mood> : Te tira una playlist acorde al mood que le des (chill/cachengue/trap/sad)" +
+            "*prefix* <prefix> = Setea un nuevo prefix para el bot\n" +
+            "*pause* = Pausa la cancion que se esta reproduciendo actualmente\n" +
+            "*previaycachengue* / *pyc* <from> <to> = Encola todos los previa y cachengue del ferpa desde <from> hasta <to>\n" +
+            "*play* <song> / *p* <song> : Reproduce una cancion (No funciona con listas por que no me pagan lo suficiente)\n" +
+            "*playI* / *playINSTA* : Reproduce la cancion instantaneamente\n" +
+            "*q* / *queue* = Muestra la cola actual de canciones\n" +
+            "*resume* / *r* = Despausar\n" +
+            "*satura* / *earrape* = Hace volumeset en 10, ideal para trolear y tiltear a joacoto, provocando que todos los usuarios del server tengan al bot insta muteado\n" +
+            "*skip* / *n* / *next* = Pasa a la siguiente cancion de la cola\n" +
+            "*showprefix* = Muestra el prefix actual del bot\n" +
+            "*spam* <mensaje> <numero> = spamea <mensaje> <numero> veces\n" +
+            "*stop* / *s* = Lo mismo que pause pero la quise caretear\n" +
+            "*volumeset* <volume> / *vs* <volume> = Setea el volumen del bot a <volume>\n" +
+            "*qnp* / *quenoplante* = QUENOPLANTE QUENOPLANTE\n" +
+            "*wendia* = Un saludito que nunca viene mal\n")
             break;
 
         //Invocar al bot en el canal de voz 
         case "hola":
         case "veni":
-            msg.member.voice.channel.join();
+        case "te":
+            if (args[0] == "te" && args[1] == "invoco"){
+                msg.member.voice.channel.join();
+            }
+            else if (args[0] == "te")
+                break;
+            else 
+                msg.member.voice.channel.join();
             break;
         
         case "juernes":
@@ -202,7 +213,7 @@ bot.on('message',async msg => {
         case "juernes perro":
             queue = [];
             queue.push("https://www.youtube.com/watch?v=QkngZ1P3aKw");
-            play(msg);
+            await play(msg);
             dispatcher.setVolume(10);
             msg.channel.send("JUERNES PERRITO");
             break;
@@ -215,6 +226,7 @@ bot.on('message',async msg => {
         case "n":
         case "next":
         case "skip":
+        case "porfavor pasa esta cancion asquerosa":
             queue.shift();
             try {
                 let next_song = queue[0];
@@ -228,6 +240,55 @@ bot.on('message',async msg => {
                 console.log(e.trace);
             }
             break;
+        
+        case "mood":
+            if (!args[1]){
+                msg.channel.send("Mood que? usage = juakoto mood <mood>");
+                break;
+            }
+            let playlist = "";
+            switch(args[1]){
+                case "chill":
+                    playlist = "https://open.spotify.com/playlist/0aNQUD5KlbMZRA0NfP7Iey?si=l4XzJkksQoaa8IScTmPz-A";
+                    break;
+                case "sad":
+                    break;
+                case "cachengue":
+                    playlist = "https://open.spotify.com/playlist/3AWPgqd0Bk5t2UKAghlKWy?si=JbeMWPzETlOO89YVN5WL8Q";
+                    break;
+                case "indie":
+                    msg.channel.send("Berka sali del canal hippie sucio");
+                    playlist = "https://open.spotify.com/playlist/2KK44e1fAYc9Y0aYf3Zulf?si=8mCTXETuQLawplK2fxBCrQ";
+                    break;
+                case "rock":
+                    playlist = "https://open.spotify.com/playlist/4dSzcPPsT8meHeSqs9NZ2P?si=qY0ykm7_TuKO69wfRyXZSQ";
+                    break;
+                case "eng":
+                    playlist = "https://open.spotify.com/playlist/0alj6uaH0IA9b4TIdLNhgQ?si=OtuR9CIaQjiewVM4CMer0g";
+                    break;
+                case "trap":
+                    playlist = "https://open.spotify.com/playlist/00nCFhHxiGriJ3pDoDll69?si=NyZ1m0g5QDG1ku1MCb1vXw";
+                    break;
+                case "techo":
+                case "unchicachi":
+                    playlist = "https://open.spotify.com/playlist/2uGcGvoN3TGC8kMEOxfBNo?si=uXCy-McfRJiQfsYBZ5codA";
+                    break;
+                case "viejito":
+                    playlist = "https://open.spotify.com/playlist/4mj2O0ItodoLlqI670pngS?si=F8Zox4H0RIGyb8AL-IXQ2w";
+                    break;
+                default:
+                    msg.channel.send("Mood no especificado " +
+                                    "si tenes quejas metetelas en el orto");
+                    msg.channel.send("Na mentira, decile a juli");
+                    break;
+            }
+            msg.channel.send("Por el momento no puedo reproducir playlists por" +
+                            " por que el que me programo es un deficiente mental" +
+                            " pero si queres te paso una playlist y la pones en el groovy" +
+                            " que esta programado por gente mas picante");
+            msg.channel.send(playlist);
+            break;
+
 
         case "pause":
             dispatcher.pause();
@@ -238,9 +299,25 @@ bot.on('message',async msg => {
         case "play":
             if (!args)
                 msg.channel.send("Que queres que meta en la cola? Pasame algo,"+
-                                 "Por que me encanta meterme cosas en la cola\n",
+                                 "por que me encanta meterme cosas en la cola\n",
                                  "usage = juakoto play/p <song name/song youtube link>")
             enqueue(msg,args)
+            break;
+        
+        case "playINSTA":
+        case "playinsta":
+        case "PLAYINSTA":
+        case "playI":
+        case "playi":
+            queue = [];
+            play(msg);
+            break;
+        
+        case "paraguayo":
+        case "paradoja":
+            let cosa_que_se_va_a_romper = 40/0;
+            console.log(cosa_que_se_va_a_romper);
+            msg.channel.send("Perdon por trollear :(");
             break;
 
         //Encola las sesiones de previa y cachengue desde n hasta m especificados
@@ -287,6 +364,13 @@ bot.on('message',async msg => {
             msg.channel.send(PREFIX);
             break;
         
+
+        case "troleo":
+        case "bailedeltroleo":
+            arr = "https://www.youtube.com/watch?v=qe5-ywmuKOg";
+            await enqueue(msg,arr);
+            dispatcher.setVolume(10);
+            break;
         //Printear Cola
         case "q":
         case "cola":
@@ -363,13 +447,17 @@ bot.on('message',async msg => {
         //Definir el volument del bot
         case "vs":
         case "volumeset":
+            let volume = 1;
             if (args[1]){
-                dispatcher.setVolume(args[1]);
+                volume = args[1];
                 msg.channel.send("Volumen seteado a " + args[1]);
             }
-            else 
-                msg.channel.send("No me pasaste parametros\n" +
+            else
+                msg.channel.send("No me pasaste parametros, seteando a 1\n" +
                                 "usage = juakoto vs/volumeset <volume>\n");
+        
+            dispatcher.setVolume(volume);
+        
             break;
         
         //QUENOPLANTE QUE NOPLANTE CARAJO

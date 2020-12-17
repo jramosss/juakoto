@@ -1,14 +1,11 @@
 const Discord = require('discord.js');
-const fisy = require('fs');
 const search = require('youtube-search');
 const ytdl = require('ytdl-core');
-const token = require('./token')
-//const prefix_file = require('./prefix')
+const TOKEN = require('./token')
 const prefix_file = require('./prefix')
-let prefix;
+const token = TOKEN.token();
 
 const bot = new Discord.Client();
-//var Spotify = require('spotify-web-api-js');
 const opts = {
     maxResults: 10,
     key: 'AIzaSyCf4haCXTfyKHn82yE5fU7Z9Majn2aBhwY'
@@ -17,11 +14,14 @@ const opts = {
 const ULTIMO_PREVIA_Y_CACHENGUE = 35;
 
 let dispatcher;
+let prefix = prefix_file.load_prefix();
 
-/* var spotifyApi = new SpotifyWebApi();
+/*TO DO 
+const Spotify = require('spotify-web-api-js');
+var spotifyApi = new SpotifyWebApi();
 spotifyApi.setAccessToken('<here_your_access_token>'); */
 
-bot.login(token.token());
+bot.login(token);
 
 bot.on('ready', () => {
     console.log("Buendiaaa");
@@ -89,6 +89,8 @@ async function play (msg) {
                 console.log("AHORA REPRODUCIMOS: " + next);
                 play(msg);
             }
+            else 
+                dispatcher.pause();
         })
 
         dispatcher.setVolumeLogarithmic(5 / 5)
@@ -130,6 +132,7 @@ async function enqueue (msg,args) {
     queue.push(link1);
     console.log("PUSHEANDO: " + link1);
     if (queue.length == 1)
+        //!I think this is inversion of control
         play(msg);
     else {
         let titl = await song_info(link1);
@@ -140,9 +143,7 @@ async function enqueue (msg,args) {
 
 //Funcion principal
 bot.on('message',async msg => {
-    prefix = prefix_file.prefix()
     let args = msg.content.substring(prefix.length+1).split(" ");
-    console.log(args);
     switch (args[0]){
 
         //Sacar bot del canal de voz
@@ -339,14 +340,14 @@ bot.on('message',async msg => {
             let from;
             let to;
             if (!args[1]){
-                msg.channel.send("No especificaste desde donde,terrible mogolico,defaulteando a 0\n")
+                msg.channel.send("No especificaste desde donde,terrible mogolico,defaulteando a 1")
                 from = 1;
             }
             else
                 from = args[1];
 
             if (!args[2]){
-                msg.channel.send("No especificaste hasta donde,terrible mogolico,defaulteando a 34\n")
+                msg.channel.send("No especificaste hasta donde,terrible mogolico,defaulteando a" + ULTIMO_PREVIA_Y_CACHENGUE)
                 to = ULTIMO_PREVIA_Y_CACHENGUE;
             }
             if (!args[1] || !args[2])
@@ -355,7 +356,7 @@ bot.on('message',async msg => {
                 to = args[2];
 
             let arr1 = [];
-            for (var j = from; j < to; j++){
+            for (var j = from; j <= to; j++){
                 arr1.push("previa y cachengue " + j);
                 enqueue(msg,arr1);
                 arr1 = [];

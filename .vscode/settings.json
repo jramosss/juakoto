@@ -1,8 +1,0 @@
-{
-    "files.associations": {
-        "*.tcc": "c",
-        "cstdio": "c",
-        "string_view": "c",
-        "functional": "c"
-    }
-}

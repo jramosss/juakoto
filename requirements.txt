@@ -1,5 +1,0 @@
-npm i discord.js && 
-npm i opusscript && 
-npm i node-opus &&
-npm i ffmpeg &&
-npm i ffmpeg-static

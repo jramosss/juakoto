@@ -1,18 +1,27 @@
 const Discord = require('discord.js');
+const fisy = require('fs');
+const search = require('youtube-search');
 const ytdl = require('ytdl-core');
-var search = require('youtube-search');
+const token = require('./token')
+//const prefix_file = require('./prefix')
+const prefix_file = require('./prefix')
+let prefix;
+
 const bot = new Discord.Client();
-const token = 
-'NzY0NjUzODAwMDY4NzQzMTk5.X4JZWA.WLFREy6em53RtqdYJUV-L7MyAAQ';
-const ULTIMO_PREVIA_Y_CACHENGUE = 34;
-var PREFIX = 'juakoto ';
+//var Spotify = require('spotify-web-api-js');
 const opts = {
     maxResults: 10,
     key: 'AIzaSyCf4haCXTfyKHn82yE5fU7Z9Majn2aBhwY'
 };
+
+const ULTIMO_PREVIA_Y_CACHENGUE = 35;
+
 let dispatcher;
 
-bot.login(token);
+/* var spotifyApi = new SpotifyWebApi();
+spotifyApi.setAccessToken('<here_your_access_token>'); */
+
+bot.login(token.token());
 
 bot.on('ready', () => {
     console.log("Buendiaaa");
@@ -24,7 +33,7 @@ function sleep(ms) {
 }
 
 //Check if a string is an url
-function validURL(str) {
+function valid_URL(str) {
     var pattern = new RegExp('^(https?:\\/\\/)?'+ // protocol
       '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|'+ // domain name
       '((\\d{1,3}\\.){3}\\d{1,3}))'+ // OR ip (v4) address
@@ -34,8 +43,8 @@ function validURL(str) {
     return !!pattern.test(str);
 }
 
-//Toma un mensaje y lo adapta para que lo pueda leer get_link()
-function adaptar_input(arr) {
+//Takes a message and adapt the string to make it readable by get_link
+function adapt_input(arr) {
     let str1 = "";
     let i = 0;
     while (arr[i] != null){
@@ -80,8 +89,6 @@ async function play (msg) {
                 console.log("AHORA REPRODUCIMOS: " + next);
                 play(msg);
             }
-            else 
-                return 0;
         })
 
         dispatcher.setVolumeLogarithmic(5 / 5)
@@ -104,8 +111,7 @@ async function song_info (song) {
 async function get_link(song) {
     return new Promise((resolve, reject) => {
         search(song, opts, function(err, results) {
-            if (err) reject(err);
-            else resolve(results[0].link);
+            err ? reject(err) : resolve(results[0].link)
         });
     });
 } 
@@ -114,12 +120,9 @@ async function enqueue (msg,args) {
     let link1;
     if (args[0] == 'p')
         args[0] = "";
-    if (!validURL(args)){
+    if (!valid_URL(args)){
         let url = args[1]
-        if (!validURL(url))
-            link1 = await get_link(adaptar_input(args))
-        else
-            link1 = url;
+        link1 = valid_URL(url) ? url : await get_link(adapt_input(args));
     }
     else 
         link1 = args;
@@ -137,7 +140,9 @@ async function enqueue (msg,args) {
 
 //Funcion principal
 bot.on('message',async msg => {
-    let args = msg.content.substring(PREFIX.length).split(" ");
+    prefix = prefix_file.prefix()
+    let args = msg.content.substring(prefix.length+1).split(" ");
+    console.log(args);
     switch (args[0]){
 
         //Sacar bot del canal de voz
@@ -198,9 +203,8 @@ bot.on('message',async msg => {
         case "hola":
         case "veni":
         case "te":
-            if (args[0] == "te" && args[1] == "invoco"){
+            if (args[0] == "te" && args[1] == "invoco")
                 msg.member.voice.channel.join();
-            }
             else if (args[0] == "te")
                 break;
             else 
@@ -320,10 +324,7 @@ bot.on('message',async msg => {
         case "playI":
         case "playi":
             queue = [];
-            if (!validURL(args))
-                queue.push(adaptar_input(args));
-            else
-                queue.push(args[1]);
+            valid_URL(args) ? queue.push(args[1]) : queue.push(adapt_input(args))
             play(msg);
             break;
         
@@ -345,7 +346,7 @@ bot.on('message',async msg => {
                 from = args[1];
 
             if (!args[2]){
-                msg.channel.send("No especificaste desde donde,terrible mogolico,defaulteando a 34\n")
+                msg.channel.send("No especificaste hasta donde,terrible mogolico,defaulteando a 34\n")
                 to = ULTIMO_PREVIA_Y_CACHENGUE;
             }
             if (!args[1] || !args[2])
@@ -361,19 +362,20 @@ bot.on('message',async msg => {
             }
             break;
 
-        //Modificar Prefix
+        //Modificar prefix
         //TODO crear base de datos para que se guarde el prefix
         case "prefix":
             if (!args[1])
                 msg.channel.send("Parametro invalido/inexistente \n" + 
                                  "usage juakoto prefix <prefix>");
 
-            PREFIX = args[1];
-            msg.channel.send("Prefix cambiado a " + PREFIX);
+            prefix = args[1];
+            prefix_file.change_prefix(prefix);
+            msg.channel.send("prefix cambiado a " + prefix);
             break;
         
         case "showprefix":
-            msg.channel.send(PREFIX);
+            msg.channel.send(prefix);
             break;
         
 
@@ -431,10 +433,7 @@ bot.on('message',async msg => {
         case "next":
             queue.shift();
             let elem = queue.shift();
-            if(elem)
-                play(msg);
-            else
-                dispatcher.pause();
+            elem ? play(msg) : dispatcher.pause()
             break;
 
         //jewjejejje
@@ -482,7 +481,6 @@ bot.on('message',async msg => {
         //Saludar al estilo de joacoto
         case "wendia":
             msg.channel.send("AAAAAAAAAH!!!!!!!!!");
-            break;
-        
+            break;  
     }
 })

@@ -3,13 +3,10 @@ const search = require('youtube-search');
 const ytdl = require('ytdl-core');
 const TOKEN = require('./token')
 const prefix_file = require('./prefix')
-const token = TOKEN.token();
+const token = TOKEN.token;
 
 const bot = new Discord.Client();
-const opts = {
-    maxResults: 10,
-    key: 'AIzaSyCf4haCXTfyKHn82yE5fU7Z9Majn2aBhwY'
-};
+const opts = TOKEN.opts
 
 const ULTIMO_PREVIA_Y_CACHENGUE = 35;
 
@@ -48,7 +45,7 @@ function adapt_input(arr) {
     let str1 = "";
     let i = 0;
     while (arr[i] != null){
-        if(arr[i] == "p"){
+        if(arr[i] === "p"){
             i++;
             continue;
         }
@@ -64,8 +61,7 @@ let queue = [];
 //Play song link
 async function play (msg) {
     let vc = msg.member.voice.channel;
-    if (!vc) 
-        return msg.channel.send("No estas en un canal brrreeeo\n");
+    if (!vc) return msg.channel.send("No estas en un canal brrreeeo\n");
     let permissions = vc.permissionsFor(msg.client.user);
 
     if (!permissions.has('CONNECT') || !permissions.has('SPEAK'))
@@ -73,20 +69,20 @@ async function play (msg) {
     try {
         let connection = await vc.join();
         let current_song_link = queue[0];
-        console.log("CURRENT_SONG_link: " + current_song_link);
+        //console.log("CURRENT_SONG_link: " + current_song_link);
         let info = await song_info(current_song_link);
         let title = info.videoDetails.title;
 
-        console.log("TITLE; " + title);
-        msg.channel.send("Suena " + "`" + title + "`" + "\n" 
-                                        + current_song_link);
-        dispatcher = connection.play(ytdl(current_song_link))
+        //console.log("TITLE; " + title);
+        //msg.channel.send("Suena " + "`" + title + "`" + "\n" 
+        //                                + current_song_link);
+        dispatcher = connection.play(ytdl(current_song_link,'audioonly'));
 
         dispatcher.on('finish',() => {
             queue.shift();
             let next = queue.shift();
             if (next){
-                console.log("AHORA REPRODUCIMOS: " + next);
+                //console.log("AHORA REPRODUCIMOS: " + next);
                 play(msg);
             }
             else 
@@ -119,23 +115,15 @@ async function get_link(song) {
 } 
 
 async function enqueue (msg,args) {
-    let link1;
-    if (args[0] == 'p')
+    if (args[0] === 'p')
         args[0] = "";
-    if (!valid_URL(args)){
-        let url = args[1]
-        link1 = valid_URL(url) ? url : await get_link(adapt_input(args));
-    }
-    else 
-        link1 = args;
 
-    queue.push(link1);
-    console.log("PUSHEANDO: " + link1);
-    if (queue.length == 1)
-        //!I think this is inversion of control
-        play(msg);
-    else {
-        let titl = await song_info(link1);
+    let link = valid_URL(args[1]) ? args : await get_link(adapt_input(args));
+
+    queue.push(link);
+    console.log("PUSHEANDO: " + link);
+    if (queue.length !== 1) {
+        let titl = await song_info(link);
         msg.channel.send("Cancion añadida a la cola `" 
                          + titl.videoDetails.title + "`");
     }
@@ -204,9 +192,9 @@ bot.on('message',async msg => {
         case "hola":
         case "veni":
         case "te":
-            if (args[0] == "te" && args[1] == "invoco")
+            if (args[0] === "te" && args[1] === "invoco")
                 msg.member.voice.channel.join();
-            else if (args[0] == "te")
+            else if (args[0] === "te")
                 break;
             else 
                 msg.member.voice.channel.join();
@@ -232,9 +220,9 @@ bot.on('message',async msg => {
         case "next":
         case "skip":
         case "porfavor":
-            if (args[0] == "porfavor"){
-                if (!(args[1] == "saca" && args[2] == "esta" &&
-                    args[3] == "cancion" && args[4] == "asquerosa"))
+            if (args[0] === "porfavor"){
+                if (!(args[1] === "saca" && args[2] === "esta" &&
+                    args[3] === "cancion" && args[4] === "asquerosa"))
                         break;
             }
             queue.shift();
@@ -316,7 +304,9 @@ bot.on('message',async msg => {
                 msg.channel.send("Que queres que meta en la cola? Pasame algo,"+
                                  "por que me encanta meterme cosas en la cola\n",
                                  "usage = juakoto play/p <song name/song youtube link>")
-            enqueue(msg,args)
+            await enqueue(msg,args)
+            if (queue.length === 1)
+                play(msg);
             break;
         
         case "playINSTA":
@@ -391,7 +381,7 @@ bot.on('message',async msg => {
         case "q":
         case "cola":
         case "queue":
-            if (queue.length == 0)
+            if (queue.length === 0)
                 msg.channel.send("Cola vacia\n");
             else {
                 msg.channel.send("Cola: \n");
@@ -419,8 +409,11 @@ bot.on('message',async msg => {
                         break;
                     }
                 }
-                msg.channel.send("```" + message + "```")
-                .catch(console.log("No podes mandar mensajes vacios"));
+                if (message != "")
+                    msg.channel.send("```" + message + "```")
+                    .catch(console.log("No podes mandar mensajes vacios"));
+                else 
+                    msg.channel.send("Cola vacia");
             }
             break;
 

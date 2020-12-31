@@ -1,133 +1,27 @@
 const Discord = require('discord.js');
-const search = require('youtube-search');
-const ytdl = require('ytdl-core');
-const TOKEN = require('./token')
+const CREDENTIALS = require('./credentials')
 const prefix_file = require('./prefix')
-const token = TOKEN.token;
+const utils = require('./utils')
+const play = require('./play')
+const TOKEN = CREDENTIALS.token;
+const dispatcher = play.dispatcher
 
 const bot = new Discord.Client();
-const opts = TOKEN.opts
 
 const ULTIMO_PREVIA_Y_CACHENGUE = 35;
 
-let dispatcher;
 let prefix = prefix_file.load_prefix();
 
 /*TO DO 
 const Spotify = require('spotify-web-api-js');
 var spotifyApi = new SpotifyWebApi();
-spotifyApi.setAccessToken('<here_your_access_token>'); */
+spotifyApi.setAccessToken('<here_your_access_TOKEN>'); */
 
-bot.login(token);
+bot.login(TOKEN);
 
 bot.on('ready', () => {
     console.log("Buendiaaa");
 })
-
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms))
-    .catch("EXCEPCION EN SLEEP\n");
-}
-
-//Check if a string is an url
-function valid_URL(str) {
-    var pattern = new RegExp('^(https?:\\/\\/)?'+ // protocol
-      '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|'+ // domain name
-      '((\\d{1,3}\\.){3}\\d{1,3}))'+ // OR ip (v4) address
-      '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*'+ // port and path
-      '(\\?[;&a-z\\d%_.~+=-]*)?'+ // query string
-      '(\\#[-a-z\\d_]*)?$','i'); // fragment locator
-    return !!pattern.test(str);
-}
-
-//Takes a message and adapt the string to make it readable by get_link
-function adapt_input(arr) {
-    let str1 = "";
-    let i = 0;
-    while (arr[i] != null){
-        if(arr[i] === "p"){
-            i++;
-            continue;
-        }
-        str1 += arr[i];
-        str1 += " ";
-        i++;
-    }
-    return str1;
-}
-
-let queue = [];
-
-//Play song link
-async function play (msg) {
-    let vc = msg.member.voice.channel;
-    if (!vc) return msg.channel.send("No estas en un canal brrreeeo\n");
-    let permissions = vc.permissionsFor(msg.client.user);
-
-    if (!permissions.has('CONNECT') || !permissions.has('SPEAK'))
-        return msg.channel.send("No me diste permisos breeeo\n");
-    try {
-        let connection = await vc.join();
-        let current_song_link = queue[0];
-        //console.log("CURRENT_SONG_link: " + current_song_link);
-        let info = await song_info(current_song_link);
-        let title = info.videoDetails.title;
-
-        //console.log("TITLE; " + title);
-        //msg.channel.send("Suena " + "`" + title + "`" + "\n" 
-        //                                + current_song_link);
-        dispatcher = connection.play(ytdl(current_song_link,'audioonly'));
-
-        dispatcher.on('finish',() => {
-            queue.shift();
-            let next = queue.shift();
-            if (next){
-                //console.log("AHORA REPRODUCIMOS: " + next);
-                play(msg);
-            }
-            else 
-                dispatcher.pause();
-        })
-
-        dispatcher.setVolumeLogarithmic(5 / 5)
-    }
-    catch (error){
-        console.log("There was an error joining the voice channel\n");
-        console.log(error);
-        return msg.channel.send("Paso algo raro brreeeoo\n");
-    }
-}
-
-//Da info sobre el video de la cancion
-async function song_info (song) {
-    return new Promise((resolve,reject) => {
-        ytdl.getInfo(song).then(resolve,reject);
-    });
-}
-
-//Obtiene el link de una cancion
-async function get_link(song) {
-    return new Promise((resolve, reject) => {
-        search(song, opts, function(err, results) {
-            err ? reject(err) : resolve(results[0].link)
-        });
-    });
-} 
-
-async function enqueue (msg,args) {
-    if (args[0] === 'p')
-        args[0] = "";
-
-    let link = valid_URL(args[1]) ? args : await get_link(adapt_input(args));
-
-    queue.push(link);
-    console.log("PUSHEANDO: " + link);
-    if (queue.length !== 1) {
-        let titl = await song_info(link);
-        msg.channel.send("Cancion añadida a la cola `" 
-                         + titl.videoDetails.title + "`");
-    }
-}
 
 //Funcion principal
 bot.on('message',async msg => {
@@ -145,13 +39,13 @@ bot.on('message',async msg => {
         
         //Reproduce una cancion de cancha
         case "cancha":
-            enqueue(msg, "https://www.youtube.com/watch?v=mBmcuw4CRpQ");
+            play.enqueue(msg, "https://www.youtube.com/watch?v=mBmcuw4CRpQ");
             break;
         
         //Limpia la cola de canciones
         case "c":
         case "clear":
-            queue = [];
+            play.clear_queue();
             msg.channel.send("Cola vaciada\n");
             //TODO, hacer que esto pause la ejecucion
             break;
@@ -204,16 +98,16 @@ bot.on('message',async msg => {
         case "JUERNES":
         case "JUERNES PERRO":
         case "juernes perro":
-            queue = [];
+            play.clear_queue();
             queue.push("https://www.youtube.com/watch?v=QkngZ1P3aKw");
-            await play(msg);
+            await play.play_song(msg);
             dispatcher.setVolume(10);
             msg.channel.send("JUERNES PERRITO");
             break;
 
         //Reproduce el mejor clip del tata, ideal para momentos epicos
         case "nazi":
-            enqueue(msg,"https://www.youtube.com/watch?v=MSDfzlALzQo");
+            play.enqueue(msg,"https://www.youtube.com/watch?v=MSDfzlALzQo");
             break;  
         
         case "n":
@@ -227,9 +121,9 @@ bot.on('message',async msg => {
             }
             queue.shift();
             try {
-                let next_song = queue[0];
+                let next_song = play.get_queue()[0];
                 if (next_song)
-                    play(msg);
+                    play.play_song(msg);
                 else
                     dispatcher.pause();
             }
@@ -304,9 +198,9 @@ bot.on('message',async msg => {
                 msg.channel.send("Que queres que meta en la cola? Pasame algo,"+
                                  "por que me encanta meterme cosas en la cola\n",
                                  "usage = juakoto play/p <song name/song youtube link>")
-            await enqueue(msg,args)
+            await play.enqueue(msg,args)
             if (queue.length === 1)
-                play(msg);
+                play.play_song(msg);
             break;
         
         case "playINSTA":
@@ -314,9 +208,9 @@ bot.on('message',async msg => {
         case "PLAYINSTA":
         case "playI":
         case "playi":
-            queue = [];
-            valid_URL(args) ? queue.push(args[1]) : queue.push(adapt_input(args))
-            play(msg);
+            play.clear_queue();
+            utils.valid_URL(args) ? play.queue_push(args[1]) : play.queue_push(utils.adapt_input(args))
+            play.play_song(msg);
             break;
         
         case "paraguayo":
@@ -348,7 +242,7 @@ bot.on('message',async msg => {
             let arr1 = [];
             for (var j = from; j <= to; j++){
                 arr1.push("previa y cachengue " + j);
-                enqueue(msg,arr1);
+                play.enqueue(msg,arr1);
                 arr1 = [];
             }
             break;
@@ -373,8 +267,8 @@ bot.on('message',async msg => {
         case "troleo":
         case "bailedeltroleo":
             arr = "https://www.youtube.com/watch?v=qe5-ywmuKOg";
-            await enqueue(msg,arr);
-            sleep(4000); //Por que tiene que esperar un poco mas y no quiero pensar una forma mas elegante de hacerlo
+            await play.enqueue(msg,arr);
+            utils.sleep(4000); //Por que tiene que esperar un poco mas y no quiero pensar una forma mas elegante de hacerlo
             dispatcher.setVolume(10);
             break;
         //Printear Cola
@@ -390,12 +284,12 @@ bot.on('message',async msg => {
                 let v_song_link;
                 let v_song_len;
                 let message = "";
-                let aux = queue;
+                let aux = play.get_queue();
                 let s = aux.shift();
                 while(s) {
                     try{
                         if (s){
-                            v_song_info = await song_info(s);
+                            v_song_info = await play.song_info(s);
                             v_song_title = v_song_info.videoDetails.title;
                             v_song_link = v_song_info.videoDetails.video_url;
                             message += v_song_title + " " + v_song_link + "\n";
@@ -425,9 +319,9 @@ bot.on('message',async msg => {
         case "skip":
         case "n":
         case "next":
-            queue.shift();
-            let elem = queue.shift();
-            elem ? play(msg) : dispatcher.pause()
+            play.queue_shift();
+            let elem = play.queue_shift();
+            elem ? play.play_song(msg) : dispatcher.pause()
             break;
 
         //jewjejejje
@@ -446,7 +340,7 @@ bot.on('message',async msg => {
                                  "usage = juakoto spam <message> <times>");
             for (let i = 0; i < times; i++){
                 msg.channel.send(message);
-                await sleep(1000);
+                await utils.sleep(1000);
             }
             break;
         
@@ -469,7 +363,7 @@ bot.on('message',async msg => {
         //QUENOPLANTE QUE NOPLANTE CARAJO
         case "qnp":
         case "quenoplante":
-            enqueue(msg,"https://www.youtube.com/watch?v=Qt3ubcGoeoE");
+            play.enqueue(msg,"https://www.youtube.com/watch?v=Qt3ubcGoeoE");
             break;
         
         //Saludar al estilo de joacoto

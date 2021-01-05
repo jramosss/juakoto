@@ -4,7 +4,6 @@ const prefix_file = require('./prefix')
 const utils = require('./utils')
 const play = require('./play')
 const TOKEN = CREDENTIALS.token;
-const dispatcher = play.dispatcher
 
 const bot = new Discord.Client();
 
@@ -12,7 +11,8 @@ const ULTIMO_PREVIA_Y_CACHENGUE = 35;
 
 let prefix = prefix_file.load_prefix();
 
-/*TO DO 
+//TODO
+/*
 const Spotify = require('spotify-web-api-js');
 var spotifyApi = new SpotifyWebApi();
 spotifyApi.setAccessToken('<here_your_access_TOKEN>'); */
@@ -34,12 +34,12 @@ bot.on('message',async msg => {
         case "tomatela":
         case "shu":
             msg.member.voice.channel.leave();
-            queue = [];
+            play.clear_queue();
             break;
         
         //Reproduce una cancion de cancha
         case "cancha":
-            play.enqueue(msg, "https://www.youtube.com/watch?v=mBmcuw4CRpQ");
+            play.enqueue("https://www.youtube.com/watch?v=mBmcuw4CRpQ");
             break;
         
         //Limpia la cola de canciones
@@ -91,7 +91,7 @@ bot.on('message',async msg => {
             else if (args[0] === "te")
                 break;
             else 
-                msg.member.voice.channel.join();
+                msg.member.voice.channel.join().catch(console.log("Excepcion en hola (re inutil men)\n"));
             break;
         
         case "juernes":
@@ -99,15 +99,15 @@ bot.on('message',async msg => {
         case "JUERNES PERRO":
         case "juernes perro":
             play.clear_queue();
-            queue.push("https://www.youtube.com/watch?v=QkngZ1P3aKw");
+            play.enqueue("https://www.youtube.com/watch?v=QkngZ1P3aKw");
             await play.play_song(msg);
-            dispatcher.setVolume(10);
+            play.set_volume(10);
             msg.channel.send("JUERNES PERRITO");
             break;
 
         //Reproduce el mejor clip del tata, ideal para momentos epicos
         case "nazi":
-            play.enqueue(msg,"https://www.youtube.com/watch?v=MSDfzlALzQo");
+            play.enqueue("https://www.youtube.com/watch?v=MSDfzlALzQo");
             break;  
         
         case "n":
@@ -119,13 +119,16 @@ bot.on('message',async msg => {
                     args[3] === "cancion" && args[4] === "asquerosa"))
                         break;
             }
-            queue.shift();
+            play.queue_shift();
             try {
-                let next_song = play.get_queue()[0];
-                if (next_song)
-                    play.play_song(msg);
-                else
-                    dispatcher.pause();
+                let playing_index = play.get_playing_index()
+                try {
+                    let next_song = play.get_queue()[playing_index+1];
+                    next_song ? play.play_song(msg) : play.pause()
+                }
+                catch(err){
+                    console.log(err);
+                }
             }
             catch(e){
                 msg.channel.send("Excepcion\n");
@@ -183,12 +186,12 @@ bot.on('message',async msg => {
 
 
         case "mute":
-            dispatcher.setVolume(0);
+            play.set_volume(0);
             msg.channel.send("Seteando el volumen a 0");
             break;
             
         case "pause":
-            dispatcher.pause();
+            play.pause();
             break;
 
         //Reproducir una cancion con input en lenguaje natural
@@ -198,9 +201,23 @@ bot.on('message',async msg => {
                 msg.channel.send("Que queres que meta en la cola? Pasame algo,"+
                                  "por que me encanta meterme cosas en la cola\n",
                                  "usage = juakoto play/p <song name/song youtube link>")
-            await play.enqueue(msg,args)
-            if (queue.length === 1)
-                play.play_song(msg);
+            await play.enqueue(args).catch("Excepcion en enqueue (index.js)\n");
+            let queue = play.get_queue();
+            if (utils.queue_length(queue) === 1){
+                try{
+                    play.play_song(msg);
+                }
+                catch(e){
+                    if (e instanceof play.NotAllowed)
+                        msg.channel.send("No me diste permisos bro\n");
+                    else if (e instanceof play.NotInAChannel)
+                        msg.channel.send("No estas en un canal bro\n");
+                    else{
+                        console.log("Error en play (index.js)" + error);
+                        msg.channel.send("Problemitas tecnicos\n");
+                    }
+                }
+            }
             break;
         
         case "playINSTA":
@@ -209,7 +226,9 @@ bot.on('message',async msg => {
         case "playI":
         case "playi":
             play.clear_queue();
-            utils.valid_URL(args) ? play.queue_push(args[1]) : play.queue_push(utils.adapt_input(args))
+            utils.valid_URL(args) ? play.queue_push(args[1]) : 
+                                    play.queue_push(utils.adapt_input(args))
+
             play.play_song(msg);
             break;
         
@@ -223,26 +242,29 @@ bot.on('message',async msg => {
         case "pyc":
             let from;
             let to;
-            if (!args[1]){
-                msg.channel.send("No especificaste desde donde,terrible mogolico,defaulteando a 1")
-                from = 1;
-            }
-            else
-                from = args[1];
+            if (!args[1] || !args[2])
+                msg.channel.send("usage = juakoto pyc <from> <to>");
+
+            else{ 
+                if (!args[1]){
+                    msg.channel.send("No especificaste desde donde,terrible mogolico,defaulteando a 1")
+                    from = 1;
+                }   
+                else 
+                    from = args[1];
+            }   
 
             if (!args[2]){
                 msg.channel.send("No especificaste hasta donde,terrible mogolico,defaulteando a" + ULTIMO_PREVIA_Y_CACHENGUE)
                 to = ULTIMO_PREVIA_Y_CACHENGUE;
             }
-            if (!args[1] || !args[2])
-                msg.channel.send("usage = juakoto pyc <from> <to>");
             else
                 to = args[2];
 
             let arr1 = [];
             for (var j = from; j <= to; j++){
                 arr1.push("previa y cachengue " + j);
-                play.enqueue(msg,arr1);
+                play.enqueue(arr1);
                 arr1 = [];
             }
             break;
@@ -267,15 +289,18 @@ bot.on('message',async msg => {
         case "troleo":
         case "bailedeltroleo":
             arr = "https://www.youtube.com/watch?v=qe5-ywmuKOg";
-            await play.enqueue(msg,arr);
-            utils.sleep(4000); //Por que tiene que esperar un poco mas y no quiero pensar una forma mas elegante de hacerlo
-            dispatcher.setVolume(10);
+            await play.enqueue(arr);
+            utils.sleep(4000); 
+            //Por que tiene que esperar un poco mas y no quiero pensar una forma mas elegante de hacerlo
+            play.set_volume(10);
             break;
         //Printear Cola
+        //TODO readapt
         case "q":
         case "cola":
         case "queue":
-            if (queue.length === 0)
+            let _queue = play.get_queue()
+            if (utils.queue_length(_queue) === 0)
                 msg.channel.send("Cola vacia\n");
             else {
                 msg.channel.send("Cola: \n");
@@ -299,7 +324,7 @@ bot.on('message',async msg => {
                             break;
                     }
                     catch(error) {
-                        console.log(error);
+                        console.log("QUEUE " + error);
                         break;
                     }
                 }
@@ -313,7 +338,7 @@ bot.on('message',async msg => {
 
         case "r":
         case "resume":
-            dispatcher.resume();
+            play.resume();
             break;
 
         case "skip":
@@ -321,13 +346,18 @@ bot.on('message',async msg => {
         case "next":
             play.queue_shift();
             let elem = play.queue_shift();
-            elem ? play.play_song(msg) : dispatcher.pause()
+            try{
+                elem ? play.play_song(msg) : play.pause()
+            }
+            catch (e) {
+                console.log("Excepcion en skip " + e);
+            }
             break;
 
         //jewjejejje
         case "satura":
         case "earrape":
-            dispatcher.setVolume(10);
+            play.set_volume(10);
             msg.channel.send("Espero que nadie este por hacer un clutch\n");
             break;
 
@@ -347,23 +377,19 @@ bot.on('message',async msg => {
         //Definir el volument del bot
         case "vs":
         case "volumeset":
-            let volume = 1;
-            if (args[1]){
-                volume = args[1];
-                msg.channel.send("Volumen seteado a " + args[1]);
-            }
-            else
-                msg.channel.send("No me pasaste parametros, seteando a 1\n" +
-                                "usage = juakoto vs/volumeset <volume>\n");
-        
+            let volume = args[1] ? args[1] : 1;
+            play.set_volume(volume)
             dispatcher.setVolume(volume);
-        
+
+            msg.channel.send(args[1] ? "Volumen seteado a " + volume : 
+                            "No me pasaste parametros, seteando a 1");
+            
             break;
         
         //QUENOPLANTE QUE NOPLANTE CARAJO
         case "qnp":
         case "quenoplante":
-            play.enqueue(msg,"https://www.youtube.com/watch?v=Qt3ubcGoeoE");
+            play.enqueue("https://www.youtube.com/watch?v=Qt3ubcGoeoE");
             break;
         
         //Saludar al estilo de joacoto

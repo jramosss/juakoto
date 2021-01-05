@@ -6,46 +6,61 @@ const utils = require('./utils')
 const OPTS = require('./credentials')
 
 const opts = OPTS.opts
-let queue = [];
+let queue = {};
 let dispatcher;
+let last_index = 0;
+let playing_index = 0;
+
+class NotAllowed extends Error {
+    constructor(msg = 'Not allowed') {
+      if (Error.captureStackTrace)
+        Error.captureStackTrace(this, NotAllowed)
+  
+      this.name = 'NotAllowed'
+    }
+}
+
+class NotInAChannel extends Error {
+    constructor(msg = 'Not In a channel') {
+      if (Error.captureStackTrace)
+        Error.captureStackTrace(this, NotInAChannel);
+  
+      this.name = 'NotInAChannel';
+    }
+}
 
 async function play_song (msg) {
     let vc = msg.member.voice.channel;
-    if (!vc) return msg.channel.send("No estas en un canal brrreeeo\n");
+    if (!vc) throw NotInAChannel
     let permissions = vc.permissionsFor(msg.client.user);
 
     if (!permissions.has('CONNECT') || !permissions.has('SPEAK'))
-        return msg.channel.send("No me diste permisos breeeo\n");
-    try {
-        let connection = await vc.join();
-        let current_song_link = queue[0];
-        //console.log("CURRENT_SONG_link: " + current_song_link);
-        let info = await song_info(current_song_link);
-        //let title = info.videoDetails.title;
+        throw NotAllowed
 
+        let connection = await vc.join().catch(console.log("Error entrando al canal\n"));
+        let current_song_link = queue[playing_index];
+        playing_index++;
+        console.log("CURRENT SONG LINK: " + current_song_link);
+        //let info = await song_info(current_song_link).catch(console.log("MMMMM"));
+        //let title = info.videoDetails.title;
+        
         //console.log("TITLE; " + title);
         //msg.channel.send("Suena " + "`" + title + "`" + "\n" 
-        //                                + current_song_link);
-        dispatcher = connection.play(ytdl(current_song_link,'audioonly'));
-
-        dispatcher.on('finish',() => {
-            queue.shift();
-            let next = queue.shift();
-            if (next){
-                //console.log("AHORA REPRODUCIMOS: " + next);
-                play(msg);
-            }
-            else 
-                dispatcher.pause();
-        })
-
+        //                              + current_song_link);
+        try{
+            dispatcher = connection.play(ytdl(current_song_link));
+            dispatcher.on('finish',() => {
+                queue.shift();
+                let next = queue.shift();
+                next ? play(msg) : pause()
+            })
+        }
+        catch (error){
+            console.log(error);
+            msg.channel.send("No se puede reproducir la cancion xd\n");
+        }
+        
         dispatcher.setVolumeLogarithmic(5 / 5)
-    }
-    catch (error){
-        console.log("There was an error joining the voice channel\n");
-        console.log(error);
-        return msg.channel.send("Paso algo raro brreeeoo\n");
-    }
 }
 
 //Da info sobre el video de la cancion
@@ -64,20 +79,19 @@ async function get_link(song) {
     });
 } 
 
-async function enqueue (msg,args) {
+async function enqueue (args) {
     if (args[0] === 'p')
         args[0] = "";
 
     let link = utils.valid_URL(args[1]) ? args 
                : await get_link(utils.adapt_input(args));
 
-    queue.push(link);
-    console.log("PUSHEANDO: " + link);
-    if (queue.length !== 1) {
-        let titl = await song_info(link);
-        msg.channel.send("Cancion añadida a la cola `" 
-                         + titl.videoDetails.title + "`");
-    }
+    queue[last_index] = link;
+    last_index++;
+    
+    //TODO send a message telling which song was enqueued
+    //let info = await song_info(link);
+    //return info.videoDetails.title;
 }
 
 function get_queue (){
@@ -85,7 +99,7 @@ function get_queue (){
 }
 
 function clear_queue () {
-    queue = []
+    queue = {};
 }
 
 function queue_push (elem) {
@@ -96,4 +110,26 @@ function queue_shift () {
     return queue.shift()
 }
 
-module.exports = {play_song,enqueue,get_link,song_info,get_queue,clear_queue,queue_push,queue_shift,dispatcher}
+function get_dispatcher () {
+    return dispatcher;
+}
+
+function get_playing_index () {
+    return playing_index;
+}
+
+function set_volume (volume) {
+    dispatcher.setVolume(volume);
+}
+
+function pause () {
+    dispatcher.pause();
+}
+
+function resume ()  {
+    dispatcher.resume();
+}
+
+module.exports = {play_song,enqueue,get_link,song_info,get_queue,clear_queue,
+                  queue_push,queue_shift,get_dispatcher,get_playing_index,set_volume,
+                  pause,resume,NotAllowed,NotInAChannel}

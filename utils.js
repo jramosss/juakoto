@@ -30,4 +30,14 @@ function adapt_input(arr) {
     return str1;
 }
 
-module.exports = {adapt_input,valid_URL,sleep}
+function queue_length(queue){
+    let count = 0;
+    for (var _ in queue)
+        count++;
+    return count
+}
+
+//TODO implement this function so i can write error logs
+//function write (filename)
+
+module.exports = {adapt_input,valid_URL,sleep,queue_length}

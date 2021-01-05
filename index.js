@@ -91,7 +91,7 @@ bot.on('message',async msg => {
             else if (args[0] === "te")
                 break;
             else 
-                msg.member.voice.channel.join().catch(console.log("Excepcion en hola (re inutil men)\n"));
+                msg.member.voice.channel.join().catch(console.log("Exception in hola\n"));
             break;
         
         case "juernes":
@@ -105,9 +105,24 @@ bot.on('message',async msg => {
             msg.channel.send("JUERNES PERRITO");
             break;
 
+        
+        case "jump":
+            if (!args[1]) {
+                msg.channel.send("No me pasaste parametros");
+                break;
+            }
+            if (play.get_queue()[args[1]]){
+                play.jump(args[1]);
+                play.play_song(msg);
+                msg.channel.send("Saltando a la cancion nº" + args[1]);
+            }
+            else 
+                msg.channel.send("Man que flayas no esta esa cancion en la cola")
+            break;
+
         //Reproduce el mejor clip del tata, ideal para momentos epicos
         case "nazi":
-            play.enqueue(msg,"https://www.youtube.com/watch?v=MSDfzlALzQo");
+            await play.enqueue(msg,"https://www.youtube.com/watch?v=MSDfzlALzQo");
             break;  
         
         case "n":
@@ -201,7 +216,7 @@ bot.on('message',async msg => {
                 msg.channel.send("Que queres que meta en la cola? Pasame algo,"+
                                  "por que me encanta meterme cosas en la cola\n",
                                  "usage = juakoto play/p <song name/song youtube link>")
-            await play.enqueue(msg,args).catch("Excepcion en enqueue msg,(index.js)\n");
+            await play.enqueue(msg,args).catch(console.log("Excepcion en enqueue msg,(index.js)\n"));
             let queue = play.get_queue();
             if (utils.queue_length(queue) === 1){
                 try{
@@ -240,17 +255,13 @@ bot.on('message',async msg => {
         case "pyc":
             let from;
             let to;
-            if (!args[1] || !args[2])
-                msg.channel.send("usage = juakoto pyc <from> <to>");
 
-            else{ 
-                if (!args[1]){
-                    msg.channel.send("No especificaste desde donde,terrible mogolico,defaulteando a 1")
-                    from = 1;
-                }   
-                else 
-                    from = args[1];
+            if (!args[1]){
+                msg.channel.send("No especificaste desde donde,terrible mogolico,defaulteando a 1")
+                from = 1;
             }   
+            else 
+                from = args[1];
 
             if (!args[2]){
                 msg.channel.send("No especificaste hasta donde,terrible mogolico,defaulteando a" + ULTIMO_PREVIA_Y_CACHENGUE)
@@ -270,9 +281,11 @@ bot.on('message',async msg => {
         //Modificar prefix
         //TODO crear base de datos para que se guarde el prefix
         case "prefix":
-            if (!args[1])
-                msg.channel.send("Parametro invalido/inexistente \n" + 
+            if (!args[1]){
+                msg.channel.send("Parametro inexistente \n" + 
                                  "usage juakoto prefix <prefix>");
+                break;
+            }
 
             prefix = args[1];
             prefix_file.change_prefix(prefix);
@@ -281,6 +294,14 @@ bot.on('message',async msg => {
         
         case "showprefix":
             msg.channel.send(prefix);
+            break;
+
+        case "status":
+            let status = play.status()
+            let message1 = "";
+            message1 += status.init ? "Initialized\n" : "Uninitialized\n";
+            message1 += status.paused ? "Paused" : "Playing";
+            msg.channel.send("```" + message1 + "```");
             break;
         
 
@@ -292,8 +313,7 @@ bot.on('message',async msg => {
             //Por que tiene que esperar un poco mas y no quiero pensar una forma mas elegante de hacerlo
             play.set_volume(10);
             break;
-        //Printear Cola
-        //TODO readapt
+        //Print Queue
         case "q":
         case "cola":
         case "queue":
@@ -301,10 +321,9 @@ bot.on('message',async msg => {
             if (utils.queue_length(_queue) === 0)
                 msg.channel.send("Cola vacia\n");
             else {
-                msg.channel.send("Cola: \n");
                 let v_song_info;
                 let v_song_title;
-                let v_song_link;
+                //let v_song_link;
                 let v_song_len;
                 let message = "";
                 let aux = play.get_queue();
@@ -312,9 +331,10 @@ bot.on('message',async msg => {
                 while(aux[i]) {
                     try{
                         v_song_info = await play.song_info(aux[i]);
+                        v_song_len = v_song_info.videoDetails.lengthSeconds / 60;
                         v_song_title = v_song_info.videoDetails.title;
-                        v_song_link = v_song_info.videoDetails.video_url;
-                        message += v_song_title + " " + v_song_link + "\n";
+                        //v_song_link = v_song_info.videoDetails.video_url;
+                        message += i + " " + v_song_title + "       " + v_song_len + "\n";
 
                         i++;
                     }
@@ -324,8 +344,8 @@ bot.on('message',async msg => {
                     }
                 }
                 if (message !== "")
-                    msg.channel.send("```" + message + "```")
-                    .catch(console.log("No podes mandar mensajes vacios"));
+                    msg.channel.send("```" + "Cola: \n" + message + "```")
+                    .catch(console.log("Empty Message"));
                 else 
                     msg.channel.send("Cola vacia");
             }
@@ -339,10 +359,15 @@ bot.on('message',async msg => {
         case "skip":
         case "n":
         case "next":
-            play.queue_shift();
-            let elem = play.queue_shift();
             try{
-                elem ? play.play_song(msg) : play.pause()
+                let queue = play.get_queue();
+                let playing_index1 = play.get_playing_index()
+                if (queue[playing_index1+1]){
+                    play.queue_shift();
+                    play.play_song(msg);
+                }
+                else 
+                    play.pause()
             }
             catch (e) {
                 console.log("Excepcion en skip " + e);
@@ -360,9 +385,11 @@ bot.on('message',async msg => {
         case "spam":
             let message = args[1]
             let times = args[2];
-            if (!args[1] || !args[2])
+            if (!args[1] || !args[2]){
                 msg.channel.send("No me mandaste argumentos mogolico\n" + 
                                  "usage = juakoto spam <message> <times>");
+                break;
+            }
             for (let i = 0; i < times; i++){
                 msg.channel.send(message);
                 await utils.sleep(1000);
@@ -374,7 +401,6 @@ bot.on('message',async msg => {
         case "volumeset":
             let volume = args[1] ? args[1] : 1;
             play.set_volume(volume)
-            dispatcher.setVolume(volume);
 
             msg.channel.send(args[1] ? "Volumen seteado a " + volume : 
                             "No me pasaste parametros, seteando a 1");

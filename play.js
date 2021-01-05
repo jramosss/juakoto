@@ -1,5 +1,3 @@
-//Play song link
-//const Discord = require('discord.js');
 const search = require('youtube-search');
 const ytdl = require('ytdl-core');
 const utils = require('./utils')
@@ -10,6 +8,8 @@ let queue = {};
 let dispatcher;
 let last_index = 0;
 let playing_index = 0;
+let paused = false;
+let init = false;
 
 class NotAllowed extends Error {
     constructor(msg = 'Not allowed') {
@@ -30,6 +30,7 @@ class NotInAChannel extends Error {
 }
 
 async function play_song (msg) {
+    init = true;
     let vc = msg.member.voice.channel;
     if (!vc) throw NotInAChannel
     let permissions = vc.permissionsFor(msg.client.user);
@@ -38,19 +39,24 @@ async function play_song (msg) {
         throw NotAllowed
 
         let connection = await vc.join().catch(console.log("Error entrando al canal\n"));
-        let current_song_link = queue[playing_index];
-        playing_index++;
-        console.log("CURRENT SONG LINK: " + current_song_link);
-        //let info = await song_info(current_song_link).catch(console.log("MMMMM"));
-        //let title = info.videoDetails.title;
         
-        //console.log("TITLE; " + title);
-        //msg.channel.send("Suena " + "`" + title + "`" + "\n" 
-        //                              + current_song_link);
         try{
+            let current_song_link = queue[playing_index];
             dispatcher = connection.play(ytdl(current_song_link));
+            if (paused){
+                resume();
+                paused = false;
+            } 
+                
             dispatcher.on('finish',() => {
-                queue[playing_index] ? play_song(msg) : pause()
+                if (queue[playing_index+1]){
+                    play_song(msg) ;
+                }
+                else {
+                    pause();
+                    paused = true;
+                }
+                playing_index++;
             })
         }
         catch (error){
@@ -59,6 +65,27 @@ async function play_song (msg) {
         }
         
         dispatcher.setVolumeLogarithmic(5 / 5)
+}
+
+async function enqueue (msg,args) {
+    if (args[0] === 'p')
+        args[0] = "";
+
+    let link;
+    if (utils.valid_URL(args))
+        link = args;
+    else if (utils.valid_URL(args[1]))
+        link = args[1];
+    else
+        link = await get_link(utils.adapt_input(args));
+
+    queue[last_index] = link;
+    last_index++;
+    
+    //TODO send a message telling which song was enqueued
+    msg.channel.send("Cancion añadida a la cola " + link);
+    //let info = await song_info(link);
+    //return info.videoDetails.title;
 }
 
 //Da info sobre el video de la cancion
@@ -77,25 +104,6 @@ async function get_link(song) {
     });
 } 
 
-async function enqueue (msg,args) {
-    if (args[0] === 'p')
-        args[0] = "";
-
-    let link;
-
-    if (utils.valid_URL(args[1]))
-        link = args;
-    else
-        link = await get_link(utils.adapt_input(args));
-
-    queue[last_index] = link;
-    last_index++;
-    
-    //TODO send a message telling which song was enqueued
-    msg.channel.send("Cancion añadida a la cola " + link);
-    //let info = await song_info(link);
-    //return info.videoDetails.title;
-}
 
 function get_queue (){
     return queue;
@@ -126,9 +134,24 @@ function pause () {
 }
 
 function resume ()  {
-    dispatcher.resume();
+    try{
+        dispatcher.resume();
+    }
+    catch{
+        console.log("Dispatcher uninitialized\n")
+    }
+}
+
+function jump (to) {
+    playing_index = to;
+}
+
+function status () {
+    return {
+        "paused" : paused,
+        "init" : init};
 }
 
 module.exports = {play_song,enqueue,get_link,song_info,get_queue,clear_queue,
                   queue_shift,get_dispatcher,get_playing_index,set_volume,
-                  pause,resume,NotAllowed,NotInAChannel}
+                  pause,resume,NotAllowed,NotInAChannel,jump,status}

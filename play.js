@@ -50,9 +50,7 @@ async function play_song (msg) {
         try{
             dispatcher = connection.play(ytdl(current_song_link));
             dispatcher.on('finish',() => {
-                queue.shift();
-                let next = queue.shift();
-                next ? play(msg) : pause()
+                queue[playing_index] ? play_song(msg) : pause()
             })
         }
         catch (error){
@@ -79,17 +77,22 @@ async function get_link(song) {
     });
 } 
 
-async function enqueue (args) {
+async function enqueue (msg,args) {
     if (args[0] === 'p')
         args[0] = "";
 
-    let link = utils.valid_URL(args[1]) ? args 
-               : await get_link(utils.adapt_input(args));
+    let link;
+
+    if (utils.valid_URL(args[1]))
+        link = args;
+    else
+        link = await get_link(utils.adapt_input(args));
 
     queue[last_index] = link;
     last_index++;
     
     //TODO send a message telling which song was enqueued
+    msg.channel.send("Cancion añadida a la cola " + link);
     //let info = await song_info(link);
     //return info.videoDetails.title;
 }
@@ -102,12 +105,8 @@ function clear_queue () {
     queue = {};
 }
 
-function queue_push (elem) {
-    queue.push(elem);
-}
-
 function queue_shift () {
-    return queue.shift()
+    playing_index++;
 }
 
 function get_dispatcher () {
@@ -131,5 +130,5 @@ function resume ()  {
 }
 
 module.exports = {play_song,enqueue,get_link,song_info,get_queue,clear_queue,
-                  queue_push,queue_shift,get_dispatcher,get_playing_index,set_volume,
+                  queue_shift,get_dispatcher,get_playing_index,set_volume,
                   pause,resume,NotAllowed,NotInAChannel}

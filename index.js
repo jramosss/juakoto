@@ -39,7 +39,7 @@ bot.on('message',async msg => {
         
         //Reproduce una cancion de cancha
         case "cancha":
-            play.enqueue("https://www.youtube.com/watch?v=mBmcuw4CRpQ");
+            play.enqueue(msg,"https://www.youtube.com/watch?v=mBmcuw4CRpQ");
             break;
         
         //Limpia la cola de canciones
@@ -99,7 +99,7 @@ bot.on('message',async msg => {
         case "JUERNES PERRO":
         case "juernes perro":
             play.clear_queue();
-            play.enqueue("https://www.youtube.com/watch?v=QkngZ1P3aKw");
+            play.enqueue(msg,"https://www.youtube.com/watch?v=QkngZ1P3aKw");
             await play.play_song(msg);
             play.set_volume(10);
             msg.channel.send("JUERNES PERRITO");
@@ -107,7 +107,7 @@ bot.on('message',async msg => {
 
         //Reproduce el mejor clip del tata, ideal para momentos epicos
         case "nazi":
-            play.enqueue("https://www.youtube.com/watch?v=MSDfzlALzQo");
+            play.enqueue(msg,"https://www.youtube.com/watch?v=MSDfzlALzQo");
             break;  
         
         case "n":
@@ -201,7 +201,7 @@ bot.on('message',async msg => {
                 msg.channel.send("Que queres que meta en la cola? Pasame algo,"+
                                  "por que me encanta meterme cosas en la cola\n",
                                  "usage = juakoto play/p <song name/song youtube link>")
-            await play.enqueue(args).catch("Excepcion en enqueue (index.js)\n");
+            await play.enqueue(msg,args).catch("Excepcion en enqueue msg,(index.js)\n");
             let queue = play.get_queue();
             if (utils.queue_length(queue) === 1){
                 try{
@@ -226,9 +226,7 @@ bot.on('message',async msg => {
         case "playI":
         case "playi":
             play.clear_queue();
-            utils.valid_URL(args) ? play.queue_push(args[1]) : 
-                                    play.queue_push(utils.adapt_input(args))
-
+            play.enqueue(args);
             play.play_song(msg);
             break;
         
@@ -264,7 +262,7 @@ bot.on('message',async msg => {
             let arr1 = [];
             for (var j = from; j <= to; j++){
                 arr1.push("previa y cachengue " + j);
-                play.enqueue(arr1);
+                play.enqueue(msg,arr1);
                 arr1 = [];
             }
             break;
@@ -289,7 +287,7 @@ bot.on('message',async msg => {
         case "troleo":
         case "bailedeltroleo":
             arr = "https://www.youtube.com/watch?v=qe5-ywmuKOg";
-            await play.enqueue(arr);
+            await play.enqueue(msg,arr);
             utils.sleep(4000); 
             //Por que tiene que esperar un poco mas y no quiero pensar una forma mas elegante de hacerlo
             play.set_volume(10);
@@ -310,25 +308,22 @@ bot.on('message',async msg => {
                 let v_song_len;
                 let message = "";
                 let aux = play.get_queue();
-                let s = aux.shift();
-                while(s) {
+                let i = 0;
+                while(aux[i]) {
                     try{
-                        if (s){
-                            v_song_info = await play.song_info(s);
-                            v_song_title = v_song_info.videoDetails.title;
-                            v_song_link = v_song_info.videoDetails.video_url;
-                            message += v_song_title + " " + v_song_link + "\n";
-                            s = aux.shift();
-                        }
-                        else
-                            break;
+                        v_song_info = await play.song_info(aux[i]);
+                        v_song_title = v_song_info.videoDetails.title;
+                        v_song_link = v_song_info.videoDetails.video_url;
+                        message += v_song_title + " " + v_song_link + "\n";
+
+                        i++;
                     }
                     catch(error) {
                         console.log("QUEUE " + error);
                         break;
                     }
                 }
-                if (message != "")
+                if (message !== "")
                     msg.channel.send("```" + message + "```")
                     .catch(console.log("No podes mandar mensajes vacios"));
                 else 
@@ -389,7 +384,7 @@ bot.on('message',async msg => {
         //QUENOPLANTE QUE NOPLANTE CARAJO
         case "qnp":
         case "quenoplante":
-            play.enqueue("https://www.youtube.com/watch?v=Qt3ubcGoeoE");
+            play.enqueue(msg,"https://www.youtube.com/watch?v=Qt3ubcGoeoE");
             break;
         
         //Saludar al estilo de joacoto

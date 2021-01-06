@@ -1,3 +1,5 @@
+const fs = require('fs')
+
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms))
     .catch("EXCEPCION EN SLEEP\n");
@@ -19,7 +21,7 @@ function adapt_input(arr) {
     let str1 = "";
     let i = 0;
     while (arr[i] != null){
-        if(arr[i] === "p"){
+        if(arr[i] === "p" || arr[i] === ' '){
             i++;
             continue;
         }
@@ -37,7 +39,34 @@ function queue_length(queue){
     return count
 }
 
+function write_to_file (filename,text,flagg){
+    try {
+        fs.writeFileSync(filename,text,{
+            encoding : "utf8",
+            flag : flagg
+        });
+    }
+    catch (err){
+        console.log("Exception in write_to_file: " + err);
+    }
+}
+
+function get_links (list) {
+    let len = list.length;
+    let links = [];
+    let aux_str = "";
+    for (let i = 0; i <= len; i++){
+        if (list[i] === ',' || i == len){
+            links.push(aux_str);
+            aux_str = "";
+        }
+        else
+            aux_str += list[i];
+    }
+    return links;
+}
+
 //TODO implement this function so i can write error logs
 //function write (filename)
 
-module.exports = {adapt_input,valid_URL,sleep,queue_length}
+module.exports = {adapt_input,valid_URL,sleep,queue_length,write_to_file,get_links}

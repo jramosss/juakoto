@@ -3,6 +3,7 @@ const CREDENTIALS = require('./credentials')
 const prefix_file = require('./prefix')
 const utils = require('./utils')
 const play = require('./play')
+const fs = require('fs')
 const TOKEN = CREDENTIALS.token;
 
 const bot = new Discord.Client();
@@ -62,6 +63,7 @@ bot.on('message',async msg => {
             "*clear* / *c* = Vacia la cola de canciones\n" +
             "*hola* / *veni* / *te invoco* = Invoca al dios juakoto en el canal de voz\n" +
             "*juernes* / *JUERNES PERRO* / *juernes perro* : JUERNES PERRO\n" +
+            "*jump <numero> : Salta al numero de cancion que le indiques\n"+
             "*nazi* = Pone en la cola el clip del momo\n" +
             "*mogolicodeldia* = No funciona, pero la idea es que muestre un mogolico del server\n" +
             "mood <mood> : Te tira una playlist acorde al mood que le des (chill/cachengue/trap/sad)" +
@@ -77,6 +79,7 @@ bot.on('message',async msg => {
             "*showprefix* = Muestra el prefix actual del bot\n" +
             "*spam* <mensaje> <numero> = spamea <mensaje> <numero> veces\n" +
             "*stop* / *s* = Lo mismo que pause pero la quise caretear\n" +
+            "*status: Te dice el status del bot, si esta reproduciendo o cosas asi"+
             "*volumeset* <volume> / *vs* <volume> = Setea el volumen del bot a <volume>\n" +
             "*qnp* / *quenoplante* = QUENOPLANTE QUENOPLANTE\n" +
             "*wendia* = Un saludito que nunca viene mal\n")
@@ -94,6 +97,36 @@ bot.on('message',async msg => {
                 msg.member.voice.channel.join().catch(console.log("Exception in hola\n"));
             break;
         
+        case "lq":
+        case "loadqueue":
+        case "cargarcola":
+            if (!args[1]){
+                msg.channel.send("No me pasaste argumentos. usage juakoto lq <filename>");
+                break;
+            }
+            const filepath = "queues/" + args[1];
+            if (!fs.existsSync(filepath)){
+                msg.channel.send("No existe un archivo con ese nombre.\n")
+                break;
+            }
+            try {
+                const files = fs.readdirSync("queues/");
+                let list = "";
+                for (let i = 0; i < files.length; i++){
+                    if (files[i] === args[1]){
+                        list = fs.readFileSync(filepath,'utf8')
+                        break;
+                    }
+                }
+                links = utils.get_links(list);
+                for (let i = 0; i < links.length; i++)
+                    play.enqueue(msg,link);
+            }
+            catch (err) {
+                console.log("Exception in lq " + err);
+            }
+            break;
+
         case "juernes":
         case "JUERNES":
         case "JUERNES PERRO":
@@ -138,7 +171,8 @@ bot.on('message',async msg => {
             try {
                 let playing_index = play.get_playing_index()
                 try {
-                    let next_song = play.get_queue()[playing_index+1];
+                    let next_song = play.get_queue()[playing_index];
+                    console.log(next_song)
                     next_song ? play.play_song(msg) : play.pause()
                 }
                 catch(err){
@@ -212,25 +246,26 @@ bot.on('message',async msg => {
         //Reproducir una cancion con input en lenguaje natural
         case "p":
         case "play":
-            if (!args)
+            if (!args){
                 msg.channel.send("Que queres que meta en la cola? Pasame algo,"+
                                  "por que me encanta meterme cosas en la cola\n",
                                  "usage = juakoto play/p <song name/song youtube link>")
-            await play.enqueue(msg,args).catch(console.log("Excepcion en enqueue msg,(index.js)\n"));
-            let queue = play.get_queue();
-            if (utils.queue_length(queue) === 1){
-                try{
+                break;
+            }
+            try {
+                await play.enqueue(msg,args);
+                let queue = play.get_queue();
+                if (utils.queue_length(queue) === 1)
                     play.play_song(msg);
-                }
-                catch(e){
-                    if (e instanceof play.NotAllowed)
-                        msg.channel.send("No me diste permisos bro\n");
-                    else if (e instanceof play.NotInAChannel)
-                        msg.channel.send("No estas en un canal bro\n");
-                    else{
-                        console.log("Error en play (index.js)" + error);
-                        msg.channel.send("Problemitas tecnicos\n");
-                    }
+            }
+            catch(e){
+                if (e instanceof play.NotAllowed)
+                    msg.channel.send("No me diste permisos bro\n");
+                else if (e instanceof play.NotInAChannel)
+                    msg.channel.send("No estas en un canal bro\n");
+                else{
+                    console.log("Error en play (index.js)" + e);
+                    msg.channel.send("Problemitas tecnicos\n");
                 }
             }
             break;
@@ -299,12 +334,13 @@ bot.on('message',async msg => {
         case "status":
             let status = play.status()
             let message1 = "";
-            message1 += status.init ? "Initialized\n" : "Uninitialized\n";
-            message1 += status.paused ? "Paused" : "Playing";
-            msg.channel.send("```" + message1 + "```");
+            message1 += "*Initialized*: "
+            message1 += status.init ? ":white_check_mark: \n" : ":x:\n";
+            message1 += "*Playing*: "
+            message1 += status.paused ? ":x:" : ":white_check_mark:";
+            msg.channel.send(message1);
             break;
         
-
         case "troleo":
         case "bailedeltroleo":
             arr = "https://www.youtube.com/watch?v=qe5-ywmuKOg";
@@ -396,6 +432,34 @@ bot.on('message',async msg => {
             }
             break;
         
+        case "sq":
+        case "savequeue":
+        case "guardarcola":
+            try{
+                let queue1 = play.get_queue()
+                let links = []
+                if (!args[1]){
+                    msg.channel.send("No me pasaste parametros. usage juakoto sq <filename>");
+                    break;
+                }
+                const filepath = "queues/" + args[1];
+                if (fs.existsSync(filepath)){
+                    msg.channel.send("Ya existe un archivo con ese nombre");
+                    break;
+                }
+                let queue_len = utils.queue_length(queue1);
+                for (var i = 0; i < queue_len; i++)
+                    links.push(queue1[i])
+                    
+                utils.write_to_file(filepath,links,'a+');
+
+                msg.channel.send("Cola guardada en " + filepath);
+            }
+            catch (error){
+                console.log("Exception in savequeue " + error);
+            }
+
+            break;
         //Definir el volument del bot
         case "vs":
         case "volumeset":

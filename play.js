@@ -32,39 +32,46 @@ class NotInAChannel extends Error {
 async function play_song (msg) {
     init = true;
     let vc = msg.member.voice.channel;
-    if (!vc) throw NotInAChannel
+    if (!vc){//TODO throw NotInAChannel
+        msg.channel.send("No estas en un canal bro");
+        return;
+    } 
     let permissions = vc.permissionsFor(msg.client.user);
 
-    if (!permissions.has('CONNECT') || !permissions.has('SPEAK'))
-        throw NotAllowed
+    if (!permissions.has('CONNECT') || !permissions.has('SPEAK')){//TODO throw NotAllowed
+        return msg.channel.send("No me diste permisos bro")
+    }
 
-        let connection = await vc.join().catch(console.log("Error entrando al canal\n"));
-        
-        try{
-            let current_song_link = queue[playing_index];
-            dispatcher = connection.play(ytdl(current_song_link));
-            if (paused){
-                resume();
-                paused = false;
-            } 
-                
-            dispatcher.on('finish',() => {
-                if (queue[playing_index+1]){
-                    play_song(msg) ;
-                }
-                else {
-                    pause();
-                    paused = true;
-                }
+    let connection = await vc.join().catch(console.log("Couldn`t join channel\n"));
+    
+    try{
+        let current_song_link = queue[playing_index];
+        dispatcher = connection.play(ytdl(current_song_link));
+        if (paused){
+            resume();
+            paused = false;
+        } 
+            
+        dispatcher.on('finish',() => {
+            console.log(queue[playing_index+1]);
+            if (queue[playing_index+1]){
+                msg.channel.send("Reproduciendo " + queue[playing_index+1])
                 playing_index++;
-            })
-        }
-        catch (error){
-            console.log(error);
-            msg.channel.send("No se puede reproducir la cancion xd\n");
-        }
-        
-        dispatcher.setVolumeLogarithmic(5 / 5)
+                play_song(msg) ;
+            }
+            else {
+                playing_index++;
+                pause();
+                paused = true;
+            }
+        })
+    }
+    catch (error){
+        console.log(error);
+        msg.channel.send("No se puede reproducir la cancion xd\n");
+    }
+    
+    dispatcher.setVolumeLogarithmic(5 / 5)
 }
 
 async function enqueue (msg,args) {
@@ -76,14 +83,22 @@ async function enqueue (msg,args) {
         link = args;
     else if (utils.valid_URL(args[1]))
         link = args[1];
-    else
-        link = await get_link(utils.adapt_input(args));
+    else{
+        try {
+            link = await get_link(utils.adapt_input(args));
+        }
+        catch (e) {
+            console.log("Exception in enqueue " + e);
+        }
+    }
 
     queue[last_index] = link;
     last_index++;
     
-    //TODO send a message telling which song was enqueued
-    msg.channel.send("Cancion añadida a la cola " + link);
+    if (last_index-1 === playing_index)
+        msg.channel.send("Reproduciendo " + link);
+    else
+        msg.channel.send("Cancion añadida a la cola " + link);
     //let info = await song_info(link);
     //return info.videoDetails.title;
 }
@@ -103,7 +118,6 @@ async function get_link(song) {
         });
     });
 } 
-
 
 function get_queue (){
     return queue;

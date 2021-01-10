@@ -1,10 +1,13 @@
-const fs = require('fs')
+const fs = require('fs');
+const ytdl = require('ytdl-core');
+const search = require('youtube-search');
+const OPTS = require('./credentials')
+const opts = OPTS.opts
 
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms))
     .catch("EXCEPCION EN SLEEP\n");
 }
-
 //Check if a string is an url
 function valid_URL(str) {
     var pattern = new RegExp('^(https?:\\/\\/)?'+ // protocol
@@ -87,6 +90,22 @@ function get_links (list) {
     return links;
 }
 
+//Da info sobre el video de la cancion
+async function song_info (song) {
+    return new Promise((resolve,reject) => {
+        ytdl.getInfo(song).then(resolve,reject);
+    });
+}
+
+//Obtiene el link de una cancion
+async function get_link(song) {
+    return new Promise((resolve, reject) => {
+        search(song, opts, function(err, results) {
+            err ? reject(err) : resolve(results[0].link)
+        });
+    });
+} 
+
 function read_aliases (aliases_filepath) {
     let text = read_from_file(aliases_filepath);
     let fst_word = false;
@@ -160,4 +179,4 @@ function dict_contains (dict,elem) {
 
 module.exports = {adapt_input,valid_URL,sleep,queue_length,write_to_file,
                   get_links,read_from_file,read_aliases,handle_args,
-                  dict_contains}
+                  dict_contains,song_info,get_link}

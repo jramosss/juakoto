@@ -1,9 +1,6 @@
-const search = require('youtube-search');
 const ytdl = require('ytdl-core');
 const utils = require('./utils')
-const OPTS = require('./credentials')
 
-const opts = OPTS.opts
 let queue = {};
 let dispatcher;
 let last_index = 0;
@@ -93,22 +90,6 @@ async function enqueue (msg,args) {
         return null;
 }
 
-//Da info sobre el video de la cancion
-async function song_info (song) {
-    return new Promise((resolve,reject) => {
-        ytdl.getInfo(song).then(resolve,reject);
-    });
-}
-
-//Obtiene el link de una cancion
-async function get_link(song) {
-    return new Promise((resolve, reject) => {
-        search(song, opts, function(err, results) {
-            err ? reject(err) : resolve(results[0].link)
-        });
-    });
-} 
-
 function get_queue (){
     return queue;
 }
@@ -165,7 +146,7 @@ function get_song_number (name) {
     return null;
 }
 
-module.exports = {play_song,enqueue,get_link,song_info,get_queue,clear_queue,
-                  queue_shift,get_dispatcher,get_playing_index,set_volume,
+module.exports = {play_song,enqueue,get_queue,clear_queue,queue_shift,
+                  get_dispatcher,get_playing_index,set_volume,
                   pause,resume,NotAllowed,NotInAChannel,jump,status,
                   get_song_number};

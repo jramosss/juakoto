@@ -1,11 +1,11 @@
 const Discord = require('discord.js');
 const CREDENTIALS = require('./credentials')
-const prefix_file = require('./prefix')
+const prefix_file = require('./prefix.js')
 const utils = require('./utils')
 const play = require('./play')
 const fs = require('fs')
 const TOKEN = CREDENTIALS.token;
-const ALIAS_FILENAME = 'alias.txt'
+const ALIAS_FILENAME = 'aliases'
 
 const bot = new Discord.Client();
 
@@ -43,7 +43,8 @@ bot.on('message',async msg => {
     }
 
     switch (args[0]){
-
+        
+        //Register a new alias
         case "alias":
             if (!args[1] || !args[2]){
                 msg.channel.send("No me pasaste argumentos, usage: juakoto alias <alias> <link>");
@@ -59,13 +60,14 @@ bot.on('message',async msg => {
             msg.channel.send("Nuevo alias registrado `" + args[1] + "` linkeado a " + args[2]);
             break;
 
-        
         //display all aliases
         case "aliases":
             //TODO replace this for if (aliases is {})
             try {
-                console.log("ALIASES: " + aliases)
-                msg.channel.send(aliases.toString());
+                //? Why does this shows [object Object]
+                let aliases_aux = utils.read_aliases(ALIAS_FILENAME);
+                console.log("ALIASES: " + aliases_aux)
+                msg.channel.send(aliases_aux);
             }
             catch {
                 msg.channel.send("No hay aliases")
@@ -79,11 +81,6 @@ bot.on('message',async msg => {
         case "shu":
             msg.member.voice.channel.leave();
             play.clear_queue();
-            break;
-        
-        //Reproduce una cancion de cancha
-        case "cancha":
-            play.enqueue(msg,"https://www.youtube.com/watch?v=mBmcuw4CRpQ");
             break;
         
         //Limpia la cola de canciones
@@ -105,7 +102,7 @@ bot.on('message',async msg => {
                 break;
             }
             args[0] = '';
-            let link = await play.get_link(utils.adapt_input(args));
+            let link = await utils.get_link(utils.adapt_input(args));
             msg.channel.send("Resultado de buscar " + raw_input + " " + link);
             break;
 
@@ -185,22 +182,6 @@ bot.on('message',async msg => {
                 console.log("Exception in lq " + err);
             }
             break;
-
-        case "juernes":
-        case "JUERNES":
-        case "JUERNES PERRO":
-        case "juernes perro":
-            play.clear_queue();
-            play.enqueue(msg,"https://www.youtube.com/watch?v=QkngZ1P3aKw");
-            await play.play_song(msg);
-            play.set_volume(10);
-            msg.channel.send("JUERNES PERRITO");
-            break;
-
-        //Reproduce el mejor clip del tata, ideal para momentos epicos
-        case "nazi":
-            await play.enqueue(msg,"https://www.youtube.com/watch?v=MSDfzlALzQo");
-            break;  
         
         case "mood":
             if (!args[1]){
@@ -270,7 +251,7 @@ bot.on('message',async msg => {
                 break;
             }
             try {
-                if (!await play.enqueue(msg,args)){
+                if (await play.enqueue(msg,args) == null){
                     msg.channel.send("Servidores caidos");
                     break;
                 }
@@ -302,7 +283,7 @@ bot.on('message',async msg => {
             if(!utils.valid_URL(args[1]))
                 song_name = utils.adapt_input(args);
             else{
-                let info = play.song_info(args[1])  
+                let info = utils.song_info(args[1])  
                 song_name = info.videoDetails.title;
             }
 
@@ -387,14 +368,6 @@ bot.on('message',async msg => {
             msg.channel.send(message1);
             break;
         
-        case "troleo":
-        case "bailedeltroleo":
-            arr = "https://www.youtube.com/watch?v=qe5-ywmuKOg";
-            await play.enqueue(msg,arr);
-            utils.sleep(4000); 
-            //Por que tiene que esperar un poco mas y no quiero pensar una forma mas elegante de hacerlo
-            play.set_volume(10);
-            break;
         //Print Queue
         case "q":
         case "cola":
@@ -411,7 +384,7 @@ bot.on('message',async msg => {
                 let i = 0;
                 while(aux[i]) {
                     try{
-                        v_song_info = await play.song_info(aux[i]);
+                        v_song_info = await utils.song_info(aux[i]);
                         v_song_len = v_song_info.videoDetails.lengthSeconds / 60;
                         v_song_title = v_song_info.videoDetails.title;
                         //v_song_link = v_song_info.videoDetails.video_url;

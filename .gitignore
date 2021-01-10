@@ -8,4 +8,5 @@ credentials.js
 test.js
 TODO
 queues/
-alias
+aliases
+prefix

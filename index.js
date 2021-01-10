@@ -264,18 +264,9 @@ bot.on('message',async msg => {
                 msg.channel.send("Que queres que reproduzca? No soy adivino pa");
                 break;
             }
-            await play.enqueue(args);
-            let song_name;
-            if(!utils.valid_URL(args[1]))
-                song_name = utils.adapt_input(args);
-            else{
-                let info = utils.song_info(args[1])  
-                song_name = info.videoDetails.title;
-            }
-
-            let song_no = play.get_song_number(song_name);
-            if (song_no)
-                args[1] = song_no;
+            let response1 = await play.enqueue(msg,args);
+            console.log("Enqueued in number: ",response1);
+            args[1] = response1 ? response1 : "Algo salio mal";
             
         //I need to use jump now
         case "jump":

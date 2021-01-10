@@ -103,6 +103,8 @@ async function enqueue (msg,args) {
         }
         else
             msg.channel.send("Cancion añadida a la cola " + link);
+        //returns the number that the song was asociated with
+        return last_index-1;
     }
     else 
         return null;

@@ -13,6 +13,7 @@
 "*previaycachengue* / *pyc* <from> <to> = Encola todos los previa y cachengue del ferpa desde <from> hasta <to>\n" +
 "*play* <song> / *p* <song> : Reproduce una cancion (No funciona con listas por que no me pagan lo suficiente)\n" +
 "*playI* / *playINSTA* : Reproduce la cancion instantaneamente\n" +
+"*random* : Encola/reproduce un video aleatorio seleccionado de los alias registrados\n" +
 "*q* / *queue* = Muestra la cola actual de canciones\n" +
 "*resume* / *r* = Despausar\n" +
 "*satura* / *earrape* = Hace volumeset en 10, ideal para trolear y tiltear a joacoto, provocando que todos los usuarios del server tengan al bot insta muteado\n" +

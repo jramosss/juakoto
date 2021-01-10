@@ -48,7 +48,7 @@ bot.on('message',async msg => {
         case "clear":
             play.clear_queue();
             msg.channel.send("Cola vaciada\n");
-            //TODO, hacer que esto pause la ejecucion
+            play.pause();
             break;
         
         case "gracias":
@@ -64,6 +64,7 @@ bot.on('message',async msg => {
             "*hola* / *veni* / *te invoco* = Invoca al dios juakoto en el canal de voz\n" +
             "*juernes* / *JUERNES PERRO* / *juernes perro* : JUERNES PERRO\n" +
             "*jump <numero> : Salta al numero de cancion que le indiques\n"+
+            "*lq/loadqueue/cargarcola <filename>: Carga la cola guardada en el archivo filename y la encola\n*"+
             "*nazi* = Pone en la cola el clip del momo\n" +
             "*mogolicodeldia* = No funciona, pero la idea es que muestre un mogolico del server\n" +
             "mood <mood> : Te tira una playlist acorde al mood que le des (chill/cachengue/trap/sad)" +
@@ -77,6 +78,7 @@ bot.on('message',async msg => {
             "*satura* / *earrape* = Hace volumeset en 10, ideal para trolear y tiltear a joacoto, provocando que todos los usuarios del server tengan al bot insta muteado\n" +
             "*skip* / *n* / *next* = Pasa a la siguiente cancion de la cola\n" +
             "*showprefix* = Muestra el prefix actual del bot\n" +
+            "*savequeue/sq/guardarcola <filename>*: Guarda la cola actual en un archivo con el nombre <filename>\n"+
             "*spam* <mensaje> <numero> = spamea <mensaje> <numero> veces\n" +
             "*stop* / *s* = Lo mismo que pause pero la quise caretear\n" +
             "*status: Te dice el status del bot, si esta reproduciendo o cosas asi"+
@@ -120,7 +122,10 @@ bot.on('message',async msg => {
                 }
                 links = utils.get_links(list);
                 for (let i = 0; i < links.length; i++)
-                    play.enqueue(msg,link);
+                    play.enqueue(msg,links[i]);
+                
+                if (play.status().paused)
+                    play.play_song(msg);
             }
             catch (err) {
                 console.log("Exception in lq " + err);
@@ -138,52 +143,10 @@ bot.on('message',async msg => {
             msg.channel.send("JUERNES PERRITO");
             break;
 
-        
-        case "jump":
-            if (!args[1]) {
-                msg.channel.send("No me pasaste parametros");
-                break;
-            }
-            if (play.get_queue()[args[1]]){
-                play.jump(args[1]);
-                play.play_song(msg);
-                msg.channel.send("Saltando a la cancion nº" + args[1]);
-            }
-            else 
-                msg.channel.send("Man que flayas no esta esa cancion en la cola")
-            break;
-
         //Reproduce el mejor clip del tata, ideal para momentos epicos
         case "nazi":
             await play.enqueue(msg,"https://www.youtube.com/watch?v=MSDfzlALzQo");
             break;  
-        
-        case "n":
-        case "next":
-        case "skip":
-        case "porfavor":
-            if (args[0] === "porfavor"){
-                if (!(args[1] === "saca" && args[2] === "esta" &&
-                    args[3] === "cancion" && args[4] === "asquerosa"))
-                        break;
-            }
-            play.queue_shift();
-            try {
-                let playing_index = play.get_playing_index()
-                try {
-                    let next_song = play.get_queue()[playing_index];
-                    console.log(next_song)
-                    next_song ? play.play_song(msg) : play.pause()
-                }
-                catch(err){
-                    console.log(err);
-                }
-            }
-            catch(e){
-                msg.channel.send("Excepcion\n");
-                console.log(e.trace);
-            }
-            break;
         
         case "mood":
             if (!args[1]){
@@ -253,7 +216,10 @@ bot.on('message',async msg => {
                 break;
             }
             try {
-                await play.enqueue(msg,args);
+                if (await play.enqueue(msg,args) === null){
+                    msg.channel.send("Servidores caidos");
+                    break;
+                }
                 let queue = play.get_queue();
                 if (utils.queue_length(queue) === 1)
                     play.play_song(msg);
@@ -275,11 +241,39 @@ bot.on('message',async msg => {
         case "PLAYINSTA":
         case "playI":
         case "playi":
-            play.clear_queue();
+            if (!args){
+                msg.channel.send("Que queres que reproduzca? No soy adivino pa");
+                break;
+            }
             play.enqueue(args);
-            play.play_song(msg);
+            let song_name;
+            if(!utils.valid_URL(args[1]))
+                song_name = utils.adapt_input(args);
+            else{
+                let info = play.song_info(args[1])  
+                song_name = info.videoDetails.title;
+            }
+
+            let song_no = play.get_song_number(song_name);
+            if (song_no)
+                args[1] = song_no;
+            
+        //I need to use jump now
+        case "jump":
+            if (!args[1]) {
+                msg.channel.send("No me pasaste parametros");
+                break;
+            }
+            if (play.get_queue()[args[1]]){
+                play.jump(args[1]);
+                play.play_song(msg);
+                msg.channel.send("Saltando a la cancion nº" + args[1]);
+            }
+            else 
+                msg.channel.send("Man que flayas no esta esa cancion en la cola")
             break;
-        
+    
+
         case "paraguayo":
         case "paradoja":
             msg.channel.send("Perdon por trollear :(");
@@ -359,7 +353,6 @@ bot.on('message',async msg => {
             else {
                 let v_song_info;
                 let v_song_title;
-                //let v_song_link;
                 let v_song_len;
                 let message = "";
                 let aux = play.get_queue();
@@ -391,6 +384,7 @@ bot.on('message',async msg => {
         case "resume":
             play.resume();
             break;
+
 
         case "skip":
         case "n":

@@ -78,16 +78,22 @@ async function enqueue (msg,args) {
     if (args[0] === 'p')
         args[0] = "";
 
-    let link;
+    let link = "";
+    console.log(args);
     if (utils.valid_URL(args))
         link = args;
-    else if (utils.valid_URL(args[1]))
+    else if (utils.valid_URL(args[1])){
+        console.log("eyyy\n");
         link = args[1];
+    }
+    else if (utils.valid_URL(args[2]))
+        link = args[2];
     else{
         try {
             link = await get_link(utils.adapt_input(args));
         }
         catch (e) {
+            link = "";
             console.log("Exception in enqueue " + e);
         }
     }
@@ -95,12 +101,14 @@ async function enqueue (msg,args) {
     queue[last_index] = link;
     last_index++;
     
-    if (last_index-1 === playing_index)
-        msg.channel.send("Reproduciendo " + link);
-    else
-        msg.channel.send("Cancion añadida a la cola " + link);
-    //let info = await song_info(link);
-    //return info.videoDetails.title;
+    if (link !== ""){
+        if (last_index-1 === playing_index)
+            msg.channel.send("Reproduciendo " + link);
+        else
+            msg.channel.send("Cancion añadida a la cola " + link);
+    }
+    else 
+        return null;
 }
 
 //Da info sobre el video de la cancion
@@ -166,6 +174,16 @@ function status () {
         "init" : init};
 }
 
+function get_song_number (name) {
+    for (let song in queue) {
+        if (queue[song] === name) {
+            return song;
+        }
+    }
+    return null;
+}
+
 module.exports = {play_song,enqueue,get_link,song_info,get_queue,clear_queue,
                   queue_shift,get_dispatcher,get_playing_index,set_volume,
-                  pause,resume,NotAllowed,NotInAChannel,jump,status}
+                  pause,resume,NotAllowed,NotInAChannel,jump,status,
+                  get_song_number};

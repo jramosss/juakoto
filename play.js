@@ -7,6 +7,8 @@ let last_index = 0;
 let playing_index = 0;
 let paused = false;
 let init = false;
+let volume = 1;
+let previous_volume = volume;
 
 class MyError extends Error {
     constructor(message) {
@@ -126,12 +128,23 @@ function get_playing_index () {
     return playing_index;
 }
 
-function set_volume (volume) {
-    dispatcher.setVolume(volume);
+function set_volume (new_volume) {
+    previous_volume = volume;
+    dispatcher.setVolume(new_volume);
+    volume = new_volume;
+}
+
+function mute () {
+    set_volume(0);
+}
+
+function unmute () {
+    set_volume(previous_volume);
 }
 
 function pause () {
     dispatcher.pause();
+    paused = true;
 }
 
 function resume ()  {
@@ -165,4 +178,4 @@ function get_song_number (name) {
 module.exports = {play_song,enqueue,get_queue,clear_queue,queue_shift,
                   get_dispatcher,get_playing_index,set_volume,
                   pause,resume,NotAllowed,NotInAChannel,jump,status,
-                  get_song_number};
+                  get_song_number,mute,unmute};

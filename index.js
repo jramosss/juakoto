@@ -118,7 +118,17 @@ bot.on('message',async msg => {
             else if (args[0] === "te")
                 break;
             else 
-                msg.member.voice.channel.join();
+                try {
+                    if (!msg.guild.voice || msg.member.voice.channel.id !== msg.guild.voice.channelID)
+                        msg.member.voice.channel.join();
+                    else if (msg.member.voice.channel.id === msg.guild.voice.channelID){
+                        msg.channel.send("Ya estoy en el canal pa, sos estupido?");
+                        break;
+                    }   
+                }
+                catch (e) {
+                    console.log("Exception in hola ", e);
+                }
             break;
         
         case "lq":
@@ -156,7 +166,7 @@ bot.on('message',async msg => {
         
         case "mood":
             if (!args[1]){
-                msg.channel.send("Mood que? usage = juakoto mood <mood>");
+                msg.channel.send("Mood que? usage = juakoto mood <mood> (podes listar los mood con juakoto mood list)");
                 break;
             }
             let playlist = "";
@@ -189,6 +199,9 @@ bot.on('message',async msg => {
                 case "viejito":
                     playlist = "https://open.spotify.com/playlist/4mj2O0ItodoLlqI670pngS?si=F8Zox4H0RIGyb8AL-IXQ2w";
                     break;
+                case "list":
+                    msg.channel.send("chill/sad/cachengue/indie/rock/eng/trap/techno/viejito");
+                    break;
                 default:
                     msg.channel.send("Mood no especificado " +
                                     "si tenes quejas metetelas en el orto");
@@ -204,7 +217,7 @@ bot.on('message',async msg => {
 
 
         case "mute":
-            play.set_volume(0);
+            play.mute();
             msg.channel.send("Seteando el volumen a 0");
             break;
             
@@ -251,7 +264,7 @@ bot.on('message',async msg => {
                 msg.channel.send("Que queres que reproduzca? No soy adivino pa");
                 break;
             }
-            play.enqueue(args);
+            await play.enqueue(args);
             let song_name;
             if(!utils.valid_URL(args[1]))
                 song_name = utils.adapt_input(args);
@@ -283,7 +296,7 @@ bot.on('message',async msg => {
         case "paraguayo":
         case "paradoja":
             msg.channel.send("Perdon por trollear :(");
-            throw ArithmeticException;
+            process.exit(0);
 
         //Encola las sesiones de previa y cachengue desde n hasta m especificados
         case "previaycachengue":
@@ -328,7 +341,7 @@ bot.on('message',async msg => {
             break;
         
         case "showprefix":
-            msg.channel.send(prefix);
+            msg.channel.send("Prefix: ",prefix);
             break;
 
         case "status":
@@ -397,7 +410,7 @@ bot.on('message',async msg => {
                     play.pause()
             }
             catch (e) {
-                console.log("Excepcion en skip " + e);
+                console.log("Exception in skip " + e);
             }
             break;
 
@@ -450,6 +463,11 @@ bot.on('message',async msg => {
                 console.log("Exception in savequeue " + error);
             }
 
+            break;
+
+
+        case "unmute":
+            play.unmute();
             break;
         //Definir el volument del bot
         case "vs":

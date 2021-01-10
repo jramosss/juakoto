@@ -4,8 +4,8 @@ const prefix_file = require('./prefix.js')
 const utils = require('./utils')
 const play = require('./play')
 const fs = require('fs')
-const TOKEN = CREDENTIALS.token;
 const ALIAS_FILENAME = 'aliases'
+const TOKEN = CREDENTIALS.token;
 
 const bot = new Discord.Client();
 
@@ -62,15 +62,13 @@ bot.on('message',async msg => {
 
         //display all aliases
         case "aliases":
-            //TODO replace this for if (aliases is {})
             try {
-                //? Why does this shows [object Object]
-                let aliases_aux = utils.read_aliases(ALIAS_FILENAME);
-                console.log("ALIASES: " + aliases_aux)
-                msg.channel.send(aliases_aux);
+                msg.channel.send("Aliases: \n");
+                msg.channel.send("```"+utils.objToString(aliases)+"```");
             }
-            catch {
-                msg.channel.send("No hay aliases")
+            catch (e) {
+                msg.channel.send("No hay aliases ");
+                console.log("Exception in aliases: " + e);
             }
             break;
 
@@ -108,34 +106,7 @@ bot.on('message',async msg => {
 
         case "h":
         case "help":
-            msg.channel.send(
-            "*andate* / *leave* / *shu* = Hace que juakoto se vaya del canal\n" +
-            "*cancha* = Escuchen, corran la bola\n" +
-            "*clear* / *c* = Vacia la cola de canciones\n" +
-            "*hola* / *veni* / *te invoco* = Invoca al dios juakoto en el canal de voz\n" +
-            "*juernes* / *JUERNES PERRO* / *juernes perro* : JUERNES PERRO\n" +
-            "*jump <numero> : Salta al numero de cancion que le indiques\n"+
-            "*lq/loadqueue/cargarcola <filename>: Carga la cola guardada en el archivo filename y la encola\n*"+
-            "*nazi* = Pone en la cola el clip del momo\n" +
-            "*mogolicodeldia* = No funciona, pero la idea es que muestre un mogolico del server\n" +
-            "mood <mood> : Te tira una playlist acorde al mood que le des (chill/cachengue/trap/sad)" +
-            "*prefix* <prefix> = Setea un nuevo prefix para el bot\n" +
-            "*pause* = Pausa la cancion que se esta reproduciendo actualmente\n" +
-            "*previaycachengue* / *pyc* <from> <to> = Encola todos los previa y cachengue del ferpa desde <from> hasta <to>\n" +
-            "*play* <song> / *p* <song> : Reproduce una cancion (No funciona con listas por que no me pagan lo suficiente)\n" +
-            "*playI* / *playINSTA* : Reproduce la cancion instantaneamente\n" +
-            "*q* / *queue* = Muestra la cola actual de canciones\n" +
-            "*resume* / *r* = Despausar\n" +
-            "*satura* / *earrape* = Hace volumeset en 10, ideal para trolear y tiltear a joacoto, provocando que todos los usuarios del server tengan al bot insta muteado\n" +
-            "*skip* / *n* / *next* = Pasa a la siguiente cancion de la cola\n" +
-            "*showprefix* = Muestra el prefix actual del bot\n" +
-            "*savequeue/sq/guardarcola <filename>*: Guarda la cola actual en un archivo con el nombre <filename>\n"+
-            "*spam* <mensaje> <numero> = spamea <mensaje> <numero> veces\n" +
-            "*stop* / *s* = Lo mismo que pause pero la quise caretear\n" +
-            "*status: Te dice el status del bot, si esta reproduciendo o cosas asi"+
-            "*volumeset* <volume> / *vs* <volume> = Setea el volumen del bot a <volume>\n" +
-            "*qnp* / *quenoplante* = QUENOPLANTE QUENOPLANTE\n" +
-            "*wendia* = Un saludito que nunca viene mal\n")
+            msg.channel.send(utils.read_from_file('help'));
             break;
 
         //Invocar al bot en el canal de voz 
@@ -251,10 +222,12 @@ bot.on('message',async msg => {
                 break;
             }
             try {
-                if (await play.enqueue(msg,args) == null){
+                await play.enqueue(msg,args);
+                /*
+                if (!response){
                     msg.channel.send("Servidores caidos");
                     break;
-                }
+                }*/
             }
             //TODO make this work
             catch(e){
@@ -410,7 +383,6 @@ bot.on('message',async msg => {
             play.resume();
             break;
 
-
         case "skip":
         case "n":
         case "next":
@@ -488,12 +460,6 @@ bot.on('message',async msg => {
             msg.channel.send(args[1] ? "Volumen seteado a " + volume : 
                             "No me pasaste parametros, seteando a 1");
             
-            break;
-        
-        //QUENOPLANTE QUE NOPLANTE CARAJO
-        case "qnp":
-        case "quenoplante":
-            play.enqueue(msg,"https://www.youtube.com/watch?v=Qt3ubcGoeoE");
             break;
         
         //Saludar al estilo de joacoto

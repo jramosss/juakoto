@@ -174,9 +174,17 @@ function dict_contains (dict,elem) {
     return false;
 }
 
-//TODO implement this function so i can write error logs
-//function write (filename)
+//Copied from stackoverflow https://stackoverflow.com/questions/5612787/converting-an-object-to-a-string?page=1&tab=votes#tab-top
+function objToString (obj) {
+    var str = '';
+    for (var p in obj) {
+        if (obj.hasOwnProperty(p)) {
+            str += p + ' : ' + obj[p] + '\n';
+        }
+    }
+    return str;
+}
 
 module.exports = {adapt_input,valid_URL,sleep,queue_length,write_to_file,
                   get_links,read_from_file,read_aliases,handle_args,
-                  dict_contains,song_info,get_link}
+                  dict_contains,song_info,get_link,objToString}

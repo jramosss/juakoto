@@ -1,0 +1,26 @@
+"alias <alias> <link> : asocia una palabra <alias> con un link, si despues pones juakoto <alias> ya se encola esa cancion/video\n" +
+"aliases : muestra todos los alias registrados\n" + 
+"*andate* / *tomatela* /*leave* / *shu* = Hace que juakoto se vaya del canal\n" +
+"*clear* / *c* = Vacia la cola de canciones\n" +
+"gracias : de nada\n" +
+"*hola* / *veni* / *te invoco* = Invoca al dios juakoto en el canal de voz\n" +
+"*jump <numero> : Salta al numero de cancion que le indiques\n"+
+"*lq/loadqueue/cargarcola <filename>: Carga la cola guardada en el archivo filename y la encola\n*"+
+"*mogolicodeldia* = No funciona, pero la idea es que muestre un mogolico del server\n" +
+"mood <mood> : Te tira una playlist acorde al mood que le des (chill/cachengue/trap/sad)" +
+"*prefix* <prefix> = Setea un nuevo prefix para el bot\n" +
+"*pause* = Pausa la cancion que se esta reproduciendo actualmente\n" +
+"*previaycachengue* / *pyc* <from> <to> = Encola todos los previa y cachengue del ferpa desde <from> hasta <to>\n" +
+"*play* <song> / *p* <song> : Reproduce una cancion (No funciona con listas por que no me pagan lo suficiente)\n" +
+"*playI* / *playINSTA* : Reproduce la cancion instantaneamente\n" +
+"*q* / *queue* = Muestra la cola actual de canciones\n" +
+"*resume* / *r* = Despausar\n" +
+"*satura* / *earrape* = Hace volumeset en 10, ideal para trolear y tiltear a joacoto, provocando que todos los usuarios del server tengan al bot insta muteado\n" +
+"*skip* / *n* / *next* = Pasa a la siguiente cancion de la cola\n" +
+"*showprefix* = Muestra el prefix actual del bot\n" +
+"*savequeue/sq/guardarcola <filename>*: Guarda la cola actual en un archivo con el nombre <filename>\n"+
+"*spam* <mensaje> <numero> = spamea <mensaje> <numero> veces\n" +
+"*stop* / *s* = Lo mismo que pause pero la quise caretear\n" +
+"*status: Te dice el status del bot, si esta reproduciendo o cosas asi"+
+"*volumeset* <volume> / *vs* <volume> = Setea el volumen del bot a <volume>\n" +
+"*wendia* = Un saludito que nunca viene mal\n"

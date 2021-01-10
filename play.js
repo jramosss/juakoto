@@ -8,12 +8,23 @@ let playing_index = 0;
 let paused = false;
 let init = false;
 
-class NotAllowed extends Error {
-    constructor(msg = 'Not allowed') {
-      if (Error.captureStackTrace)
-        Error.captureStackTrace(this, NotAllowed)
-  
-      this.name = 'NotAllowed'
+class MyError extends Error {
+    constructor(message) {
+        super(message);
+       // Ensure the name of this error is the same as the class name
+        this.name = this.constructor.name;
+       // This clips the constructor invocation from the stack trace.
+       // It's not absolutely essential, but it does make the stack trace a little nicer.
+       //  @see Node.js reference (bottom)
+        Error.captureStackTrace(this, this.constructor);
+    }
+}
+
+//TODO implement this exceptions
+class NotAllowed extends MyError {
+    constructor(error) {
+        super(`You are not allowed to do this.`);
+        this.data = {error};
     }
 }
 
@@ -73,6 +84,11 @@ async function play_song (msg) {
 
 async function enqueue (msg,args) {
     
+    if (!msg.member.voice.channel){
+        msg.channel.send("No estas en un canal bro");
+        return;
+    }
+
     let link = await utils.handle_args(args);
 
     queue[last_index] = link;

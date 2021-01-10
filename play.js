@@ -42,7 +42,8 @@ async function play_song (msg) {
         return msg.channel.send("No me diste permisos bro")
     }
 
-    let connection = await vc.join().catch(console.log("Couldn`t join channel\n"));
+    //!There was a .catch() here, but the function always print even though it worked
+    let connection = await vc.join();
     
     try{
         let current_song_link = queue[playing_index];
@@ -53,7 +54,6 @@ async function play_song (msg) {
         } 
             
         dispatcher.on('finish',() => {
-            console.log(queue[playing_index+1]);
             if (queue[playing_index+1]){
                 msg.channel.send("Reproduciendo " + queue[playing_index+1])
                 playing_index++;
@@ -75,35 +75,17 @@ async function play_song (msg) {
 }
 
 async function enqueue (msg,args) {
-    if (args[0] === 'p')
-        args[0] = "";
-
-    let link = "";
-    console.log(args);
-    if (utils.valid_URL(args))
-        link = args;
-    else if (utils.valid_URL(args[1])){
-        console.log("eyyy\n");
-        link = args[1];
-    }
-    else if (utils.valid_URL(args[2]))
-        link = args[2];
-    else{
-        try {
-            link = await get_link(utils.adapt_input(args));
-        }
-        catch (e) {
-            link = "";
-            console.log("Exception in enqueue " + e);
-        }
-    }
+    
+    let link = await utils.handle_args(args);
 
     queue[last_index] = link;
     last_index++;
     
     if (link !== ""){
-        if (last_index-1 === playing_index)
+        if (last_index-1 === playing_index){
             msg.channel.send("Reproduciendo " + link);
+            play_song(msg);
+        }
         else
             msg.channel.send("Cancion añadida a la cola " + link);
     }

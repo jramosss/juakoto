@@ -1,24 +1,13 @@
 const fs = require('fs')
+const utils = require('./utils')
 const PREFIX_FILEPATH = "./prefix.txt"
 
 function change_prefix (new_prefix) {
-    try {
-        fs.writeFileSync(PREFIX_FILEPATH,new_prefix)
-    }
-    catch (err) {
-        console.log(err);
-    }
+    utils.write_to_file(PREFIX_FILEPATH,new_prefix,'w');
 }
 
 function load_prefix () {
-    let prefix = "";
-    try {
-        prefix = fs.readFileSync(PREFIX_FILEPATH,'utf8');
-    }
-    catch (err) {
-        console.log(err)
-    }
-    return prefix;
+    return utils.read_from_file(PREFIX_FILEPATH);
 }
 
 

@@ -5,12 +5,14 @@ const utils = require('./utils')
 const play = require('./play')
 const fs = require('fs')
 const TOKEN = CREDENTIALS.token;
+const ALIAS_FILENAME = 'alias.txt'
 
 const bot = new Discord.Client();
 
 const ULTIMO_PREVIA_Y_CACHENGUE = 35;
 
 let prefix = prefix_file.load_prefix();
+let aliases = utils.read_aliases(ALIAS_FILENAME);
 
 //TODO
 /*
@@ -27,7 +29,48 @@ bot.on('ready', () => {
 //Funcion principal
 bot.on('message',async msg => {
     let args = msg.content.substring(prefix.length+1).split(" ");
+    let raw_input = msg.content.substring(prefix.length+1).replace(args[0],"");
+
+    //Handle aliases
+    if (utils.dict_contains(aliases,args[0])) {
+        try {
+            play.enqueue(msg,aliases[args[0]]);
+        }
+        catch (e){
+            console.log("Exception in alias: " + aliases + e);
+            msg.channel.send("Jejej se rompio todo sorry usa un bot mas competente");
+        }
+    }
+
     switch (args[0]){
+
+        case "alias":
+            if (!args[1] || !args[2]){
+                msg.channel.send("No me pasaste argumentos, usage: juakoto alias <alias> <link>");
+                break;
+            }
+            if (utils.dict_contains(aliases,args[1])){
+                msg.channel.send("Alias " + args[1] + " ya registrado");
+                break;
+            }
+            let dict = [args[1],args[2]];
+            utils.write_to_file(ALIAS_FILENAME,dict,'a+',true);
+            aliases[args[1]] = args[2];
+            msg.channel.send("Nuevo alias registrado `" + args[1] + "` linkeado a " + args[2]);
+            break;
+
+        
+        //display all aliases
+        case "aliases":
+            //TODO replace this for if (aliases is {})
+            try {
+                console.log("ALIASES: " + aliases)
+                msg.channel.send(aliases.toString());
+            }
+            catch {
+                msg.channel.send("No hay aliases")
+            }
+            break;
 
         //Sacar bot del canal de voz
         case "andate":
@@ -53,6 +96,17 @@ bot.on('message',async msg => {
         
         case "gracias":
             msg.channel.send("De nada " + msg.member.user.username);
+            break;
+
+        case "getlink":
+        case "find":
+            if (!args[1]){
+                msg.channel.send("No me pasaste argumentos, usage juakoto " + args[0] + "<titulo del video>");
+                break;
+            }
+            args[0] = '';
+            let link = await play.get_link(utils.adapt_input(args));
+            msg.channel.send("Resultado de buscar " + raw_input + " " + link);
             break;
 
         case "h":
@@ -96,7 +150,7 @@ bot.on('message',async msg => {
             else if (args[0] === "te")
                 break;
             else 
-                msg.member.voice.channel.join().catch(console.log("Exception in hola\n"));
+                msg.member.voice.channel.join();
             break;
         
         case "lq":
@@ -216,14 +270,12 @@ bot.on('message',async msg => {
                 break;
             }
             try {
-                if (await play.enqueue(msg,args) === null){
+                if (!await play.enqueue(msg,args)){
                     msg.channel.send("Servidores caidos");
                     break;
                 }
-                let queue = play.get_queue();
-                if (utils.queue_length(queue) === 1)
-                    play.play_song(msg);
             }
+            //TODO make this work
             catch(e){
                 if (e instanceof play.NotAllowed)
                     msg.channel.send("No me diste permisos bro\n");

@@ -185,6 +185,14 @@ function objToString (obj) {
     return str;
 }
 
+function get_keys (dict) {
+    let keys = [];
+    for (const [key,value] of Object.entries(dict)) {
+        keys.push(key);
+    }
+    return keys;
+}
+
 module.exports = {adapt_input,valid_URL,sleep,queue_length,write_to_file,
                   get_links,read_from_file,read_aliases,handle_args,
-                  dict_contains,song_info,get_link,objToString}
+                  dict_contains,song_info,get_link,objToString,get_keys}

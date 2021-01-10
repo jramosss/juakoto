@@ -391,6 +391,14 @@ bot.on('message',async msg => {
             }
             break;
 
+        
+        case "random":
+            let keys = utils.get_keys(aliases);
+            let random = Math.floor(Math.random() * keys.length);
+            let song = aliases[keys[random]];
+            await play.enqueue(msg,song);
+            break;
+        
         case "r":
         case "resume":
             play.resume();

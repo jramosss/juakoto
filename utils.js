@@ -1,12 +1,11 @@
 const fs = require('fs');
-const ytdl = require('ytdl-core');
-const search = require('youtube-search');
-const OPTS = require('./credentials')
-const opts = OPTS.opts
+const credentials = require('./credentials');
+const YouTube = require("discord-youtube-api");
+const youtube = new YouTube(credentials.YT_KEY);
 
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms))
-    .catch("EXCEPCION EN SLEEP\n");
+    .catch("Exception in sleep\n");
 }
 //Check if a string is an url
 function valid_URL(str) {
@@ -19,7 +18,7 @@ function valid_URL(str) {
     return !!pattern.test(str);
 }
 
-//Takes a message and adapt the string to make it readable by get_link
+//Takes a message and adapt the string to make it readable by get_song_link
 function adapt_input(arr) {
     let str1 = "";
     let i = 0;
@@ -75,7 +74,7 @@ function read_from_file (filename){
     }
 }
 
-function get_links (list) {
+function get_song_links (list) {
     let len = list.length;
     let links = [];
     let aux_str = "";
@@ -91,20 +90,23 @@ function get_links (list) {
 }
 
 //Da info sobre el video de la cancion
-async function song_info (song) {
+async function get_song_info (link) {
     return new Promise((resolve,reject) => {
-        ytdl.getInfo(song).then(resolve,reject);
+        youtube.getVideo(link).then(resolve,reject);
     });
 }
 
 //Obtiene el link de una cancion
-async function get_link(song) {
+async function get_video(args) {
     return new Promise((resolve, reject) => {
-        search(song, opts, function(err, results) {
-            err ? reject(err) : resolve(results[0].link)
-        });
+        youtube.searchVideos(args).then(resolve,reject);
     });
 } 
+
+async function get_song_link (args) {
+    let info = await get_video(args);
+    return info.url;
+}
 
 function read_aliases (aliases_filepath) {
     let text = read_from_file(aliases_filepath);
@@ -156,7 +158,7 @@ async function handle_args (args) {
         link = args[2];
     else{
         try {
-            link = await get_link(adapt_input(args));
+            link = await get_song_link(adapt_input(args));
         }
         catch (e) {
             link = "";
@@ -193,6 +195,17 @@ function get_keys (dict) {
     return keys;
 }
 
+async function get_playlist_links (playlist) {
+    let songs = [];
+    let playlist_links = await youtube.getPlaylist(playlist);
+
+    for (let i = 0; i < playlist_links.length; i++)
+        songs.push(playlist_links[i].url);
+
+    return songs;
+}
+
 module.exports = {adapt_input,valid_URL,sleep,queue_length,write_to_file,
-                  get_links,read_from_file,read_aliases,handle_args,
-                  dict_contains,song_info,get_link,objToString,get_keys}
+                  get_song_links,read_from_file,read_aliases,handle_args,
+                  dict_contains,get_song_info,get_song_link,objToString,
+                  get_keys,get_playlist_links};

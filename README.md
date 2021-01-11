@@ -4,7 +4,8 @@
 
 
 ## Compilacion:
-`npm i` en la carpeta raiz (si trae problemas intentar con `sudo npm i`)
+* `npm i` en la carpeta raiz (si trae problemas intentar con `sudo npm i`)  
+* `node index.js`
 
 ## Instalacion:
 Lo queres en tu server? Click [aca](https://discord.com/oauth2/authorize?client_id=764653800068743199&scope=bot&permissions=3148864)  

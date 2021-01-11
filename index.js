@@ -5,7 +5,7 @@ const utils = require('./utils')
 const play = require('./play')
 const fs = require('fs')
 const ALIAS_FILENAME = 'aliases'
-const TOKEN = CREDENTIALS.token;
+const TOKEN = CREDENTIALS.TOKEN;
 
 const bot = new Discord.Client();
 
@@ -31,6 +31,7 @@ bot.on('message',async msg => {
     let args = msg.content.substring(prefix.length+1).split(" ");
     let raw_input = msg.content.substring(prefix.length+1).replace(args[0],"");
 
+    if (msg.author.bot) return;
     //Handle aliases
     if (utils.dict_contains(aliases,args[0])) {
         try {
@@ -100,7 +101,7 @@ bot.on('message',async msg => {
                 break;
             }
             args[0] = '';
-            let link = await utils.get_link(utils.adapt_input(args));
+            let link = await utils.get_song_link(utils.adapt_input(args));
             msg.channel.send("Resultado de buscar " + raw_input + " " + link);
             break;
 
@@ -152,7 +153,7 @@ bot.on('message',async msg => {
                         break;
                     }
                 }
-                links = utils.get_links(list);
+                links = utils.get_song_links(list);
                 for (let i = 0; i < links.length; i++)
                     play.enqueue(msg,links[i]);
                 
@@ -265,7 +266,6 @@ bot.on('message',async msg => {
                 break;
             }
             let response1 = await play.enqueue(msg,args);
-            console.log("Enqueued in number: ",response1);
             args[1] = response1 ? response1 : "Algo salio mal";
             
         //I need to use jump now
@@ -359,12 +359,16 @@ bot.on('message',async msg => {
                 let message = "";
                 let aux = play.get_queue();
                 let i = 0;
+
                 while(aux[i]) {
                     try{
-                        v_song_info = await utils.song_info(aux[i]);
-                        v_song_len = v_song_info.videoDetails.lengthSeconds / 60;
-                        v_song_title = v_song_info.videoDetails.title;
-                        //v_song_link = v_song_info.videoDetails.video_url;
+                        v_song_info = await utils.get_song_info(aux[i]);
+                        v_song_len = v_song_info.duration;
+                        v_song_title = v_song_info.title;
+                        if (message.length >= 1900) {
+                            await msg.channel.send("``` Cola: \n",message,"```");
+                            message = "";
+                        }
                         message += i + " " + v_song_title + "       " + v_song_len + "\n";
 
                         i++;
@@ -376,7 +380,6 @@ bot.on('message',async msg => {
                 }
                 if (message !== "")
                     msg.channel.send("```" + "Cola: \n" + message + "```")
-                    .catch(console.log("Empty Message"));
                 else 
                     msg.channel.send("Cola vacia");
             }

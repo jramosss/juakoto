@@ -1,5 +1,5 @@
 const ytdl = require('ytdl-core');
-const utils = require('./utils')
+const utils = require('./utils');
 
 let queue = {};
 let dispatcher;
@@ -93,16 +93,32 @@ async function enqueue (msg,args) {
 
     let link = await utils.handle_args(args);
 
-    queue[last_index] = link;
-    last_index++;
-    
+    let regexp = /^.*(youtu.be\/|list=)([^#\&\?]*).*/
+    let match = link.match(regexp);
+    let is_playlist;
+    //TODO research how can i handle > 25 songs
+    if (match && match[2]){
+        is_playlist = true;
+        let plist_songs = await utils.get_playlist_links(link);
+        for (let i = 0; i < plist_songs.length; i++) {
+            //console.log("Enqueueing " + plist_songs[i]);
+            queue[last_index] = plist_songs[i];
+            last_index++;
+        }
+    }
+    else {
+        queue[last_index] = link;
+        last_index++;
+    }
+
     if (link !== ""){
-        if (last_index-1 === playing_index){
-            msg.channel.send("Reproduciendo " + link);
+        if (last_index-1 === playing_index || !init){
+            msg.channel.send("Reproduciendo: " + link);
             play_song(msg);
         }
         else
-            msg.channel.send("Cancion añadida a la cola " + link);
+            msg.channel.send(is_playlist ? "Playlist" : "Cancion" + 
+                                    " añadida a la cola " + link);
         //returns the number that the song was asociated with
         return last_index-1;
     }

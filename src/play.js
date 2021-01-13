@@ -1,5 +1,5 @@
 const ytdl = require('ytdl-core');
-const utils = require('./utils');
+const utils = require('./utils.js');
 
 let queue = {};
 let dispatcher;
@@ -117,7 +117,7 @@ async function enqueue (msg,args) {
             play_song(msg);
         }
         else
-            msg.channel.send(is_playlist ? "Playlist" : "Cancion" + 
+            msg.channel.send((is_playlist ? "Playlist" : "Cancion") + 
                                     " añadida a la cola " + link);
         //returns the number that the song was asociated with
         return last_index-1;

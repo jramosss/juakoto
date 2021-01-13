@@ -1,16 +1,21 @@
-const Discord = require('discord.js');
-const CREDENTIALS = require('./credentials')
-const prefix_file = require('./prefix.js')
-const utils = require('./utils')
-const play = require('./play')
+//External libraries
 const fs = require('fs')
-const ALIAS_FILENAME = 'aliases'
+const Discord = require('discord.js');
+
+//Files
+const CREDENTIALS = require('../db/credentials.js')
+const prefix_file = require('./prefix.js')
+const utils = require('./utils.js')
+const play = require('./play.js')
+
+//Global consts
+const ALIAS_FILENAME = '../db/aliases'
 const TOKEN = CREDENTIALS.TOKEN;
+const ULTIMO_PREVIA_Y_CACHENGUE = 35;
 
 const bot = new Discord.Client();
 
-const ULTIMO_PREVIA_Y_CACHENGUE = 35;
-
+//Global vars
 let prefix = prefix_file.load_prefix();
 let aliases = utils.read_aliases(ALIAS_FILENAME);
 
@@ -22,9 +27,7 @@ spotifyApi.setAccessToken('<here_your_access_TOKEN>'); */
 
 bot.login(TOKEN);
 
-bot.on('ready', () => {
-    console.log("Buendiaaa");
-})
+bot.on('ready', () => { console.log("Buendiaaa");})
 
 //Funcion principal
 bot.on('message',async msg => {
@@ -73,7 +76,7 @@ bot.on('message',async msg => {
             }
             break;
 
-        //Sacar bot del canal de voz
+        //Make bot quick challenge
         case "andate":
         case "leave":
         case "tomatela":
@@ -82,7 +85,7 @@ bot.on('message',async msg => {
             play.clear_queue();
             break;
         
-        //Limpia la cola de canciones
+        //Clears queue
         case "c":
         case "clear":
             play.clear_queue();
@@ -90,10 +93,12 @@ bot.on('message',async msg => {
             play.pause();
             break;
         
+        //greets
         case "gracias":
             msg.channel.send("De nada " + msg.member.user.username);
             break;
 
+        //Get song link by input (natural language)
         case "getlink":
         case "find":
             if (!args[1]){
@@ -105,12 +110,13 @@ bot.on('message',async msg => {
             msg.channel.send("Resultado de buscar " + raw_input + " " + link);
             break;
 
+        //Prints all bot utilities
         case "h":
         case "help":
             msg.channel.send(utils.read_from_file('help'));
             break;
 
-        //Invocar al bot en el canal de voz 
+        //Invoke bot into actual voice channel
         case "hola":
         case "veni":
         case "te":
@@ -132,6 +138,7 @@ bot.on('message',async msg => {
                 }
             break;
         
+        //Loads queue from file
         case "lq":
         case "loadqueue":
         case "cargarcola":
@@ -139,13 +146,13 @@ bot.on('message',async msg => {
                 msg.channel.send("No me pasaste argumentos. usage juakoto lq <filename>");
                 break;
             }
-            const filepath = "queues/" + args[1];
+            const filepath = "../queues/" + args[1];
             if (!fs.existsSync(filepath)){
                 msg.channel.send("No existe un archivo con ese nombre.\n")
                 break;
             }
             try {
-                const files = fs.readdirSync("queues/");
+                const files = fs.readdirSync("../queues/");
                 let list = "";
                 for (let i = 0; i < files.length; i++){
                     if (files[i] === args[1]){
@@ -165,6 +172,7 @@ bot.on('message',async msg => {
             }
             break;
         
+        //Sends a playlist for <mood> mood
         case "mood":
             if (!args[1]){
                 msg.channel.send("Mood que? usage = juakoto mood <mood> (podes listar los mood con juakoto mood list)");
@@ -215,18 +223,19 @@ bot.on('message',async msg => {
                             " que esta programado por gente mas picante");
             msg.channel.send(playlist);
             break;
-
-
+        
+        //Mutes the bot
         case "mute":
             play.mute();
             msg.channel.send("Seteando el volumen a 0");
             break;
             
+        //Pauses the bot
         case "pause":
             play.pause();
             break;
 
-        //Reproducir una cancion con input en lenguaje natural
+        //Play song by input (natural language or yt link)
         case "p":
         case "play":
             if (!args){
@@ -256,19 +265,20 @@ bot.on('message',async msg => {
             }
             break;
         
+        //Plays a song instantly, without adding it to the queue
         case "playINSTA":
         case "playinsta":
         case "PLAYINSTA":
         case "playI":
         case "playi":
-            if (!args){
+            if (!args[1]){
                 msg.channel.send("Que queres que reproduzca? No soy adivino pa");
                 break;
             }
             let response1 = await play.enqueue(msg,args);
             args[1] = response1 ? response1 : "Algo salio mal";
             
-        //I need to use jump now
+        //Jumps to the n-th song in the queue
         case "jump":
             if (!args[1]) {
                 msg.channel.send("No me pasaste parametros");
@@ -283,13 +293,14 @@ bot.on('message',async msg => {
                 msg.channel.send("Man que flayas no esta esa cancion en la cola")
             break;
     
-
+        //Makes bot stop
         case "paraguayo":
         case "paradoja":
             msg.channel.send("Perdon por trollear :(");
             process.exit(0);
 
         //Encola las sesiones de previa y cachengue desde n hasta m especificados
+        //TODO make const ULTIMO_PYC refresh automatically whenever ferpa uploads a new session
         case "previaycachengue":
         case "pyc":
             let from;
@@ -317,8 +328,7 @@ bot.on('message',async msg => {
             }
             break;
 
-        //Modificar prefix
-        //TODO crear base de datos para que se guarde el prefix
+        //Modifies bot prefix
         case "prefix":
             if (!args[1]){
                 msg.channel.send("Parametro inexistente \n" + 
@@ -331,10 +341,12 @@ bot.on('message',async msg => {
             msg.channel.send("prefix cambiado a " + prefix);
             break;
         
+        //Sends the prefix through the actual channel
         case "showprefix":
             msg.channel.send("Prefix: ",prefix);
             break;
 
+        //Sends the bot status through a message
         case "status":
             let status = play.status()
             let message1 = "";
@@ -385,7 +397,7 @@ bot.on('message',async msg => {
             }
             break;
 
-        
+        //Selects a random song from aliases file
         case "random":
             let keys = utils.get_keys(aliases);
             let random = Math.floor(Math.random() * keys.length);
@@ -393,11 +405,15 @@ bot.on('message',async msg => {
             await play.enqueue(msg,song);
             break;
         
+        //Resume
+        //TODO add reaction when resuming
         case "r":
         case "resume":
             play.resume();
             break;
 
+        //Skip to next song
+        //TODO add reaction when skipping
         case "skip":
         case "n":
         case "next":
@@ -416,14 +432,14 @@ bot.on('message',async msg => {
             }
             break;
 
-        //jewjejejje
+        //makes songs go brrrrrr
         case "satura":
         case "earrape":
             play.set_volume(10);
             msg.channel.send("Espero que nadie este por hacer un clutch\n");
             break;
 
-        //Spamear s mensaje n veces
+        //Spams a message n times
         case "spam":
             let message = args[1]
             let times = args[2];
@@ -438,6 +454,7 @@ bot.on('message',async msg => {
             }
             break;
         
+        //Saves current queue to <filename> file
         case "sq":
         case "savequeue":
         case "guardarcola":
@@ -467,11 +484,12 @@ bot.on('message',async msg => {
 
             break;
 
-
+        //Unmutes the bot, setting volume to previous volume
         case "unmute":
             play.unmute();
             break;
-        //Definir el volument del bot
+        
+        //Set bot volume
         case "vs":
         case "volumeset":
             let volume = args[1] ? args[1] : 1;
@@ -482,7 +500,7 @@ bot.on('message',async msg => {
             
             break;
         
-        //Saludar al estilo de joacoto
+        //Greets
         case "wendia":
             msg.channel.send("AAAAAAAAAH!!!!!!!!!");
             break;  

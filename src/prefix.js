@@ -1,6 +1,6 @@
 const fs = require('fs')
-const utils = require('./utils')
-const PREFIX_FILEPATH = "./prefix"
+const utils = require('./utils.js')
+const PREFIX_FILEPATH = "../db/prefix"
 
 function change_prefix (new_prefix) {
     utils.write_to_file(PREFIX_FILEPATH,new_prefix,'w');

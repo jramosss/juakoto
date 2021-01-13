@@ -1,5 +1,5 @@
 const fs = require('fs');
-const credentials = require('./credentials');
+const credentials = require('../db/credentials.js');
 const YouTube = require("discord-youtube-api");
 const youtube = new YouTube(credentials.YT_KEY);
 
@@ -111,7 +111,6 @@ async function get_song_link (args) {
 function read_aliases (aliases_filepath) {
     let text = read_from_file(aliases_filepath);
     let fst_word = false;
-    let finished_dict = false;
     let aliases = {};
     let i = 0;
     let fst_word_string = "";
@@ -120,7 +119,6 @@ function read_aliases (aliases_filepath) {
         switch (text[i]){
             case "[":
                 fst_word = true;
-                finished_dict = false;
                 i++;
                 continue;
             case ",":
@@ -128,7 +126,6 @@ function read_aliases (aliases_filepath) {
                 i++;
                 continue;
             case "]":
-                finished_dict = true;
                 aliases[fst_word_string] = snd_word_string;
                 fst_word_string = "";
                 snd_word_string = "";

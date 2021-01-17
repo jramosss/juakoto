@@ -19,6 +19,12 @@ const bot = new Discord.Client();
 let prefix = prefix_file.load_prefix();
 let aliases = utils.read_aliases(ALIAS_FILENAME);
 
+//Emojis
+const CORTE = '776276782125940756';
+const SPEAKER = '🔈';
+const PLAY = '▶️';
+const DISK = '💾';
+
 //TODO
 /*
 const Spotify = require('spotify-web-api-js');
@@ -49,6 +55,7 @@ bot.on('message',async msg => {
     switch (args[0]){
         
         //Register a new alias
+        //TODO check if alias link is valid
         case "alias":
             if (!args[1] || !args[2]){
                 msg.channel.send("No me pasaste argumentos, usage: juakoto alias <alias> <link>");
@@ -62,6 +69,7 @@ bot.on('message',async msg => {
             utils.write_to_file(ALIAS_FILENAME,dict,'a+',true);
             aliases[args[1]] = args[2];
             msg.channel.send("Nuevo alias registrado `" + args[1] + "` linkeado a " + args[2]);
+            msg.react(DISK);
             break;
 
         //display all aliases
@@ -96,6 +104,7 @@ bot.on('message',async msg => {
         //greets
         case "gracias":
             msg.channel.send("De nada " + msg.member.user.username);
+            msg.react('🥰');
             break;
 
         //Get song link by input (natural language)
@@ -108,6 +117,7 @@ bot.on('message',async msg => {
             args[0] = '';
             let link = await utils.get_song_link(utils.adapt_input(args));
             msg.channel.send("Resultado de buscar " + raw_input + " " + link);
+            msg.react('🔍');
             break;
 
         //Prints all bot utilities
@@ -227,6 +237,7 @@ bot.on('message',async msg => {
         //Mutes the bot
         case "mute":
             play.mute();
+            msg.react('⏸️');
             msg.channel.send("Seteando el volumen a 0");
             break;
             
@@ -246,6 +257,7 @@ bot.on('message',async msg => {
             }
             try {
                 await play.enqueue(msg,args);
+                msg.react('▶️');
                 /*
                 if (!response){
                     msg.channel.send("Servidores caidos");
@@ -343,7 +355,7 @@ bot.on('message',async msg => {
         
         //Sends the prefix through the actual channel
         case "showprefix":
-            msg.channel.send("Prefix: ",prefix);
+            msg.channel.send("Prefix: " + prefix);
             break;
 
         //Sends the bot status through a message
@@ -361,9 +373,12 @@ bot.on('message',async msg => {
         case "q":
         case "cola":
         case "queue":
+            //TODO make this faster
             let _queue = play.get_queue()
             if (utils.queue_length(_queue) === 0)
-                msg.channel.send("Cola vacia\n");
+                //?Can the bot react to his own message?
+                msg.channel.send("Cola vacia\n")
+                .then(msg.react(CORTE));
             else {
                 let v_song_info;
                 let v_song_title;
@@ -410,6 +425,7 @@ bot.on('message',async msg => {
         case "r":
         case "resume":
             play.resume();
+            msg.react(PLAY);
             break;
 
         //Skip to next song
@@ -420,6 +436,7 @@ bot.on('message',async msg => {
             try{
                 let queue = play.get_queue();
                 let playing_index1 = play.get_playing_index()
+                msg.react('⏭️');
                 if (queue[playing_index1+1]){
                     play.queue_shift();
                     play.play_song(msg);
@@ -437,6 +454,7 @@ bot.on('message',async msg => {
         case "earrape":
             play.set_volume(10);
             msg.channel.send("Espero que nadie este por hacer un clutch\n");
+            msg.react(SPEAKER);
             break;
 
         //Spams a message n times
@@ -448,6 +466,7 @@ bot.on('message',async msg => {
                                  "usage = juakoto spam <message> <times>");
                 break;
             }
+            msg.react(CORTE);
             for (let i = 0; i < times; i++){
                 msg.channel.send(message);
                 await utils.sleep(1000);
@@ -477,6 +496,7 @@ bot.on('message',async msg => {
                 utils.write_to_file(filepath,links,'a+');
 
                 msg.channel.send("Cola guardada en " + filepath);
+                msg.react(DISK);
             }
             catch (error){
                 console.log("Exception in savequeue " + error);
@@ -487,6 +507,7 @@ bot.on('message',async msg => {
         //Unmutes the bot, setting volume to previous volume
         case "unmute":
             play.unmute();
+            msg.react(SPEAKER);
             break;
         
         //Set bot volume
@@ -495,14 +516,15 @@ bot.on('message',async msg => {
             let volume = args[1] ? args[1] : 1;
             play.set_volume(volume)
 
+            msg.react(SPEAKER);
             msg.channel.send(args[1] ? "Volumen seteado a " + volume : 
                             "No me pasaste parametros, seteando a 1");
-            
             break;
         
         //Greets
         case "wendia":
             msg.channel.send("AAAAAAAAAH!!!!!!!!!");
+            msg.react(CORTE);
             break;  
     }
 })

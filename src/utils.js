@@ -153,15 +153,8 @@ async function handle_args (args) {
         link = args[1];
     else if (valid_URL(args[2]))
         link = args[2];
-    else{
-        try {
-            link = await get_song_link(adapt_input(args));
-        }
-        catch (e) {
-            link = "";
-            console.log("Exception in handle_args " + e);
-        }
-    }
+    else
+        link = await get_song_link(adapt_input(args));
     return link;
 }
 

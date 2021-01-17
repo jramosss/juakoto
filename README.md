@@ -28,6 +28,7 @@ Lo queres en tu server? Click [aca](https://discord.com/oauth2/authorize?client_
 * *play* <song> / *p* <song> : Reproduce una cancion (No funciona con listas por que no me pagan lo suficiente) 
 * *playI* / *playINSTA* : Reproduce la cancion instantaneamente 
 * *q* / *queue* = Muestra la cola actual de canciones 
+* *random* = Reproduce una cancion random sacada del archivo de aliases
 * *resume* / *r* = Despausar 
 * *satura* / *earrape* = Hace volumeset en 10, ideal para trolear y tiltear a joacoto, provocando que todos los usuarios del server tengan al bot * insta muteado 
 * *skip* / *n* / *next* = Pasa a la siguiente cancion de la cola 
@@ -41,5 +42,5 @@ Lo queres en tu server? Click [aca](https://discord.com/oauth2/authorize?client_
 
 ### TODO:
 
-* Manejar playlists
 * Manejar canciones de spotify
+* Opcion Shuffle

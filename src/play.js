@@ -85,13 +85,19 @@ async function play_song (msg) {
 }
 
 async function enqueue (msg,args) {
-    
+    let link;
     if (!msg.member.voice.channel){
         msg.channel.send("No estas en un canal bro");
         return;
     }
-
-    let link = await utils.handle_args(args);
+    try {
+        link = await utils.handle_args(args);
+    }
+    catch (e){
+        link = "";
+        console.log("Exception in handle args: ", e)
+        msg.channel.send("No encontre ningun video con lo que me pasaste");
+    }
 
     let regexp = /^.*(youtu.be\/|list=)([^#\&\?]*).*/
     let match = link.match(regexp);

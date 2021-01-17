@@ -1,12 +1,23 @@
-backup/
+#Folders
+.vscode/
 node_modules/
 node_modules
+queues/
+
+#JS
 package-lock.json
 package.json
-.vscode/
-credentials.js
+
+#Innecesary stuff
 test.js
 TODO
-queues/
-aliases
-prefix
+
+#Private Keys
+db/credentials.js
+db/aliases
+db/prefix
+
+
+#Py
+tests/__pycache__
+tests/.pytest_cache

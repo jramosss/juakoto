@@ -13,9 +13,9 @@ test.js
 TODO
 
 #Private Keys
-db/credentials.js
-db/aliases
-db/prefix
+#db/credentials.js
+#db/aliases
+#db/prefix
 
 
 #Py

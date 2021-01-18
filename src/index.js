@@ -20,6 +20,10 @@ const bot = new Discord.Client();
 
 //Global vars
 let prefix = prefix_file.load_prefix();
+/*let aliases = fs.existsSync(ALIAS_FILENAME) ? 
+                utils.read_aliases(ALIAS_FILENAME) : 
+                fs.writeFileSync(ALIAS_FILENAME,"",{flag:'x'});*/
+
 let aliases = utils.read_aliases(ALIAS_FILENAME);
 
 //Emojis

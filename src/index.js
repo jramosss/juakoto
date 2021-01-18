@@ -1,3 +1,6 @@
+//Server stuff
+const PORT = process.env.PORT || 5000;
+
 //External libraries
 const fs = require('fs')
 const Discord = require('discord.js');

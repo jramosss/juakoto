@@ -6,7 +6,7 @@ const fs = require('fs')
 const Discord = require('discord.js');
 
 //Files
-const CREDENTIALS = require('../db/credentials.js')
+const CREDENTIALS = require('../db/credentials')
 const prefix_file = require('./prefix.js')
 const utils = require('./utils.js')
 const play = require('./play.js')

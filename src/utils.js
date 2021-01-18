@@ -195,7 +195,40 @@ async function get_playlist_links (playlist) {
     return songs;
 }
 
+function array_shuffle(array) {
+    var currentIndex = array.length, temporaryValue, randomIndex;
+  
+    // While there remain elements to shuffle...
+    while (currentIndex) {
+  
+      // Pick a remaining element...
+      randomIndex = Math.floor(Math.random() * currentIndex);
+      currentIndex--;
+  
+      // And swap it with the current element.
+      temporaryValue = array[currentIndex];
+      array[currentIndex] = array[randomIndex];
+      array[randomIndex] = temporaryValue;
+    }
+  
+    return array;
+}
+
+function dict_shuffle (dict) {
+    let random_nums = [];
+    for (let i = 0; i < queue_length(dict); i++)
+        random_nums.push(i);
+    array_shuffle(random_nums);
+
+    let new_dict = {};
+
+    for (let i = 0; i < random_nums.length; i++)
+        new_dict[i] = dict[random_nums[i]];
+
+    return new_dict;
+}
+
 module.exports = {adapt_input,valid_URL,sleep,queue_length,write_to_file,
                   get_song_links,read_from_file,read_aliases,handle_args,
                   dict_contains,get_song_info,get_song_link,objToString,
-                  get_keys,get_playlist_links};
+                  get_keys,get_playlist_links,dict_shuffle};

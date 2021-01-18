@@ -199,7 +199,12 @@ function get_song_number (name) {
     return null;
 }
 
+//pretty sure this is a very bad practice
+function set_queue (new_queue) {
+    queue = new_queue;
+}
+
 module.exports = {play_song,enqueue,get_queue,clear_queue,queue_shift,
                   get_dispatcher,get_playing_index,set_volume,
                   pause,resume,NotAllowed,NotInAChannel,jump,status,
-                  get_song_number,mute,unmute};
+                  get_song_number,mute,unmute,set_queue};

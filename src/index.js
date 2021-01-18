@@ -182,6 +182,15 @@ bot.on('message',async msg => {
             }
             break;
         
+        //Displays the title of the current playing song
+        case "quesuena":
+            let queue2 = play.get_queue();
+            let current = play.get_playing_index();
+            let info = await utils.get_song_info(queue2[current])
+            let title = info.title;
+            msg.channel.send("Esta sonando " + title);
+            break;
+
         //Sends a playlist for <mood> mood
         case "mood":
             if (!args[1]){
@@ -380,28 +389,23 @@ bot.on('message',async msg => {
                 msg.channel.send("Cola vacia\n")
                 .then(msg.react(CORTE));
             else {
-                let v_song_info;
-                let v_song_title;
-                let v_song_len;
-                let message = "";
+                let song_info, message = "", i = 0;
                 let aux = play.get_queue();
-                let i = 0;
 
                 while(aux[i]) {
                     try{
-                        v_song_info = await utils.get_song_info(aux[i]);
-                        v_song_len = v_song_info.duration;
-                        v_song_title = v_song_info.title;
+                        song_info = await utils.get_song_info(aux[i]);
                         if (message.length >= 1900) {
+                            //!Not working
                             await msg.channel.send("``` Cola: \n",message,"```");
                             message = "";
                         }
-                        message += i + " " + v_song_title + "       " + v_song_len + "\n";
+                        message += i + " " + song_info.title + "       " + song_info.duration + "\n";
 
                         i++;
                     }
                     catch(error) {
-                        console.log("QUEUE " + error);
+                        console.log("Exception in queue ", error);
                         break;
                     }
                 }
@@ -412,6 +416,11 @@ bot.on('message',async msg => {
             }
             break;
 
+        //Show all saved queues
+        case "queues":
+            let queues = fs.readdirSync('../queues');
+            msg.channel.send("```Queues: " + queues + "```");
+            break;
         //Selects a random song from aliases file
         case "random":
             let keys = utils.get_keys(aliases);
@@ -473,6 +482,16 @@ bot.on('message',async msg => {
             }
             break;
         
+        //shuffles queue
+        //!Not working
+        case "shuffle":
+            let queue = play.get_queue();
+            let dict1 = utils.dict_shuffle(queue);
+            console.log(dict1);
+            play.set_queue(dict1);
+            msg.react('🔀');
+            break;
+
         //Saves current queue to <filename> file
         case "sq":
         case "savequeue":

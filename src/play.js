@@ -48,9 +48,8 @@ async function play_song (msg) {
     } 
     let permissions = vc.permissionsFor(msg.client.user);
 
-    if (!permissions.has('CONNECT') || !permissions.has('SPEAK')){//TODO throw NotAllowed
+    if (!permissions.has('CONNECT') || !permissions.has('SPEAK'))//TODO throw NotAllowed
         return msg.channel.send("No me diste permisos bro")
-    }
 
     //!There was a .catch() here, but the function always print even though it worked
     let connection = await vc.join();
@@ -78,7 +77,7 @@ async function play_song (msg) {
     }
     catch (error){
         console.log(error);
-        msg.channel.send("No se puede reproducir la cancion xd\n");
+        msg.channel.send("No se puede reproducir la cancion\n");
     }
     
     dispatcher.setVolumeLogarithmic(5 / 5)
@@ -99,12 +98,9 @@ async function enqueue (msg,args) {
         msg.channel.send("No encontre ningun video con lo que me pasaste");
     }
 
-    let regexp = /^.*(youtu.be\/|list=)([^#\&\?]*).*/
-    let match = link.match(regexp);
-    let is_playlist;
+    let is_playlist = utils.is_playlist(link);
     //TODO research how can i handle > 25 songs
-    if (match && match[2]){
-        is_playlist = true;
+    if (is_playlist){
         let plist_songs = await utils.get_playlist_links(link);
         for (let i = 0; i < plist_songs.length; i++) {
             //console.log("Enqueueing " + plist_songs[i]);
@@ -113,6 +109,7 @@ async function enqueue (msg,args) {
         }
     }
     else {
+        //?Should i change {link} for {song_info} ?
         queue[last_index] = link;
         last_index++;
     }

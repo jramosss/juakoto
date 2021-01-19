@@ -89,11 +89,16 @@ function get_song_links (list) {
     return links;
 }
 
-//Da info sobre el video de la cancion
 async function get_song_info (link) {
+    //This doesn`t seem very professional
+    let song_info = await youtube.getVideo(link);
+    return song_info;
+    //This does
+    /*
     return new Promise((resolve,reject) => {
         youtube.getVideo(link).then(resolve,reject);
     });
+    */
 }
 
 //Obtiene el link de una cancion
@@ -108,6 +113,7 @@ async function get_song_link (args) {
     return info.url;
 }
 
+//Returns a dict {alias_name : associated_link} from aliases file
 function read_aliases (aliases_filepath) {
     let text = read_from_file(aliases_filepath);
     let fst_word = false;
@@ -142,6 +148,10 @@ function read_aliases (aliases_filepath) {
     return aliases;
 }
 
+/**
+ * *Returns a link based on natural language input 
+ * @param args the natural language input
+*/
 async function handle_args (args) {
     if (args[0] === 'p')
         args[0] = "";
@@ -177,6 +187,11 @@ function objToString (obj) {
     return str;
 }
 
+/**
+ * get dict keys
+ * @param {dict}
+ * @returns {array with keys}
+ * */
 function get_keys (dict) {
     let keys = [];
     for (const [key,value] of Object.entries(dict)) {
@@ -185,6 +200,10 @@ function get_keys (dict) {
     return keys;
 }
 
+/**
+ * @param {playlist}
+ * @returns {links} the obtained links from playlist
+ */
 async function get_playlist_links (playlist) {
     let songs = [];
     let playlist_links = await youtube.getPlaylist(playlist);
@@ -228,7 +247,13 @@ function dict_shuffle (dict) {
     return new_dict;
 }
 
+function is_playlist (link){
+    let regexp = /^.*(youtu.be\/|list=)([^#\&\?]*).*/
+    let match = link.match(regexp);
+    return match && match[2];
+}
+
 module.exports = {adapt_input,valid_URL,sleep,queue_length,write_to_file,
                   get_song_links,read_from_file,read_aliases,handle_args,
                   dict_contains,get_song_info,get_song_link,objToString,
-                  get_keys,get_playlist_links,dict_shuffle};
+                  get_keys,get_playlist_links,dict_shuffle,is_playlist};

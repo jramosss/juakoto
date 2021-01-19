@@ -26,6 +26,7 @@ const CORTE = '776276782125940756';
 const SPEAKER = '🔈';
 const PLAY = '▶️';
 const DISK = '💾';
+const OK = '👍';
 
 //TODO
 /*
@@ -39,11 +40,12 @@ bot.on('ready', () => { console.log("Buendiaaa");})
 
 //Core Function
 bot.on('message',async msg => {
+    if (msg.author.bot) return;
     let args = msg.content.substring(prefix.length+1).split(" ");
+    //!This causes all the messages to be sent twice (¿?¿??¿)
     console.log("Message: ",args);
     let raw_input = msg.content.substring(prefix.length+1).replace(args[0],"");
 
-    if (msg.author.bot) return;
     //Handle aliases
     if (utils.dict_contains(aliases,args[0])) {
         try {
@@ -187,11 +189,21 @@ bot.on('message',async msg => {
         
         //Displays the title of the current playing song
         case "quesuena":
-            let queue2 = play.get_queue();
-            let current = play.get_playing_index();
-            let info = await utils.get_song_info(queue2[current])
-            let title = info.title;
-            msg.channel.send("Esta sonando " + title);
+            try {
+                let queue2 = play.get_queue();
+                let current = play.get_playing_index();
+                if (queue2[current]){
+                    let info = await utils.get_song_info(queue2[current])
+                    let title = info.title;
+                    msg.channel.send("Esta sonando " + title);
+                }
+                else
+                    msg.channel.send("No esta sonando nada che flayero");
+            }
+            catch (e) {
+                console.log("Exception in quesuena: " , e);
+                msg.channel.send("Me parece que no esta sonando nada pa");
+            }
             break;
 
         //Sends a playlist for <mood> mood
@@ -318,6 +330,19 @@ bot.on('message',async msg => {
             msg.channel.send("Perdon por trollear :(").then(process.exit(0));
             break; //Not necessary
 
+
+        case "ping":
+        case "ms":
+            let ping = bot.ws.ping;
+            if (ping > 230) {
+                msg.channel.send("Toy re lageado padreee, tengo " + ping + " de ping");
+                msg.react(CORTE);
+            }
+            else {
+                msg.channel.send("Tengo " + ping + " de ping");
+                msg.react(OK);
+            }
+            break;
         //Encola las sesiones de previa y cachengue desde n hasta m especificados
         //TODO make const ULTIMO_PYC refresh automatically whenever ferpa uploads a new session
         case "previaycachengue":
@@ -398,7 +423,7 @@ bot.on('message',async msg => {
                             await msg.channel.send("``` Cola: \n",message,"```");
                             message = "";
                         }
-                        message += i + " " + song_info.title + "       " + song_info.duration + "\n";
+                        message += i + " " + song_info.title + "       " + song_info.length + "\n";
 
                         i++;
                     }

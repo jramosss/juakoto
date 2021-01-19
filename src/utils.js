@@ -34,11 +34,8 @@ function adapt_input(arr) {
     return str1;
 }
 
-function queue_length(queue){
-    let count = 0;
-    for (var _ in queue)
-        count++;
-    return count
+function queue_length(dict){
+    return Object.keys(dict).length;
 }
 
 function write_to_file (filename,text,flagg,brackets=false){

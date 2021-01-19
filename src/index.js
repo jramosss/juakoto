@@ -10,6 +10,7 @@ const CREDENTIALS = require('../db/credentials')
 const prefix_file = require('./prefix.js')
 const utils = require('./utils.js')
 const play = require('./play.js')
+const embeds = require('../resources/embeds')
 
 //Global consts
 const ALIAS_FILENAME = '../db/aliases'
@@ -406,36 +407,21 @@ bot.on('message',async msg => {
         case "cola":
         case "queue":
             //TODO make this faster
-            let _queue = play.get_queue()
-            if (utils.queue_length(_queue) === 0)
+            let _queue = play.get_queue();
+            let currrent_song_index = play.get_playing_index();
+            if (!utils.queue_length(_queue))
                 //?Can the bot react to his own message?
-                msg.channel.send("Cola vacia\n")
+                msg.channel.send("`Cola vacia`")
                 .then(msg.react(CORTE));
             else {
-                let song_info, message = "", i = 0;
-                let aux = play.get_queue();
-
-                while(aux[i]) {
-                    try{
-                        song_info = await utils.get_song_info(aux[i]);
-                        if (message.length >= 1900) {
-                            //!Not working
-                            await msg.channel.send("``` Cola: \n",message,"```");
-                            message = "";
-                        }
-                        message += i + " " + song_info.title + "       " + song_info.length + "\n";
-
-                        i++;
-                    }
-                    catch(error) {
-                        console.log("Exception in queue ", error);
-                        break;
-                    }
+                try{
+                    const message = await embeds.queue_embed(_queue,currrent_song_index)
+                    msg.channel.send(message);
                 }
-                if (message !== "")
-                    msg.channel.send("```" + "Cola: \n" + message + "```")
-                else 
-                    msg.channel.send("Cola vacia");
+                catch(error) {
+                    console.log("Exception in queue ", error);
+                    break;
+                }
             }
             break;
 
@@ -568,5 +554,9 @@ bot.on('message',async msg => {
             msg.channel.send("AAAAAAAAAH!!!!!!!!!");
             msg.react(CORTE);
             break;  
+        
+        default:
+            msg.channel.send("??¿?¿?¿?¿??¿");
+            break;
     }
 })

@@ -15,15 +15,10 @@ const play = require('./play.js')
 const ALIAS_FILENAME = '../db/aliases'
 const TOKEN = CREDENTIALS.TOKEN;
 const ULTIMO_PREVIA_Y_CACHENGUE = 35;
-
 const bot = new Discord.Client();
 
 //Global vars
 let prefix = prefix_file.load_prefix();
-/*let aliases = fs.existsSync(ALIAS_FILENAME) ? 
-                utils.read_aliases(ALIAS_FILENAME) : 
-                fs.writeFileSync(ALIAS_FILENAME,"",{flag:'x'});*/
-
 let aliases = utils.read_aliases(ALIAS_FILENAME);
 
 //Emojis
@@ -42,9 +37,10 @@ bot.login(TOKEN);
 
 bot.on('ready', () => { console.log("Buendiaaa");})
 
-//Funcion principal
+//Core Function
 bot.on('message',async msg => {
     let args = msg.content.substring(prefix.length+1).split(" ");
+    console.log("Message: ",args);
     let raw_input = msg.content.substring(prefix.length+1).replace(args[0],"");
 
     if (msg.author.bot) return;
@@ -163,13 +159,13 @@ bot.on('message',async msg => {
                 msg.channel.send("No me pasaste argumentos. usage juakoto lq <filename>");
                 break;
             }
-            const filepath = "../queues/" + args[1];
+            const filepath = "../db/queues/" + args[1];
             if (!fs.existsSync(filepath)){
                 msg.channel.send("No existe un archivo con ese nombre.\n")
                 break;
             }
             try {
-                const files = fs.readdirSync("../queues/");
+                const files = fs.readdirSync("../db/queues/");
                 let list = "";
                 for (let i = 0; i < files.length; i++){
                     if (files[i] === args[1]){
@@ -253,13 +249,13 @@ bot.on('message',async msg => {
         //Mutes the bot
         case "mute":
             play.mute();
-            msg.react('⏸️');
-            msg.channel.send("Seteando el volumen a 0");
+            msg.react(CORTE);
             break;
             
         //Pauses the bot
         case "pause":
             play.pause();
+            msg.react('⏸️');
             break;
 
         //Play song by input (natural language or yt link)
@@ -274,11 +270,6 @@ bot.on('message',async msg => {
             try {
                 await play.enqueue(msg,args);
                 msg.react('▶️');
-                /*
-                if (!response){
-                    msg.channel.send("Servidores caidos");
-                    break;
-                }*/
             }
             //TODO make this work
             catch(e){
@@ -324,8 +315,8 @@ bot.on('message',async msg => {
         //Makes bot stop
         case "paraguayo":
         case "paradoja":
-            msg.channel.send("Perdon por trollear :(");
-            process.exit(0);
+            msg.channel.send("Perdon por trollear :(").then(process.exit(0));
+            break; //Not necessary
 
         //Encola las sesiones de previa y cachengue desde n hasta m especificados
         //TODO make const ULTIMO_PYC refresh automatically whenever ferpa uploads a new session
@@ -425,7 +416,7 @@ bot.on('message',async msg => {
 
         //Show all saved queues
         case "queues":
-            let queues = fs.readdirSync('../queues');
+            let queues = fs.readdirSync('../db/queues/');
             msg.channel.send("```Queues: " + queues + "```");
             break;
         //Selects a random song from aliases file
@@ -510,7 +501,7 @@ bot.on('message',async msg => {
                     msg.channel.send("No me pasaste parametros. usage juakoto sq <filename>");
                     break;
                 }
-                const filepath = "queues/" + args[1];
+                const filepath = "../db/queues/" + args[1];
                 if (fs.existsSync(filepath)){
                     msg.channel.send("Ya existe un archivo con ese nombre");
                     break;

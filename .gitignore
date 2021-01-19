@@ -2,7 +2,7 @@
 .vscode/
 node_modules/
 node_modules
-queues/
+#queues/
 
 #JS
 package-lock.json
@@ -14,8 +14,8 @@ TODO
 
 #Private Keys
 #db/credentials.js
-#db/aliases
-#db/prefix
+db/aliases
+db/prefix
 
 
 #Py

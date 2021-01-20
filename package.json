@@ -2,7 +2,7 @@
   "name": "discordbot",
   "version": "1.0.0",
   "engines": {
-    "node": "15.6.0"
+    "node": "14.x"
   },
   "description": "Puede servir para trollear",
   "main": "index.js",

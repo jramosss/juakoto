@@ -4,10 +4,6 @@ node_modules/
 node_modules
 #queues/
 
-#JS
-package-lock.json
-package.json
-
 #Innecesary stuff
 test.js
 TODO

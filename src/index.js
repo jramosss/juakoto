@@ -132,7 +132,7 @@ bot.on('message',async msg => {
             }
             args[0] = '';
             let link = await utils.get_song_link(utils.adapt_input(args));
-            msg.channel.send("Resultado de buscar " + raw_input + " " + link);
+            msg.channel.send(embeds.link_search(raw_input,link));
             msg.react('🔍');
             break;
 

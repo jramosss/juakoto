@@ -44,7 +44,6 @@ Lo queres en tu server? Click [aca](https://discord.com/oauth2/authorize?client_
 
 ### TODO:
 
-* Make prefix an enviroment variable
 * Handle spotify songs
 * Shuffle option (WIP)
 * Remove alias option

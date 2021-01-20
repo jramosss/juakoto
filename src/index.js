@@ -43,6 +43,7 @@ bot.on('message',async msg => {
     if (msg.author.bot) return;
     let args = msg.content.substring(prefix.length+1).split(" ");
     let raw_input = msg.content.substring(prefix.length+1).replace(args[0],"");
+    console.log("Message: ",args);
 
     //Handle aliases
     if (utils.dict_contains(aliases,args[0])) {
@@ -136,9 +137,10 @@ bot.on('message',async msg => {
             break;
 
         //Prints all bot utilities
+        //TODO make this prettier
         case "h":
         case "help":
-            msg.channel.send(utils.read_from_file('help'));
+            msg.channel.send('`'+ utils.read_from_file('../db/help') +'`');
             break;
 
         //Invoke bot into actual voice channel

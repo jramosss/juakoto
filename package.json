@@ -1,6 +1,9 @@
 {
   "name": "discordbot",
   "version": "1.0.0",
+  "engines": {
+    "node": "15.6.0"
+  },
   "description": "Puede servir para trollear",
   "main": "index.js",
   "scripts": {

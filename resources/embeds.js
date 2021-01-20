@@ -1,22 +1,19 @@
 const Discord = require('discord.js');
-const utils = require('../src/utils');
 
-                            //?Should this be an argument or a function var?
-async function make_embed_fields (queue,current_song) {
+function make_embed_fields (queue,current_song) {
     const len = current_song + 9;
-    let info;
     let fields = [];
-    for (let i = current_song; i < len; i++) {
-        if (queue[i]){
-            info = await utils.get_song_info(queue[i]);
-            fields.push({name : info.title, value : info.length});
-        }
+    let opt = Object.keys(queue).length > 10;
+    for (let i = opt ? current_song : 0; i <= len; i++) {
+        if (queue[i])
+            fields.push({name : queue[i].title, value : queue[i].length});
     }
     return fields;
 }
 
-const queue_embed = async (queue,current_song) => {
-    const embeds = await make_embed_fields(queue,current_song);
+const queue_embed = (queue,current_song) => {
+    if (!queue || current_song === undefined) return;
+    const embeds = make_embed_fields(queue,current_song);
     const message = new Discord.MessageEmbed()
     .setColor('BLUE')
     .setTitle("Cola")
@@ -26,4 +23,33 @@ const queue_embed = async (queue,current_song) => {
     return message;
 }
 
-module.exports = {queue_embed};
+const enqueued_song = (song) => {
+    if (!song) return;
+    const message1 = new Discord.MessageEmbed()
+    .setColor('BLUE')
+    .setTitle("Añadida a la cola")
+    .addField(song.title,song.length)
+
+    return message1;
+}
+
+const now_playing = (song1) => {
+    if (!song1) return;
+    const message2 = new Discord.MessageEmbed()
+    .setColor('GREEN')
+    .setTitle("Reproduciendo")
+    .addField(song1.title,song1.length)
+
+    return message2;
+}
+
+const link_search = (args,link) => {
+    if (!link) return;
+    const message3 = new Discord.MessageEmbed()
+    .setColor('DARK_NAVY')
+    .addField("Resultado de la busqueda " + args,link);
+
+    return message3;
+}
+
+module.exports = {queue_embed,enqueued_song,now_playing,link_search};

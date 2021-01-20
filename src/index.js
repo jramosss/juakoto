@@ -11,7 +11,6 @@ const prefix_file = require('./prefix.js')
 const utils = require('./utils.js')
 const play = require('./play.js')
 const embeds = require('../resources/embeds');
-const { info } = require('console');
 
 //Global consts
 const ALIAS_FILENAME = '../db/aliases'
@@ -29,6 +28,7 @@ const SPEAKER = '🔈';
 const PLAY = '▶️';
 const DISK = '💾';
 const OK = '👍';
+const X = '❌';
 
 //TODO
 /*
@@ -44,8 +44,6 @@ bot.on('ready', () => { console.log("Buendiaaa");})
 bot.on('message',async msg => {
     if (msg.author.bot) return;
     let args = msg.content.substring(prefix.length+1).split(" ");
-    //!This causes all the messages to be sent twice (¿?¿??¿)
-    console.log("Message: ",args);
     let raw_input = msg.content.substring(prefix.length+1).replace(args[0],"");
 
     //Handle aliases
@@ -69,10 +67,17 @@ bot.on('message',async msg => {
         case "alias":
             if (!args[1] || !args[2]){
                 msg.channel.send("No me pasaste argumentos, usage: juakoto alias <alias> <link>");
+                msg.react(X);
                 break;
             }
             if (utils.dict_contains(aliases,args[1])){
                 msg.channel.send("Alias " + args[1] + " ya registrado");
+                msg.react(X);
+                break;
+            }
+            if (!utils.valid_URL(args[2])){
+                msg.channel.send("Link invalido");
+                msg.react(X);
                 break;
             }
             let dict = [args[1],args[2]];
@@ -122,6 +127,7 @@ bot.on('message',async msg => {
         case "find":
             if (!args[1]){
                 msg.channel.send("No me pasaste argumentos, usage juakoto " + args[0] + "<titulo del video>");
+                msg.react(X);
                 break;
             }
             args[0] = '';
@@ -150,6 +156,7 @@ bot.on('message',async msg => {
                         msg.member.voice.channel.join();
                     else if (msg.member.voice.channel.id === msg.guild.voice.channelID){
                         msg.channel.send("Ya estoy en el canal pa, sos estupido?");
+                        msg.react(X);
                         break;
                     }   
                 }
@@ -164,6 +171,7 @@ bot.on('message',async msg => {
         case "cargarcola":
             if (!args[1]){
                 msg.channel.send("No me pasaste argumentos. usage juakoto lq <filename>");
+                msg.react(X);
                 break;
             }
             const filepath = "../db/queues/" + args[1];
@@ -213,6 +221,7 @@ bot.on('message',async msg => {
         case "mood":
             if (!args[1]){
                 msg.channel.send("Mood que? usage = juakoto mood <mood> (podes listar los mood con juakoto mood list)");
+                msg.react(X);
                 break;
             }
             let playlist = "";
@@ -280,6 +289,7 @@ bot.on('message',async msg => {
                 msg.channel.send("Que queres que meta en la cola? Pasame algo,"+
                                  "por que me encanta meterme cosas en la cola\n",
                                  "usage = juakoto play/p <song name/song youtube link>")
+                msg.react(X);
                 break;
             }
             try {
@@ -307,6 +317,7 @@ bot.on('message',async msg => {
         case "playi":
             if (!args[1]){
                 msg.channel.send("Que queres que reproduzca? No soy adivino pa");
+                msg.react(X);
                 break;
             }
             let response1 = await play.enqueue(msg,args);
@@ -316,6 +327,7 @@ bot.on('message',async msg => {
         case "jump":
             if (!args[1]) {
                 msg.channel.send("No me pasaste parametros");
+                msg.react(X);
                 break;
             }
             if (play.get_queue()[args[1]]){
@@ -355,6 +367,7 @@ bot.on('message',async msg => {
 
             if (!args[1]){
                 msg.channel.send("No especificaste desde donde,terrible mogolico,defaulteando a 1")
+                msg.react(X);
                 from = 1;
             }   
             else 
@@ -362,13 +375,14 @@ bot.on('message',async msg => {
 
             if (!args[2]){
                 msg.channel.send("No especificaste hasta donde,terrible mogolico,defaulteando a" + ULTIMO_PREVIA_Y_CACHENGUE)
+                msg.react(X);
                 to = ULTIMO_PREVIA_Y_CACHENGUE;
             }
             else
                 to = args[2];
 
             let arr1 = [];
-            for (var j = from; j <= to; j++){
+            for (let j = from; j <= to; j++){
                 arr1.push("previa y cachengue " + j);
                 play.enqueue(msg,arr1);
                 arr1 = [];
@@ -380,6 +394,7 @@ bot.on('message',async msg => {
             if (!args[1]){
                 msg.channel.send("Parametro inexistente \n" + 
                                  "usage juakoto prefix <prefix>");
+                msg.react(X);
                 break;
             }
 
@@ -417,8 +432,7 @@ bot.on('message',async msg => {
             }
             else {
                 try{
-                    const message = embeds.queue_embed(_queue,currrent_song_index);
-                    msg.channel.send(message);
+                    msg.channel.send(embeds.queue_embed(_queue,currrent_song_index));
                 }
                 catch(error) {
                     console.log("Exception in queue ", error);
@@ -441,7 +455,6 @@ bot.on('message',async msg => {
             break;
         
         //Resume
-        //TODO add reaction when resuming
         case "r":
         case "resume":
             play.resume();
@@ -449,7 +462,6 @@ bot.on('message',async msg => {
             break;
 
         //Skip to next song
-        //TODO add reaction when skipping
         case "skip":
         case "n":
         case "next":
@@ -459,6 +471,7 @@ bot.on('message',async msg => {
                 msg.react('⏭️');
                 if (queue[playing_index1+1]){
                     play.queue_shift();
+                    msg.channel.send(embeds.now_playing(queue[playing_index1+1]));
                     play.play_song(msg);
                 }
                 else 
@@ -484,6 +497,7 @@ bot.on('message',async msg => {
             if (!args[1] || !args[2]){
                 msg.channel.send("No me mandaste argumentos mogolico\n" + 
                                  "usage = juakoto spam <message> <times>");
+                msg.react(X);
                 break;
             }
             msg.react(CORTE);
@@ -512,11 +526,13 @@ bot.on('message',async msg => {
                 let links = []
                 if (!args[1]){
                     msg.channel.send("No me pasaste parametros. usage juakoto sq <filename>");
+                    msg.react(X);
                     break;
                 }
                 const filepath = "../db/queues/" + args[1];
                 if (fs.existsSync(filepath)){
                     msg.channel.send("Ya existe un archivo con ese nombre");
+                    msg.react(X);
                     break;
                 }
                 let queue_len = utils.queue_length(queue1);
@@ -557,8 +573,10 @@ bot.on('message',async msg => {
             msg.react(CORTE);
             break;  
 
+        /*
         default:
             msg.channel.send("??¿?¿?¿?¿??¿");
             break;
+        */
     }
 });

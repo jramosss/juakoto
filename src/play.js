@@ -101,10 +101,9 @@ async function enqueue (msg,args) {
         console.log("Exception in handle args: ", e)
         msg.channel.send("No encontre ningun video con lo que me pasaste");
     }
-    let is_playlist = utils.is_playlist(link);
     //TODO research how can i handle > 25 songs
-    if (is_playlist){
-        let plist_songs = await utils.get_playlist_songs_info(link);
+    if (utils.is_playlist(link)){
+        const plist_songs = await utils.get_playlist_songs_info(link);
         for (let i = 0; i < plist_songs.length; i++) {
             queue[last_index] = plist_songs[i];
             last_index++;

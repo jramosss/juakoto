@@ -1,7 +1,7 @@
 {
   "name": "juakoto",
   "version": "1.0.0",
-  "description": "#### Juakoto es un bot de discord capaz de realizar varias acciones utiles, la mayoria relacionadas con la musica",
+  "description": "Juakoto es un bot de discord capaz de realizar varias acciones utiles, la mayoria relacionadas con la musica",
   "main": "src/index.js",
   "directories": {
     "test": "tests"

@@ -1,5 +1,6 @@
 const ytdl = require('ytdl-core');
 const utils = require('./utils.js');
+const embeds = require('../resources/embeds')
 
 let queue = {};
 let dispatcher;
@@ -55,7 +56,7 @@ async function play_song (msg) {
     let connection = await vc.join();
     
     try{
-        let current_song_link = queue[playing_index];
+        let current_song_link = queue[playing_index].url;
         dispatcher = connection.play(ytdl(current_song_link));
         if (paused){
             resume();
@@ -64,9 +65,9 @@ async function play_song (msg) {
             
         dispatcher.on('finish',() => {
             if (queue[playing_index+1]){
-                msg.channel.send("Reproduciendo " + queue[playing_index+1])
+                msg.channel.send(embeds.now_playing(queue[playing_index+1]));
                 playing_index++;
-                play_song(msg) ;
+                play_song(msg);
             }
             else {
                 playing_index++;
@@ -90,38 +91,41 @@ async function enqueue (msg,args) {
         return;
     }
     try {
-        link = await utils.handle_args(args);
+        if (utils.object_is_video(args))
+            link = args.url
+        else 
+            link = await utils.handle_args(args);
     }
     catch (e){
         link = "";
         console.log("Exception in handle args: ", e)
         msg.channel.send("No encontre ningun video con lo que me pasaste");
     }
-
     let is_playlist = utils.is_playlist(link);
     //TODO research how can i handle > 25 songs
     if (is_playlist){
-        let plist_songs = await utils.get_playlist_links(link);
+        let plist_songs = await utils.get_playlist_songs_info(link);
         for (let i = 0; i < plist_songs.length; i++) {
-            //console.log("Enqueueing " + plist_songs[i]);
             queue[last_index] = plist_songs[i];
             last_index++;
         }
     }
     else {
         //?Should i change {link} for {song_info} ?
-        queue[last_index] = link;
+        if (utils.object_is_video(args))
+            queue[last_index] = args;
+        else 
+            queue[last_index] = await utils.get_song_info(link);
         last_index++;
     }
 
-    if (link !== ""){
+    if (link){
         if (last_index-1 === playing_index || !init){
-            msg.channel.send("Reproduciendo: " + link);
+            msg.channel.send(embeds.now_playing(queue[last_index-1]));
             play_song(msg);
         }
         else
-            msg.channel.send((is_playlist ? "Playlist" : "Cancion") + 
-                                    " añadida a la cola " + link);
+            msg.channel.send(embeds.enqueued_song(queue[last_index-1]));
         //returns the number that the song was asociated with
         return last_index-1;
     }

@@ -98,13 +98,14 @@ async function get_song_info (link) {
     */
 }
 
-//Obtiene el link de una cancion
+
 async function get_video(args) {
     return new Promise((resolve, reject) => {
         youtube.searchVideos(args).then(resolve,reject);
     });
 } 
 
+//Obtiene el link de una cancion
 async function get_song_link (args) {
     let info = await get_video(args);
     return info.url;
@@ -145,23 +146,39 @@ function read_aliases (aliases_filepath) {
     return aliases;
 }
 
+function str_arr_contains (str_arr,word) {
+    for (let i = 0; i < str_arr.length; i++){
+        if (str_arr[i] === word)
+            return true;
+    }
+    return false;
+}
+
+
+function object_is_video (obj) {
+    return str_arr_contains(Object.keys(obj),'durationSeconds');
+}
+
 /**
  * *Returns a link based on natural language input 
  * @param args the natural language input
 */
 async function handle_args (args) {
-    if (args[0] === 'p')
-        args[0] = "";
-
     let link = "";
-    if (valid_URL(args))
-        link = args;
-    else if (valid_URL(args[1]))
-        link = args[1];
-    else if (valid_URL(args[2]))
-        link = args[2];
-    else
-        link = await get_song_link(adapt_input(args));
+    if (object_is_video(args))
+        link = args.url;
+    else if (args[1])
+        if (object_is_video(args[1])) 
+            link = args[1].url;
+        else if (valid_URL(args))
+            link = args;
+        else if (valid_URL(args[0]))
+            link = args[0]
+        else if (valid_URL(args[1]))
+            link = args[1]
+        else 
+            link = await get_song_link(adapt_input(args));
+    
     return link;
 }
 
@@ -201,12 +218,12 @@ function get_keys (dict) {
  * @param {playlist}
  * @returns {links} the obtained links from playlist
  */
-async function get_playlist_links (playlist) {
+async function get_playlist_songs_info (playlist) {
     let songs = [];
     let playlist_links = await youtube.getPlaylist(playlist);
 
     for (let i = 0; i < playlist_links.length; i++)
-        songs.push(playlist_links[i].url);
+        songs.push(playlist_links[i]);
 
     return songs;
 }
@@ -253,4 +270,5 @@ function is_playlist (link){
 module.exports = {adapt_input,valid_URL,sleep,queue_length,write_to_file,
                   get_song_links,read_from_file,read_aliases,handle_args,
                   dict_contains,get_song_info,get_song_link,objToString,
-                  get_keys,get_playlist_links,dict_shuffle,is_playlist};
+                  get_keys,get_playlist_songs_info,dict_shuffle,is_playlist,
+                  object_is_video};

@@ -10,7 +10,8 @@ const CREDENTIALS = require('../db/credentials')
 const prefix_file = require('./prefix.js')
 const utils = require('./utils.js')
 const play = require('./play.js')
-const embeds = require('../resources/embeds')
+const embeds = require('../resources/embeds');
+const { info } = require('console');
 
 //Global consts
 const ALIAS_FILENAME = '../db/aliases'
@@ -55,6 +56,9 @@ bot.on('message',async msg => {
         catch (e){
             console.log("Exception in alias: " + aliases + e);
             msg.channel.send("Jejej se rompio todo sorry usa un bot mas competente");
+        }
+        finally{
+            return;
         }
     }
 
@@ -176,12 +180,15 @@ bot.on('message',async msg => {
                         break;
                     }
                 }
-                links = utils.get_song_links(list);
-                for (let i = 0; i < links.length; i++)
-                    play.enqueue(msg,links[i]);
-                
+                let links = utils.get_song_links(list);
+                let infos = [];
+                for (let i = 0; i < links.length; i++) 
+                infos.push(await utils.get_song_info(links[i]));
+                //infos[0].length
+                infos.forEach(song => play.enqueue(msg,song));
+                /*                
                 if (play.status().paused)
-                    play.play_song(msg);
+                    play.play_song(msg);*/
             }
             catch (err) {
                 console.log("Exception in lq " + err);
@@ -193,13 +200,8 @@ bot.on('message',async msg => {
             try {
                 let queue2 = play.get_queue();
                 let current = play.get_playing_index();
-                if (queue2[current]){
-                    let info = await utils.get_song_info(queue2[current])
-                    let title = info.title;
-                    msg.channel.send("Esta sonando " + title);
-                }
-                else
-                    msg.channel.send("No esta sonando nada che flayero");
+                msg.channel.send(queue2[current] ? embeds.now_playing(queue2[current]) : 
+                                    "No esta sonando nada che flayero")
             }
             catch (e) {
                 console.log("Exception in quesuena: " , e);
@@ -406,16 +408,16 @@ bot.on('message',async msg => {
         case "q":
         case "cola":
         case "queue":
-            //TODO make this faster
             let _queue = play.get_queue();
             let currrent_song_index = play.get_playing_index();
-            if (!utils.queue_length(_queue))
+            if (!utils.queue_length(_queue)){
                 //?Can the bot react to his own message?
                 msg.channel.send("`Cola vacia`")
-                .then(msg.react(CORTE));
+                msg.react(CORTE);
+            }
             else {
                 try{
-                    const message = await embeds.queue_embed(_queue,currrent_song_index)
+                    const message = embeds.queue_embed(_queue,currrent_song_index);
                     msg.channel.send(message);
                 }
                 catch(error) {
@@ -519,7 +521,7 @@ bot.on('message',async msg => {
                 }
                 let queue_len = utils.queue_length(queue1);
                 for (var i = 0; i < queue_len; i++)
-                    links.push(queue1[i])
+                    links.push(queue1[i].url)
                     
                 utils.write_to_file(filepath,links,'a+');
 
@@ -554,9 +556,9 @@ bot.on('message',async msg => {
             msg.channel.send("AAAAAAAAAH!!!!!!!!!");
             msg.react(CORTE);
             break;  
-        
+
         default:
             msg.channel.send("??¿?¿?¿?¿??¿");
             break;
     }
-})
+});

@@ -140,7 +140,10 @@ bot.on('message',async msg => {
         //TODO make this prettier
         case "h":
         case "help":
-            msg.channel.send('`'+ utils.read_from_file('../db/help') +'`');
+            const help1 = utils.read_from_file('../db/help');
+            const help2 = utils.read_from_file('../db/help2');
+            msg.channel.send(embeds.help(help1));
+            msg.channel.send(embeds.help(help2));
             break;
 
         //Invoke bot into actual voice channel

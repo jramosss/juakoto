@@ -6,7 +6,6 @@ const fs = require('fs')
 const Discord = require('discord.js');
 
 //Files
-const CREDENTIALS = require('../db/credentials')
 const prefix_file = require('./prefix.js')
 const utils = require('./utils.js')
 const play = require('./play.js')
@@ -14,7 +13,6 @@ const embeds = require('../resources/embeds');
 
 //Global consts
 const ALIAS_FILENAME = '../db/aliases'
-const TOKEN = CREDENTIALS.TOKEN;
 const ULTIMO_PREVIA_Y_CACHENGUE = 35;
 const bot = new Discord.Client();
 
@@ -36,7 +34,7 @@ const Spotify = require('spotify-web-api-js');
 var spotifyApi = new SpotifyWebApi();
 spotifyApi.setAccessToken('<here_your_access_TOKEN>'); */
 
-bot.login(TOKEN);
+bot.login(process.env.BOT_TOKEN);
 
 bot.on('ready', () => { console.log("Buendiaaa");})
 
@@ -99,11 +97,12 @@ bot.on('message',async msg => {
             }
             break;
 
-        //Make bot quick challenge
+        //Make bot leave
         case "andate":
         case "leave":
         case "tomatela":
         case "shu":
+        case "chau":
             msg.member.voice.channel.leave();
             play.clear_queue();
             break;
@@ -490,7 +489,14 @@ bot.on('message',async msg => {
             msg.react(SPEAKER);
             break;
 
-        //Spams a message n times
+
+        case "source":
+        case "code":
+        case "sourcecode":
+            //When the project is complete
+            break;
+        
+            //Spams a message n times
         case "spam":
             let message = args[1]
             let times = args[2];

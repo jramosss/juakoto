@@ -1,7 +1,6 @@
 #Folders
 .vscode/
 node_modules/
-node_modules
 #queues/
 
 #Innecesary stuff
@@ -9,9 +8,8 @@ test.js
 TODO
 
 #Private Keys
-#db/credentials.js
-db/aliases
-db/prefix
+#db/aliases
+#db/prefix
 
 
 #Py

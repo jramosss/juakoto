@@ -4,11 +4,13 @@
 
 
 ## Compilacion:
-* `npm i` en la carpeta raiz (si trae problemas intentar con `sudo npm i`)  
-* `node index.js`
+* `npm i dependencies` en la carpeta raiz  
+* `node src/index.js`
 
 ## Instalacion:
 Lo queres en tu server? Click [aca](https://discord.com/oauth2/authorize?client_id=764653800068743199&scope=bot&permissions=3148864)  
+
+## Que tiene este bot que otros no tengan?
 
 ---
 ## Funciones:
@@ -42,5 +44,13 @@ Lo queres en tu server? Click [aca](https://discord.com/oauth2/authorize?client_
 
 ### TODO:
 
-* Manejar canciones de spotify
-* Opcion Shuffle
+* Make prefix an enviroment variable
+* Handle spotify songs
+* Shuffle option (WIP)
+* Remove alias option
+* Use database so sq and changeprefix can be used 
+* Change aliases to aliases.js, so its easier to remove an alias
+* Loop function
+* Fast Forward (https://github.com/fent/node-ytdl-core/blob/master/README.md)
+* alias redefine
+* assemble teams function (move random members to different channels)

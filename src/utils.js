@@ -1,7 +1,6 @@
 const fs = require('fs');
-const credentials = require('../db/credentials.js');
 const YouTube = require("discord-youtube-api");
-const youtube = new YouTube(credentials.YT_KEY);
+const youtube = new YouTube(process.env.YT_KEY);
 
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms))

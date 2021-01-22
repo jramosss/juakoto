@@ -1,0 +1,13 @@
+playI / playINSTA : Reproduce la cancion instantaneamente 
+random : Encola/reproduce un video aleatorio seleccionado de los alias registrados 
+q / queue = Muestra la cola actual de canciones 
+resume / r = Despausar 
+satura / earrape = Hace volumeset en 10, ideal para trolear y tiltear a joacoto, provocando que todos los usuarios del server tengan al bot insta muteado 
+skip / n / next = Pasa a la siguiente cancion de la cola 
+showprefix = Muestra el prefix actual del bot 
+savequeue/sq/guardarcola <filename>: Guarda la cola actual en un archivo con el nombre <filename>
+spam <mensaje> <numero> = spamea <mensaje> <numero> veces 
+stop / s = Lo mismo que pause pero la quise caretear 
+status: Te dice el status del bot, si esta reproduciendo o cosas asi
+volumeset <volume> / vs <volume> = Setea el volumen del bot a <volume> 
+wendia = Un saludito que nunca viene mal

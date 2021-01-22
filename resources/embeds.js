@@ -52,4 +52,11 @@ const link_search = (args,link) => {
     return message3;
 }
 
-module.exports = {queue_embed,enqueued_song,now_playing,link_search};
+const help = (text) => {
+    const msg = new Discord.MessageEmbed()
+    .setColor('RANDOM')
+    .addField("Comandos" ,text)
+    return msg;
+}
+
+module.exports = {queue_embed,enqueued_song,now_playing,link_search,help};

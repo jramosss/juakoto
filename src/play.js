@@ -41,19 +41,7 @@ class NotInAChannel extends Error {
 }
 
 async function play_song (msg) {
-    init = true;
-    let vc = msg.member.voice.channel;
-    if (!vc){//TODO throw NotInAChannel
-        msg.channel.send("No estas en un canal bro");
-        return;
-    } 
-    let permissions = vc.permissionsFor(msg.client.user);
-
-    if (!permissions.has('CONNECT') || !permissions.has('SPEAK'))//TODO throw NotAllowed
-        return msg.channel.send("No me diste permisos bro")
-
-    //!There was a .catch() here, but the function always print even though it worked
-    let connection = await vc.join();
+    const connection = await utils.channel_join(msg);
     
     try{
         let current_song_link = queue[playing_index].url;

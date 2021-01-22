@@ -150,23 +150,12 @@ bot.on('message',async msg => {
         case "hola":
         case "veni":
         case "te":
-            if (args[0] === "te" && args[1] === "invoco")
-                msg.member.voice.channel.join();
-            else if (args[0] === "te")
-                break;
+            if (args[0] === "te"){
+                if (!(args[1] === "invoco"))
+                    break;
+            }
             else 
-                try {
-                    if (!msg.guild.voice || msg.member.voice.channel.id !== msg.guild.voice.channelID)
-                        msg.member.voice.channel.join();
-                    else if (msg.member.voice.channel.id === msg.guild.voice.channelID){
-                        msg.channel.send("Ya estoy en el canal pa, sos estupido?");
-                        msg.react(X);
-                        break;
-                    }   
-                }
-                catch (e) {
-                    console.log("Exception in hola ", e);
-                }
+                utils.channel_join(msg);
             break;
         
         //Loads queue from file

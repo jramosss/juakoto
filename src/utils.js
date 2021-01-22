@@ -1,5 +1,6 @@
 const fs = require('fs');
 const YouTube = require("discord-youtube-api");
+const ms = require('ms');
 const youtube = new YouTube(process.env.YT_KEY);
 
 function sleep(ms) {
@@ -266,8 +267,40 @@ function is_playlist (link){
     return match && match[2];
 }
 
+//TODO make custom exceptions
+async function channel_join (msg) {
+    const vc = msg.member.voice.channel;
+    if (!vc) {
+        //msg.react(X).then(msg.react(CORTE));
+        msg.channel.send("A que canal queres que me meta si no estas en ninguno mogolico de mierda");
+        await sleep(2500);
+        msg.channel.send("La verdad que me pareces un irrespetuoso");
+        await sleep(3000);
+        msg.channel.send("Hijo de remil puta");
+        return;
+    }
+    else{
+        const permissions = vc.permissionsFor(msg.client.user);
+        if (!permissions.has('CONNECT') || !permissions.has('SPEAK'))
+            return msg.channel.send("Me sacaste los permisos imbecil");
+    }
+    if (msg.guild.voice.channel){
+        if (msg.member.voice.channel.id === msg.guild.voice.channelID)
+            msg.channel.send("Ya estoy en el canal pa, sos estupido?");
+        //msg.react(X);
+        else
+            return;
+            //Not working 🤷
+            //msg.channel.send("Ya estoy en otro canal");
+    }
+    else if (msg.member.voice.channel.id !== msg.guild.voice.channelID){
+        await msg.member.voice.channel.join();
+        msg.channel.send("Wendiaa");
+    }
+}
+
 module.exports = {adapt_input,valid_URL,sleep,queue_length,write_to_file,
                   get_song_links,read_from_file,read_aliases,handle_args,
                   dict_contains,get_song_info,get_song_link,objToString,
                   get_keys,get_playlist_songs_info,dict_shuffle,is_playlist,
-                  object_is_video};
+                  object_is_video,channel_join};

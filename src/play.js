@@ -4,12 +4,14 @@ const embeds = require('../resources/embeds')
 
 let queue = {};
 let dispatcher;
-let last_index = 0;
-let playing_index = 0;
-let paused = false;
+let last_index = 1;
+let playing_index = 1;
 let init = false;
 let volume = 1;
+let paused = true;
 let previous_volume = volume;
+let playing_i_b4_looping = playing_index;
+let loop = false;
 
 class MyError extends Error {
     constructor(message) {
@@ -40,27 +42,32 @@ class NotInAChannel extends Error {
     }
 }
 
+//!This is always the same message, may cause problems
 async function play_song (msg) {
-    const connection = await utils.channel_join(msg);
-    
+    init = true; 
     try{
-        let current_song_link = queue[playing_index].url;
+        const connection = await utils.channel_join(msg);
+        if (!connection) return;
+        const current_song_link = queue[playing_index].url;
         dispatcher = connection.play(ytdl(current_song_link));
-        if (paused){
-            resume();
-            paused = false;
-        } 
-            
+        paused = false;
+
         dispatcher.on('finish',() => {
             if (queue[playing_index+1]){
-                msg.channel.send(embeds.now_playing(queue[playing_index+1]));
+                msg.channel.send(embeds.now_playing_song(queue[playing_index+1]));
                 playing_index++;
                 play_song(msg);
             }
             else {
-                playing_index++;
-                pause();
-                paused = true;
+                if (loop) {
+                    playing_i_b4_looping = playing_index;
+                    playing_index = 0;
+                    play_song(msg);
+                }
+                else {
+                    playing_index++;
+                    paused = true;
+                }
             }
         })
     }
@@ -90,7 +97,8 @@ async function enqueue (msg,args) {
         msg.channel.send("No encontre ningun video con lo que me pasaste");
     }
     //TODO research how can i handle > 25 songs
-    if (utils.is_playlist(link)){
+    const is_playlist = utils.is_playlist(link);
+    if (is_playlist){
         const plist_songs = await utils.get_playlist_songs_info(link);
         for (let i = 0; i < plist_songs.length; i++) {
             queue[last_index] = plist_songs[i];
@@ -108,11 +116,18 @@ async function enqueue (msg,args) {
 
     if (link){
         if (last_index-1 === playing_index || !init){
-            msg.channel.send(embeds.now_playing(queue[last_index-1]));
+            if (is_playlist)
+                msg.channel.send(embeds.now_playing_playlist(link));
+            else 
+                msg.channel.send(embeds.now_playing_song(queue[last_index-1]));
             play_song(msg);
         }
-        else
-            msg.channel.send(embeds.enqueued_song(queue[last_index-1]));
+        else {
+            if (is_playlist)
+                msg.channel.send(embeds.enqueued_playlist(link))
+            else 
+                msg.channel.send(embeds.enqueued_song(queue[last_index-1]));
+        }
         //returns the number that the song was asociated with
         return last_index-1;
     }
@@ -140,6 +155,14 @@ function get_playing_index () {
     return playing_index;
 }
 
+function set_playing_index (index) {
+    playing_index = index;
+}
+
+function set_last_index (index) {
+    last_index = index;
+}
+
 function set_volume (new_volume) {
     previous_volume = volume;
     dispatcher.setVolume(new_volume);
@@ -160,16 +183,12 @@ function pause () {
 }
 
 function resume ()  {
-    try{
-        dispatcher.resume();
-    }
-    catch{
-        console.log("Dispatcher uninitialized\n")
-    }
+    dispatcher ? dispatcher.resume() : console.log("Dispatcher uninitialized");
 }
 
 function jump (to) {
     playing_index = to;
+    play_song(msg);
 }
 
 function status () {
@@ -192,7 +211,20 @@ function set_queue (new_queue) {
     queue = new_queue;
 }
 
+function get_loop () {
+    return loop;
+}
+
+function set_loop (opt) {
+    loop = opt;
+    if (opt) 
+        playing_i_b4_looping = playing_index;
+    else 
+        playing_index = playing_i_b4_looping;
+}
+
 module.exports = {play_song,enqueue,get_queue,clear_queue,queue_shift,
                   get_dispatcher,get_playing_index,set_volume,
                   pause,resume,NotAllowed,NotInAChannel,jump,status,
-                  get_song_number,mute,unmute,set_queue};
+                  get_song_number,mute,unmute,set_queue,get_loop,set_loop,
+                  set_playing_index,set_last_index};

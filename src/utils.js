@@ -1,7 +1,8 @@
 const fs = require('fs');
 const YouTube = require("discord-youtube-api");
-const ms = require('ms');
 const youtube = new YouTube(process.env.YT_KEY);
+const get_preview = require("spotify-url-info");
+const { link } = require('ffmpeg-static');
 
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms))
@@ -221,9 +222,10 @@ function get_keys (dict) {
 async function get_playlist_songs_info (playlist) {
     let songs = [];
     let playlist_links = await youtube.getPlaylist(playlist);
-
+    playlist_links.forEach(song_link => songs.push(song_link));
+    /*
     for (let i = 0; i < playlist_links.length; i++)
-        songs.push(playlist_links[i]);
+        songs.push(playlist_links[i]);*/
 
     return songs;
 }
@@ -268,7 +270,12 @@ function is_playlist (link){
 }
 
 //TODO make custom exceptions
-async function channel_join (msg) {
+/** 
+ * @param {opt} is to recognize whenthe user sent the command
+ * play and not the command "hola"
+ * */ 
+ 
+async function channel_join (msg,opt=false) {
     const vc = msg.member.voice.channel;
     if (!vc) {
         //msg.react(X).then(msg.react(CORTE));
@@ -284,23 +291,34 @@ async function channel_join (msg) {
         if (!permissions.has('CONNECT') || !permissions.has('SPEAK'))
             return msg.channel.send("Me sacaste los permisos imbecil");
     }
-    if (msg.guild.voice.channel){
-        if (msg.member.voice.channel.id === msg.guild.voice.channelID)
+    if (msg.guild.voice && msg.guild.voice.channel){
+        /*
+        try{
+            console.log("YO: ",msg.member.voice.channel.id,"EL BOT: ",msg.guild.voice.channelID);
+        }
+        catch{}*/
+        if (msg.member.voice.channel.id === msg.guild.voice.channelID && opt){
             msg.channel.send("Ya estoy en el canal pa, sos estupido?");
-        //msg.react(X);
-        else
-            return;
-            //Not working 🤷
-            //msg.channel.send("Ya estoy en otro canal");
+            return undefined;
+        }
+        else if (msg.member.voice.channel.id !== msg.guild.voice.channelID){
+            msg.channel.send("Estoy en otro canal")
+            return undefined;
+        }
+        else 
+            return await msg.member.voice.channel.join();
     }
-    else if (msg.member.voice.channel.id !== msg.guild.voice.channelID){
-        await msg.member.voice.channel.join();
-        msg.channel.send("Wendiaa");
-    }
+    else
+        return await msg.member.voice.channel.join();
+}
+
+async function get_spotify_song_name (link) {
+    const info = get_preview(link);
+    return info.title;
 }
 
 module.exports = {adapt_input,valid_URL,sleep,queue_length,write_to_file,
                   get_song_links,read_from_file,read_aliases,handle_args,
                   dict_contains,get_song_info,get_song_link,objToString,
                   get_keys,get_playlist_songs_info,dict_shuffle,is_playlist,
-                  object_is_video,channel_join};
+                  object_is_video,channel_join,get_spotify_song_name};

@@ -19,6 +19,7 @@ const bot = new Discord.Client();
 //Global vars
 let prefix = prefix_file.load_prefix();
 let aliases = utils.read_aliases(ALIAS_FILENAME);
+let loop = false;
 
 //Emojis
 const CORTE = '776276782125940756';
@@ -27,12 +28,6 @@ const PLAY = '▶️';
 const DISK = '💾';
 const OK = '👍';
 const X = '❌';
-
-//TODO
-/*
-const Spotify = require('spotify-web-api-js');
-var spotifyApi = new SpotifyWebApi();
-spotifyApi.setAccessToken('<here_your_access_TOKEN>'); */
 
 bot.login(process.env.BOT_TOKEN);
 
@@ -112,7 +107,9 @@ bot.on('message',async msg => {
         case "c":
         case "clear":
             play.clear_queue();
-            msg.channel.send("Cola vaciada\n");
+            msg.channel.send("`Cola vaciada`\n");
+            play.set_playing_index(1);
+            play.set_last_index(1);
             play.pause();
             break;
         
@@ -155,7 +152,17 @@ bot.on('message',async msg => {
                     break;
             }
             else 
-                utils.channel_join(msg);
+                utils.channel_join(msg,true);
+            break;
+        
+        case "loop":
+        case "l":
+            const loop = play.get_loop();
+            play.set_loop(!loop);
+            if (loop)
+                msg.channel.send("`Dejando de loopear la cola`")
+            else
+                msg.channel.send("`Loopeando la cola`")
             break;
         
         //Loads queue from file
@@ -170,6 +177,7 @@ bot.on('message',async msg => {
             const filepath = "../db/queues/" + args[1];
             if (!fs.existsSync(filepath)){
                 msg.channel.send("No existe un archivo con ese nombre.\n")
+                msg.react(X);
                 break;
             }
             try {
@@ -183,13 +191,9 @@ bot.on('message',async msg => {
                 }
                 let links = utils.get_song_links(list);
                 let infos = [];
-                for (let i = 0; i < links.length; i++) 
-                infos.push(await utils.get_song_info(links[i]));
-                //infos[0].length
+                for (let i = 0; i < links.length; i++)
+                    infos.push(await utils.get_song_info(links[i]));
                 infos.forEach(song => play.enqueue(msg,song));
-                /*                
-                if (play.status().paused)
-                    play.play_song(msg);*/
             }
             catch (err) {
                 console.log("Exception in lq " + err);
@@ -201,7 +205,7 @@ bot.on('message',async msg => {
             try {
                 let queue2 = play.get_queue();
                 let current = play.get_playing_index();
-                msg.channel.send(queue2[current] ? embeds.now_playing(queue2[current]) : 
+                msg.channel.send(queue2[current] ? embeds.now_playing_song(queue2[current]) : 
                                     "No esta sonando nada che flayero")
             }
             catch (e) {
@@ -286,7 +290,7 @@ bot.on('message',async msg => {
                 break;
             }
             try {
-                await play.enqueue(msg,args);
+                play.enqueue(msg,args);
                 msg.react('▶️');
             }
             //TODO make this work
@@ -313,7 +317,7 @@ bot.on('message',async msg => {
                 msg.react(X);
                 break;
             }
-            let response1 = await play.enqueue(msg,args);
+            const response1 = await play.enqueue(msg,args);
             args[1] = response1 ? response1 : "Algo salio mal";
             
         //Jumps to the n-th song in the queue
@@ -323,10 +327,12 @@ bot.on('message',async msg => {
                 msg.react(X);
                 break;
             }
-            if (play.get_queue()[args[1]]){
+            const queuex = play.get_queue();
+            if (queuex[args[1]]){
                 play.jump(args[1]);
-                play.play_song(msg);
-                msg.channel.send("Saltando a la cancion nº" + args[1]);
+                msg.react('🛐');
+                msg.channel.send("Saltando a la cancion nº" + args[1] + 
+                                 ": " + queuex[args[1]].title);
             }
             else 
                 msg.channel.send("Man que flayas no esta esa cancion en la cola")
@@ -393,12 +399,12 @@ bot.on('message',async msg => {
 
             prefix = args[1];
             prefix_file.change_prefix(prefix);
-            msg.channel.send("prefix cambiado a " + prefix);
+            msg.channel.send("`Prefix cambiado a " + prefix + '`');
             break;
         
         //Sends the prefix through the actual channel
         case "showprefix":
-            msg.channel.send("Prefix: " + prefix);
+            msg.channel.send("`Prefix: " + prefix + '`');
             break;
 
         //Sends the bot status through a message
@@ -444,7 +450,7 @@ bot.on('message',async msg => {
             let keys = utils.get_keys(aliases);
             let random = Math.floor(Math.random() * keys.length);
             let song = aliases[keys[random]];
-            await play.enqueue(msg,song);
+            play.enqueue(msg,song);
             break;
         
         //Resume
@@ -459,12 +465,12 @@ bot.on('message',async msg => {
         case "n":
         case "next":
             try{
-                let queue = play.get_queue();
-                let playing_index1 = play.get_playing_index()
+                const queue = play.get_queue();
+                const playing_index1 = play.get_playing_index()
                 msg.react('⏭️');
                 if (queue[playing_index1+1]){
                     play.queue_shift();
-                    msg.channel.send(embeds.now_playing(queue[playing_index1+1]));
+                    msg.channel.send(embeds.now_playing_song(queue[playing_index1+1]));
                     play.play_song(msg);
                 }
                 else 
@@ -510,8 +516,8 @@ bot.on('message',async msg => {
         //shuffles queue
         //!Not working
         case "shuffle":
-            let queue = play.get_queue();
-            let dict1 = utils.dict_shuffle(queue);
+            const queue = play.get_queue();
+            const dict1 = utils.dict_shuffle(queue);
             console.log(dict1);
             play.set_queue(dict1);
             msg.react('🔀');
@@ -522,7 +528,7 @@ bot.on('message',async msg => {
         case "savequeue":
         case "guardarcola":
             try{
-                let queue1 = play.get_queue()
+                const queue1 = play.get_queue()
                 let links = []
                 if (!args[1]){
                     msg.channel.send("No me pasaste parametros. usage juakoto sq <filename>");
@@ -535,13 +541,14 @@ bot.on('message',async msg => {
                     msg.react(X);
                     break;
                 }
-                let queue_len = utils.queue_length(queue1);
-                for (var i = 0; i < queue_len; i++)
+                const queue_len = utils.queue_length(queue1);
+
+                for (let i = 0; i < queue_len; i++)
                     links.push(queue1[i].url)
-                    
+
                 utils.write_to_file(filepath,links,'a+');
 
-                msg.channel.send("Cola guardada en " + filepath);
+                msg.channel.send("`Cola guardada en " + filepath + '`');
                 msg.react(DISK);
             }
             catch (error){
@@ -559,7 +566,7 @@ bot.on('message',async msg => {
         //Set bot volume
         case "vs":
         case "volumeset":
-            let volume = args[1] ? args[1] : 1;
+            const volume = args[1] ? args[1] : 1;
             play.set_volume(volume)
 
             msg.react(SPEAKER);

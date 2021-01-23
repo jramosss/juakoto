@@ -184,6 +184,7 @@ async function handle_args (args) {
 }
 
 function dict_contains (dict,elem) {
+    //return dict[elem] !== undefined
     for (const [key,value] of Object.entries(dict)) {
         if (key == elem)
             return true;

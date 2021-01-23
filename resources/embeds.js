@@ -4,10 +4,9 @@ function make_embed_fields (queue,current_song) {
     const len = current_song + 9;
     let fields = [];
     let opt = Object.keys(queue).length > 10;
-    for (let i = opt ? current_song : 0; i <= len; i++) {
+    for (let i = opt ? current_song : 0; i <= len; i++)
         if (queue[i])
-            fields.push({name : i + ":  " + queue[i].title, value : queue[i].length});
-    }
+            fields.push({name : i+1 + ":  " + queue[i].title, value : queue[i].length});
     return fields;
 }
 

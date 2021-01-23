@@ -12,13 +12,13 @@ const play = require('./play.js')
 const embeds = require('../resources/embeds');
 
 //Global consts
-const ALIAS_FILENAME = '../db/aliases'
+const ALIASES_FILEPATH = '../db/aliases'
 const ULTIMO_PREVIA_Y_CACHENGUE = 35;
 const bot = new Discord.Client();
 
 //Global vars
 let prefix = prefix_file.load_prefix();
-let aliases = utils.read_aliases(ALIAS_FILENAME);
+let aliases = utils.read_aliases(ALIASES_FILEPATH);
 let loop = false;
 
 //Emojis
@@ -74,11 +74,12 @@ bot.on('message',async msg => {
                 msg.react(X);
                 break;
             }
-            let dict = [args[1],args[2]];
-            utils.write_to_file(ALIAS_FILENAME,dict,'a+',true);
+            const dict = args[1] + "," + args[2];
+            utils.write_to_file(ALIASES_FILEPATH,dict,'a+',true);
             aliases[args[1]] = args[2];
             msg.channel.send("Nuevo alias registrado `" + args[1] + "` linkeado a " + args[2]);
             msg.react(DISK);
+            aliases = utils.read_aliases(ALIASES_FILEPATH);
             break;
 
         //display all aliases
@@ -189,14 +190,17 @@ bot.on('message',async msg => {
                         break;
                     }
                 }
-                let links = utils.get_song_links(list);
+                const links = utils.get_song_links(list);
                 let infos = [];
-                for (let i = 0; i < links.length; i++)
+
+                for (let i = 0; i < links.length; i++) 
                     infos.push(await utils.get_song_info(links[i]));
+
                 infos.forEach(song => play.enqueue(msg,song));
             }
             catch (err) {
                 console.log("Exception in lq " + err);
+                msg.react(X);
             }
             break;
         
@@ -282,7 +286,7 @@ bot.on('message',async msg => {
         //Play song by input (natural language or yt link)
         case "p":
         case "play":
-            if (!args){
+            if (!args[1]){
                 msg.channel.send("Que queres que meta en la cola? Pasame algo,"+
                                  "por que me encanta meterme cosas en la cola\n",
                                  "usage = juakoto play/p <song name/song youtube link>")
@@ -328,11 +332,13 @@ bot.on('message',async msg => {
                 break;
             }
             const queuex = play.get_queue();
-            if (queuex[args[1]]){
-                play.jump(args[1]);
+            const num = args[1]-1;
+            if (queue[num]){
+                play.jump(num);
                 msg.react('🛐');
-                msg.channel.send("Saltando a la cancion nº" + args[1] + 
-                                 ": " + queuex[args[1]].title);
+                play.play_song(msg);
+                msg.channel.send("Saltando a la cancion nº" + num + 
+                                 ": " + queuex[num].title);
             }
             else 
                 msg.channel.send("Man que flayas no esta esa cancion en la cola")
@@ -518,7 +524,6 @@ bot.on('message',async msg => {
         case "shuffle":
             const queue = play.get_queue();
             const dict1 = utils.dict_shuffle(queue);
-            console.log(dict1);
             play.set_queue(dict1);
             msg.react('🔀');
             break;
@@ -528,8 +533,7 @@ bot.on('message',async msg => {
         case "savequeue":
         case "guardarcola":
             try{
-                const queue1 = play.get_queue()
-                let links = []
+                const queue1 = play.get_queue();
                 if (!args[1]){
                     msg.channel.send("No me pasaste parametros. usage juakoto sq <filename>");
                     msg.react(X);
@@ -537,16 +541,19 @@ bot.on('message',async msg => {
                 }
                 const filepath = "../db/queues/" + args[1];
                 if (fs.existsSync(filepath)){
-                    msg.channel.send("Ya existe un archivo con ese nombre");
-                    msg.react(X);
-                    break;
+                    msg.react(CORTE);
+                    msg.channel.send('Ya existe una cola con ese nombre' +
+                                     'asi que la voy a reemplazar')
                 }
                 const queue_len = utils.queue_length(queue1);
+                let songs = "";
+                for (let i = 0; i < queue_len; i++) {
+                    songs += queue1[i].url;
+                    if (i !== queue_len-1)
+                        songs += ','
+                }
 
-                for (let i = 0; i < queue_len; i++)
-                    links.push(queue1[i].url)
-
-                utils.write_to_file(filepath,links,'a+');
+                utils.write_to_file(filepath,songs,'w');
 
                 msg.channel.send("`Cola guardada en " + filepath + '`');
                 msg.react(DISK);

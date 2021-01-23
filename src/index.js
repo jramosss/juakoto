@@ -21,6 +21,12 @@ let prefix = prefix_file.load_prefix();
 let aliases = utils.read_aliases(ALIASES_FILEPATH);
 let loop = false;
 
+//Classes
+const Youtube = require('./Youtube');
+const yt = new Youtube();
+const Spotify = require('./Spotify');
+const sp = new Spotify();
+
 //Emojis
 const CORTE = '776276782125940756';
 const SPEAKER = '🔈';
@@ -129,7 +135,7 @@ bot.on('message',async msg => {
                 break;
             }
             args[0] = '';
-            let link = await utils.get_song_link(utils.adapt_input(args));
+            let link = await yt.get_song_link(utils.adapt_input(args));
             msg.channel.send(embeds.link_search(raw_input,link));
             msg.react('🔍');
             break;
@@ -194,7 +200,7 @@ bot.on('message',async msg => {
                 let infos = [];
 
                 for (let i = 0; i < links.length; i++) 
-                    infos.push(await utils.get_song_info(links[i]));
+                    infos.push(await yt.get_song_info(links[i]));
 
                 infos.forEach(song => play.enqueue(msg,song));
             }

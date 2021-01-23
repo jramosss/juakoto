@@ -1,8 +1,6 @@
 const fs = require('fs');
-const YouTube = require("discord-youtube-api");
-const youtube = new YouTube(process.env.YT_KEY);
-const get_preview = require("spotify-url-info");
-const { link } = require('ffmpeg-static');
+const Youtube = require('./Youtube')
+const yt = new Youtube();
 
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms))
@@ -87,31 +85,6 @@ function get_song_links (list) {
     return links;
 }
 
-async function get_song_info (link) {
-    //This doesn`t seem very professional
-    let song_info = await youtube.getVideo(link);
-    return song_info;
-    //This does
-    /*
-    return new Promise((resolve,reject) => {
-        youtube.getVideo(link).then(resolve,reject);
-    });
-    */
-}
-
-
-async function get_video(args) {
-    return new Promise((resolve, reject) => {
-        youtube.searchVideos(args).then(resolve,reject);
-    });
-} 
-
-//Obtiene el link de una cancion
-async function get_song_link (args) {
-    let info = await get_video(args);
-    return info.url;
-}
-
 //Returns a dict {alias_name : associated_link} from aliases file
 function read_aliases (aliases_filepath) {
     let text = read_from_file(aliases_filepath);
@@ -168,7 +141,7 @@ async function handle_args (args) {
     let link = "";
     if (object_is_video(args))
         link = args.url;
-    else if (args[1])
+    else if (args[1]) {
         if (object_is_video(args[1])) 
             link = args[1].url;
         else if (valid_URL(args))
@@ -178,7 +151,8 @@ async function handle_args (args) {
         else if (valid_URL(args[1]))
             link = args[1]
         else 
-            link = await get_song_link(adapt_input(args));
+            link = await yt.get_song_link(adapt_input(args));
+    }
     
     return link;
 }
@@ -216,21 +190,6 @@ function get_keys (dict) {
     return keys;
 }
 
-/**
- * @param {playlist}
- * @returns {links} the obtained links from playlist
- */
-async function get_playlist_songs_info (playlist) {
-    let songs = [];
-    let playlist_links = await youtube.getPlaylist(playlist);
-    playlist_links.forEach(song_link => songs.push(song_link));
-    /*
-    for (let i = 0; i < playlist_links.length; i++)
-        songs.push(playlist_links[i]);*/
-
-    return songs;
-}
-
 function array_shuffle(array) {
     var currentIndex = array.length, temporaryValue, randomIndex;
   
@@ -262,12 +221,6 @@ function dict_shuffle (dict) {
         new_dict[i] = dict[random_nums[i]];
 
     return new_dict;
-}
-
-function is_playlist (link){
-    let regexp = /^.*(youtu.be\/|list=)([^#\&\?]*).*/
-    let match = link.match(regexp);
-    return match && match[2];
 }
 
 //TODO make custom exceptions
@@ -313,13 +266,7 @@ async function channel_join (msg,opt=false) {
         return await msg.member.voice.channel.join();
 }
 
-async function get_spotify_song_name (link) {
-    const info = get_preview(link);
-    return info.title;
-}
-
 module.exports = {adapt_input,valid_URL,sleep,queue_length,write_to_file,
                   get_song_links,read_from_file,read_aliases,handle_args,
-                  dict_contains,get_song_info,get_song_link,objToString,
-                  get_keys,get_playlist_songs_info,dict_shuffle,is_playlist,
-                  object_is_video,channel_join,get_spotify_song_name};
+                  dict_contains,objToString,get_keys,dict_shuffle,
+                  object_is_video,channel_join};

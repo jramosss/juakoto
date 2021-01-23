@@ -1,6 +1,10 @@
 const ytdl = require('ytdl-core');
 const utils = require('./utils.js');
 const embeds = require('../resources/embeds')
+const Youtube = require('./Youtube');
+const yt = new Youtube();
+const Spotify = require('./Spotify');
+const sp = new Spotify();
 
 let queue = {};
 let dispatcher;
@@ -53,30 +57,39 @@ async function enqueue (msg,args) {
                  await utils.handle_args(args);
 
     //TODO research how can i handle > 25 songs
-    const is_playlist = utils.is_playlist(link);
-    if (is_playlist){
-        const plist_songs = await utils.get_playlist_songs_info(link);
+    const is_yt_playlist = yt.is_playlist(link);
+    if (is_yt_playlist){
+        const plist_songs = await yt.get_playlist_songs_info(link);
         for (let i = 0; i < plist_songs.length; i++) {
             queue[last_index] = plist_songs[i];
             last_index++;
         }
     }
+    else if (sp.is_playlist(link)){
+        return true;
+    }
+    else if (sp.is_song(link)){
+        const name = await sp.get_song_name(link);
+        const info = await yt.get_video(name);
+        queue[last_index] = info;
+        last_index++;
+    }
     else {
         queue[last_index] = utils.object_is_video(args) ? args : 
-                            await utils.get_song_info(link);
+                            await yt.get_song_info(link);
         last_index++;
     }
 
     if (link){
         if (last_index-1 === playing_index || !init){
-            if (is_playlist)
+            if (is_yt_playlist)
                 msg.channel.send(embeds.now_playing_playlist(link));
             else 
                 msg.channel.send(embeds.now_playing_song(queue[last_index-1]));
             play_song(msg);
         }
         else
-            msg.channel.send(is_playlist ? embeds.enqueued_playlist(link) :
+            msg.channel.send(is_yt_playlist ? embeds.enqueued_playlist(link) :
                              embeds.enqueued_song(queue[last_index-1]))
 
         //returns the number that the song was asociated with

@@ -22,8 +22,13 @@ async function play_song (msg) {
     init = true; 
     const connection = await utils.channel_join(msg);
     if (!connection) return;
-    const current_song_link = queue[playing_index].url;
-    dispatcher = connection.play(ytdl(current_song_link));
+    try {
+        const current_song_link = queue[playing_index].url;
+        dispatcher = connection.play(ytdl(current_song_link));
+    }
+    catch (e){
+        console.log("Exception in play_song: ",e);
+    }
     paused = false;
 
     dispatcher.on('finish',() => {
@@ -56,8 +61,9 @@ async function enqueue (msg,args) {
     const link = utils.object_is_video(args) ? args.url :
                  await utils.handle_args(args);
 
-    //TODO research how can i handle > 25 songs
     const is_yt_playlist = yt.is_playlist(link);
+    const is_sp_playlist = sp.is_playlist(link);
+
     if (is_yt_playlist){
         const plist_songs = await yt.get_playlist_songs_info(link);
         for (let i = 0; i < plist_songs.length; i++) {
@@ -65,31 +71,57 @@ async function enqueue (msg,args) {
             last_index++;
         }
     }
-    else if (sp.is_playlist(link)){
-        return true;
+    else if (is_sp_playlist){
+        const track_names = await sp.get_playlist_track_names(link);
+
+        for (let i = 0; i < track_names.length; i++){
+            try {
+                queue[last_index] = await yt.get_video(track_names[i]);
+                if (!i && paused) {
+                    play_song(msg);
+                    msg.channel.send(embeds.now_playing_song(queue[last_index]));
+                }
+            }
+            catch (e){
+                console.log("Couldn`t get song");
+                msg.channel.send("No encontre nada parecido a " + track_names[i] +
+                                 " en youtube");
+                continue;
+            }
+            last_index++
+        }
+
+        console.log("QUEUE: ",queue)
     }
     else if (sp.is_song(link)){
         const name = await sp.get_song_name(link);
-        const info = await yt.get_video(name);
-        queue[last_index] = info;
-        last_index++;
+        try {
+            const info = await yt.get_video(name);
+            queue[last_index] = info;
+            last_index++;
+        }
+        catch (e) {
+            console.log("Exception in enqueue(sp.is_song): ",e);
+            msg.channel.send("No encontre ningun video con lo que me pasaste");
+            return;
+        }
     }
     else {
         queue[last_index] = utils.object_is_video(args) ? args : 
-                            await yt.get_song_info(link);
+                            await yt.get_video(link);
         last_index++;
     }
 
     if (link){
         if (last_index-1 === playing_index || !init){
-            if (is_yt_playlist)
+            if (is_yt_playlist || is_sp_playlist)
                 msg.channel.send(embeds.now_playing_playlist(link));
             else 
                 msg.channel.send(embeds.now_playing_song(queue[last_index-1]));
             play_song(msg);
         }
         else
-            msg.channel.send(is_yt_playlist ? embeds.enqueued_playlist(link) :
+            msg.channel.send(is_yt_playlist || is_sp_playlist ? embeds.enqueued_playlist(link) :
                              embeds.enqueued_song(queue[last_index-1]))
 
         //returns the number that the song was asociated with

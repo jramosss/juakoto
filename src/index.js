@@ -583,6 +583,9 @@ bot.on('message',async msg => {
             play.set_volume(volume)
 
             msg.react(SPEAKER);
+            if (volume > 10)
+                msg.channel.send("Nt pero el volumen maximo es 10");
+                
             msg.channel.send(args[1] ? "Volumen seteado a " + volume : 
                             "No me pasaste parametros, seteando a 1");
             break;

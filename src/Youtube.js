@@ -1,28 +1,25 @@
-const YouTube = require("discord-youtube-api");
-const youtube = new YouTube(process.env.YT_KEY);
-
+const yt = require('yt-search');
 module.exports = class YoutubeUtils {
     constructor(){}
 
-    is_playlist (link){
+    is_playlist = (link) => {
         let regexp = /^.*(youtu.be\/|list=)([^#\&\?]*).*/
         let match = link.match(regexp);
         return match && match[2];
     }
+    
+    //Get video info by natural input or link
+    get_video = async (args) => (await yt(args)).videos[0];
 
-    async get_song_info (link) {
-        return await youtube.getVideo(link);
+    get_list_id = (link) => {
+        const splitted = link.split('&');
+        for (let i = 0; i < splitted.length; i++) {
+            if (splitted[i].startsWith('list='))
+                return splitted[i].replace('list=','');
+        }
     }
     
-    //Get video info by natural input
-    async get_video(args) {
-        return new Promise((resolve, reject) => {
-            youtube.searchVideos(args).then(resolve,reject);
-        });
-    } 
-    
-    //Obtiene el link de una cancion
-    async get_song_link (args) {
+    get_song_link = async (args) {
         let info = await this.get_video(args);
         return info.url;
     }
@@ -31,11 +28,19 @@ module.exports = class YoutubeUtils {
      * @param {playlist}
      * @returns {links} the obtained links from playlist
      */
-    async get_playlist_songs_info (playlist) {
+    get_playlist_songs_info = async (playlist) =>{
         let songs = [];
-        let playlist_links = await youtube.getPlaylist(playlist);
-        playlist_links.forEach(song_link => songs.push(song_link));
-
+        const plist = await yt({listId : this.get_list_id(playlist)});
+        plist.videos.forEach(async song => {
+            try {
+                const full_song = await yt({videoId : song.videoId});
+                songs.push(full_song);
+            }
+            catch (e) {
+                console.log("Exception in get_playlist_songs_info: ",e);
+            }
+        })
         return songs;
     }
+
 }

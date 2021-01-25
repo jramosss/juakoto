@@ -6,7 +6,8 @@ function make_embed_fields (queue,current_song) {
     let opt = Object.keys(queue).length > 10;
     for (let i = opt ? current_song : 0; i <= len; i++)
         if (queue[i])
-            fields.push({name : i+1 + ":  " + queue[i].title, value : queue[i].length});
+            fields.push({name : i+1 + ":  " + queue[i].title,
+                         value : queue[i].duration.timestamp});
     return fields;
 }
 
@@ -27,13 +28,13 @@ const enqueued_song = (song) => {
     const message1 = new Discord.MessageEmbed()
     .setColor('BLUE')
     .setTitle("Añadida a la cola")
-    .addField(song.title,song.length)
+    .addField(song.title,song.duration.timestamp)
 
     return message1;
 }
 
 const enqueued_playlist = (pl_link) => {
-    if (!song) return;
+    if (!pl_link) return;
     const message1 = new Discord.MessageEmbed()
     .setColor('DARK_BUT_NOT_BLACK')
     .setTitle("Añadida a la cola")
@@ -47,7 +48,7 @@ const now_playing_song = (song1) => {
     const message2 = new Discord.MessageEmbed()
     .setColor('GREEN')
     .setTitle("Reproduciendo")
-    .addField(song1.title,song1.length)
+    .addField(song1.title,song1.duration.timestamp)
 
     return message2;
 }

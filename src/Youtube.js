@@ -19,7 +19,7 @@ module.exports = class YoutubeUtils {
         }
     }
     
-    get_song_link = async (args) {
+    get_song_link = async (args) => {
         let info = await this.get_video(args);
         return info.url;
     }

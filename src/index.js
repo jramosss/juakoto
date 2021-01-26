@@ -6,26 +6,32 @@ const fs = require('fs')
 const Discord = require('discord.js');
 
 //Files
-const prefix_file = require('./prefix.js')
-const utils = require('./utils.js')
-const play = require('./play.js')
-const embeds = require('../resources/embeds');
+const Prefix = require('./Prefix.js')
+const Youtube = require('./Youtube');
+const Utils = require('./Utils.js')
+const Player = require('./Play.js')
+const Embeds = require('../resources/Embeds');
 
 //Global consts
 const ALIASES_FILEPATH = '../db/aliases'
 const ULTIMO_PREVIA_Y_CACHENGUE = 35;
 const bot = new Discord.Client();
 
-//Global vars
-let prefix = prefix_file.load_prefix();
-let aliases = utils.read_aliases(ALIASES_FILEPATH);
-let loop = false;
-
 //Classes
-const Youtube = require('./Youtube');
+const embeds = new Embeds();
+const play = new Player();
+const prefix_obj = new Prefix();
+const utils = new Utils();
 const yt = new Youtube();
-const Spotify = require('./Spotify');
-const sp = new Spotify();
+
+//Global vars
+let prefix = prefix_obj.load_prefix();
+let aliases = utils.read_aliases(ALIASES_FILEPATH);
+//let loop = false;
+
+
+//const Spotify = require('./Spotify');
+//const sp = new Spotify();
 
 //Emojis
 const CORTE = '776276782125940756';
@@ -44,7 +50,10 @@ bot.on('message',async msg => {
     if (msg.author.bot) return;
     let args = msg.content.substring(prefix.length+1).split(" ");
     let raw_input = msg.content.substring(prefix.length+1).replace(args[0],"");
-    console.log("Message: ",args);
+    if (msg.content.startsWith(prefix))
+        console.log("Message: ",args);
+    else 
+        return;
 
     //Handle aliases
     if (utils.dict_contains(aliases,args[0])) {
@@ -410,7 +419,7 @@ bot.on('message',async msg => {
             }
 
             prefix = args[1];
-            prefix_file.change_prefix(prefix);
+            prefix_obj.change_prefix(prefix);
             msg.channel.send("`Prefix cambiado a " + prefix + '`');
             break;
         

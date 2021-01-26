@@ -13,6 +13,11 @@ module.exports = class SpotifyUtils {
         const info = await sp_url_info.getPreview(link);
         return info.title;
     }
+
+    async get_playlist_name_and_image (link) {
+        const plist = await infos.getPlaylistByURL(link);
+        return [plist.name,plist.images[0].url];
+    }
     
     is_song (link) {
         const SP_REGEX = /(https?:\/\/open.spotify.com\/(track|user|artist|album)\/[a-zA-Z0-9]+(\/playlist\/[a-zA-Z0-9]+|)|spotify:(track|user|artist|album):[a-zA-Z0-9]+(:playlist:[a-zA-Z0-9]+|))/

@@ -17,7 +17,8 @@ module.exports = class Utils {
     }
     
     //Takes a message and adapt the string to make it readable by get_song_link
-    adapt_input = (str) => {
+    adapt_input = (str1) => {
+        let str = String(str1);
         let full_input = "";
         str.split(" ").forEach(word => {
             if (word !== 'juakoto' && word !== 'p' && word !== 'play'){
@@ -76,6 +77,8 @@ module.exports = class Utils {
         let aliases = {};
         for (let i = 0; i < values.length; i++)
             aliases[values[i][0]] = (values[i][1]).replace(']','');   
+        
+        return aliases;
     }
     
     //TODO google if it`s a shorter way to do this
@@ -118,7 +121,7 @@ module.exports = class Utils {
     dict_contains (dict,elem) {
         //return dict[elem] !== undefined
         for (const [key,value] of Object.entries(dict)) 
-            if (key == elem)
+            if (key === elem)
                 return true;
 
         return false;
@@ -144,7 +147,7 @@ module.exports = class Utils {
         let keys = [];
         for (const [key,value] of Object.entries(dict))
             keys.push(key);
-            
+
         return keys;
     }
     

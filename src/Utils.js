@@ -66,7 +66,7 @@ module.exports = class Utils {
     
     //Returns a dict {alias_name : associated_link} from aliases file
     read_aliases (aliases_filepath) {
-        const text = utils.read_from_file(aliases_filepath);
+        const text = this.read_from_file(aliases_filepath);
         const keyvalue = text.split('[');
         let values = [];
         keyvalue.forEach(bracket => {
@@ -80,10 +80,10 @@ module.exports = class Utils {
     
     //TODO google if it`s a shorter way to do this
     str_arr_contains (str_arr,word) {
-        for (let i = 0; i < str_arr.length; i++){
+        for (let i = 0; i < str_arr.length; i++)
             if (str_arr[i] === word)
                 return true;
-        }
+
         return false;
     }
     
@@ -117,10 +117,10 @@ module.exports = class Utils {
     
     dict_contains (dict,elem) {
         //return dict[elem] !== undefined
-        for (const [key,value] of Object.entries(dict)) {
+        for (const [key,value] of Object.entries(dict)) 
             if (key == elem)
                 return true;
-        }
+
         return false;
     }
     
@@ -142,9 +142,9 @@ module.exports = class Utils {
      * */
     get_keys (dict) {
         let keys = [];
-        for (const [key,value] of Object.entries(dict)) {
+        for (const [key,value] of Object.entries(dict))
             keys.push(key);
-        }
+            
         return keys;
     }
     

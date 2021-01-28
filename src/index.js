@@ -162,10 +162,9 @@ bot.on('message',async msg => {
         case "hola":
         case "veni":
         case "te":
-            if (args[0] === "te"){
+            if (args[0] === "te")
                 if (!(args[1] === "invoco"))
                     break;
-            }
             else 
                 utils.channel_join(msg,true);
             break;

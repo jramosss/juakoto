@@ -3,8 +3,8 @@ module.exports = class YoutubeUtils {
     constructor(){}
 
     is_playlist = (link) => {
-        let regexp = /^.*(youtu.be\/|list=)([^#\&\?]*).*/
-        let match = link.match(regexp);
+        const regexp = /^.*(youtu.be\/|list=)([^#\&\?]*).*/
+        const match = link.match(regexp);
         return match && match[2];
     }
     

@@ -7,7 +7,7 @@ module.exports = class Utils {
     sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
     //Check if a string is an url
     valid_URL(str) {
-        var pattern = new RegExp('^(https?:\\/\\/)?'+ // protocol
+        const pattern = new RegExp('^(https?:\\/\\/)?'+ // protocol
           '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|'+ // domain name
           '((\\d{1,3}\\.){3}\\d{1,3}))'+ // OR ip (v4) address
           '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*'+ // port and path
@@ -17,19 +17,14 @@ module.exports = class Utils {
     }
     
     //Takes a message and adapt the string to make it readable by get_song_link
-    adapt_input(arr) {
-        let str1 = "";
-        let i = 0;
-        while (arr[i] != null){
-            if(arr[i] === "p" || arr[i] === ' '){
-                i++;
-                continue;
-            }
-            str1 += arr[i];
-            str1 += " ";
-            i++;
-        }
-        return str1;
+    adapt_input = (str) => {
+        let full_input = "";
+        str.split(" ").forEach(word => {
+            if (word !== 'juakoto' && word !== 'p' && word !== 'play'){
+                full_input += word += " ";
+            } 
+        });
+        return full_input;
     }
     
     queue_length = (dict) => Object.keys(dict).length;
@@ -67,57 +62,23 @@ module.exports = class Utils {
         }
     }
     
-    get_song_links (list) {
-        let len = list.length;
-        let links = [];
-        let aux_str = "";
-        for (let i = 0; i <= len; i++){
-            if (list[i] === ',' || i == len){
-                links.push(aux_str);
-                aux_str = "";
-            }
-            else
-                aux_str += list[i];
-        }
-        return links;
-    }
+    get_song_links = (list) => list.split(',');
     
     //Returns a dict {alias_name : associated_link} from aliases file
-    //TODO redo this function with startsWith and classy stuff
     read_aliases (aliases_filepath) {
-        let text = this.read_from_file(aliases_filepath);
-        let fst_word = false;
+        const text = utils.read_from_file(aliases_filepath);
+        const keyvalue = text.split('[');
+        let values = [];
+        keyvalue.forEach(bracket => {
+            if (bracket != '')
+                values.push(bracket.split(','));    
+        })
         let aliases = {};
-        let i = 0;
-        let fst_word_string = "";
-        let snd_word_string = "";
-        while (i < text.length) {
-            switch (text[i]){
-                case "[":
-                    fst_word = true;
-                    i++;
-                    continue;
-                case ",":
-                    fst_word = false;
-                    i++;
-                    continue;
-                case "]":
-                    aliases[fst_word_string] = snd_word_string;
-                    fst_word_string = "";
-                    snd_word_string = "";
-                    i++;
-                    continue;
-            }
-    
-            if (fst_word)
-                fst_word_string += text[i];
-            else 
-                snd_word_string += text[i];
-            i++;
-        }
-        return aliases;
+        for (let i = 0; i < values.length; i++)
+            aliases[values[i][0]] = (values[i][1]).replace(']','');   
     }
     
+    //TODO google if it`s a shorter way to do this
     str_arr_contains (str_arr,word) {
         for (let i = 0; i < str_arr.length; i++){
             if (str_arr[i] === word)

@@ -1,12 +1,14 @@
 const Embeds = require('../resources/Embeds')
-const embeds = new Embeds();
 const Spotify = require('./Spotify');
-const sp = new Spotify();
 const Utils = require('./Utils.js');
-const utils = new Utils();
 const Youtube = require('./Youtube');
-const yt = new Youtube();
+
 const ytdl = require('ytdl-core');
+
+const embeds = new Embeds();
+const sp = new Spotify();
+const utils = new Utils();
+const yt = new Youtube();
 
 module.exports = class Player {
 
@@ -156,14 +158,12 @@ module.exports = class Player {
     
     get_playing_index = () => this.playing_index;
     
-    set_playing_index (index) {
-        this.playing_index = index;
-    }
+    set_playing_index = (index) => this.playing_index = index;
     
     set_last_index = (index) => this.last_index = index;
     
     set_volume (new_volume) {
-        this.previous_volume = volume;
+        this.previous_volume = this.volume;
         this.dispatcher.setVolume(new_volume);
         this.volume = new_volume;
     }
@@ -182,7 +182,8 @@ module.exports = class Player {
     }
     
     resume ()  {
-        dispatcher ? dispatcher.resume() : console.log("Dispatcher uninitialized");
+        this.dispatcher ? this.dispatcher.resume() : 
+                          console.log("Dispatcher uninitialized");
     }
     
     jump = (to) => this.playing_index = to;
@@ -194,11 +195,10 @@ module.exports = class Player {
     }
     
     get_song_number (name) {
-        for (let song in queue) {
-            if (queue[song] === name) {
+        for (let song in this.queue) 
+            if (this.queue[song] === name)
                 return song;
-            }
-        }
+                
         return null;
     }
     

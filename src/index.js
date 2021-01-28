@@ -143,8 +143,7 @@ bot.on('message',async msg => {
                 msg.react(X);
                 break;
             }
-            args[0] = '';
-            let link = await yt.get_song_link(utils.adapt_input(args));
+            const link = await yt.get_song_link(utils.adapt_input(args));
             msg.channel.send(embeds.link_search(raw_input,link));
             msg.react('🔍');
             break;

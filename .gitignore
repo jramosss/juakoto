@@ -1,16 +1,11 @@
 #Folders
 .vscode/
 node_modules/
-#queues/
 
 #Innecesary stuff
 test.js
+itest.js
 TODO
-
-#Private Keys
-#db/aliases
-#db/prefix
-
 
 #Py
 tests/__pycache__

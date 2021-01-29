@@ -115,8 +115,12 @@ bot.on('message',async msg => {
         case "tomatela":
         case "shu":
         case "chau":
-            msg.member.voice.channel.leave();
-            play.clear_queue();
+            if (msg.member.voice && msg.member.voice.channel){
+                msg.member.voice.channel.leave();
+                play.clear_queue();
+            }
+            else
+                msg.channel.send("No estas en un canal, andate vos");
             break;
         
         //Clears queue
@@ -207,7 +211,7 @@ bot.on('message',async msg => {
                 let infos = [];
 
                 for (let i = 0; i < links.length; i++) 
-                    infos.push(await yt.get_song_info(links[i]));
+                    infos.push(await yt.get_video(links[i]));
 
                 infos.forEach(song => play.enqueue(msg,song));
             }

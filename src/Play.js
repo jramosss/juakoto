@@ -39,6 +39,7 @@ module.exports = class Player {
         }
         this.paused = false;
     
+        //Maybe i can modularize this
         this.dispatcher.on('finish',() => {
             if (this.queue[this.playing_index+1]){
                 msg.channel.send(embeds.now_playing_song(this.queue[this.playing_index+1]));
@@ -198,7 +199,7 @@ module.exports = class Player {
         for (let song in this.queue) 
             if (this.queue[song] === name)
                 return song;
-                
+
         return null;
     }
     

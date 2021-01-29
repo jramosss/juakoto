@@ -1,4 +1,5 @@
 const fs = require('fs');
+const { type } = require('os');
 const Youtube = require('./Youtube')
 const yt = new Youtube();
 
@@ -91,8 +92,8 @@ module.exports = class Utils {
     }
     
     
-    object_is_video = (obj) =>  
-        this.str_arr_contains(Object.keys(obj),'durationSeconds');
+    object_is_video = (obj) =>
+        this.str_arr_contains(Object.keys(obj),'ago');
     
     /**
      * *Returns a link based on natural language input 

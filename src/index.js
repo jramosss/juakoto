@@ -350,7 +350,7 @@ bot.on('message',async msg => {
             }
             const queuex = play.get_queue();
             const num = args[1]-1;
-            if (queue[num]){
+            if (queuex[num]){
                 play.jump(num);
                 msg.react('🛐');
                 play.play_song(msg);

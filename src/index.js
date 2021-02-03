@@ -1,6 +1,8 @@
 //Server stuff
 const PORT = process.env.PORT || 5000;
 
+require('dotenv').config({path:'../.env'});
+
 //External libraries
 const fs = require('fs')
 const Discord = require('discord.js');
@@ -11,22 +13,23 @@ const Youtube = require('./Youtube');
 const Utils = require('./Utils.js')
 const Player = require('./Play.js')
 const Embeds = require('../resources/Embeds');
+const Alias = require('./Alias');
 
 //Global consts
-const ALIASES_FILEPATH = '../db/aliases'
 const ULTIMO_PREVIA_Y_CACHENGUE = 35;
 const bot = new Discord.Client();
 
-//Classes
+//Objects
 const embeds = new Embeds();
 const play = new Player();
 const prefix_obj = new Prefix();
 const utils = new Utils();
 const yt = new Youtube();
+const alias = new Alias.AliasUtils();
 
 //Global vars
 let prefix = prefix_obj.load_prefix();
-let aliases = utils.read_aliases(ALIASES_FILEPATH);
+let aliases = alias.all();
 //let loop = false;
 
 
@@ -41,33 +44,24 @@ const DISK = '💾';
 const OK = '👍';
 const X = '❌';
 
-bot.login(process.env.BOT_TOKEN);
+
+//bot.setTimeout()
 
 bot.on('ready', () => { console.log("Buendiaaa");})
+
+bot.once('ready',() => Alias.Alias.sync());
 
 //Core Function
 bot.on('message',async msg => {
     if (msg.author.bot) return;
     let args = msg.content.substring(prefix.length+1).split(" ");
-    let raw_input = msg.content.substring(prefix.length+1).replace(args[0],"");
-    if (msg.content.startsWith(prefix))
-        console.log("Message: ",args);
-    else 
-        return;
+    const raw_input = msg.content.substring(prefix.length+1).replace(args[0],"");
+    if (!msg.content.startsWith(prefix)) return;
+    console.log("Message: ",args); 
 
     //Handle aliases
-    if (utils.dict_contains(aliases,args[0])) {
-        try {
-            play.enqueue(msg,aliases[args[0]]);
-        }
-        catch (e){
-            console.log("Exception in alias: " + aliases + e);
-            msg.channel.send("Jejej se rompio todo sorry usa un bot mas competente");
-        }
-        finally{
-            return;
-        }
-    }
+    const aliass = await alias.find(args[0]);
+    if (aliass) play.enqueue(msg,aliass)
 
     switch (args[0]){
         
@@ -79,7 +73,7 @@ bot.on('message',async msg => {
                 msg.react(X);
                 break;
             }
-            if (utils.dict_contains(aliases,args[1])){
+            if (await alias.find(args[1])){
                 msg.channel.send("Alias " + args[1] + " ya registrado");
                 msg.react(X);
                 break;
@@ -89,12 +83,10 @@ bot.on('message',async msg => {
                 msg.react(X);
                 break;
             }
-            const dict = args[1] + "," + args[2];
-            utils.write_to_file(ALIASES_FILEPATH,dict,'a+',true);
-            aliases[args[1]] = args[2];
+            await alias.create(args[1],args[2]);
             msg.channel.send("Nuevo alias registrado `" + args[1] + "` linkeado a " + args[2]);
             msg.react(DISK);
-            aliases = utils.read_aliases(ALIASES_FILEPATH);
+            aliases = await alias.all();
             break;
 
         //display all aliases
@@ -167,7 +159,7 @@ bot.on('message',async msg => {
         case "veni":
         case "te":
             if (args[0] === "te")
-                if (!(args[1] === "invoco"))
+                if ((args[1] === "invoco"))
                     break;
             else 
                 utils.channel_join(msg,true);
@@ -350,12 +342,13 @@ bot.on('message',async msg => {
             }
             const queuex = play.get_queue();
             const num = args[1]-1;
-            if (queue[num]){
+            if (queuex[num]){
                 play.jump(num);
                 msg.react('🛐');
                 play.play_song(msg);
+                //Could be an embed
                 msg.channel.send("Saltando a la cancion nº" + num + 
-                                 ": " + queuex[num].title);
+                                 ": `" + queuex[num].title + '`');
             }
             else 
                 msg.channel.send("Man que flayas no esta esa cancion en la cola")
@@ -441,6 +434,10 @@ bot.on('message',async msg => {
             msg.channel.send(message1);
             break;
         
+        case "stop":
+            play.stop();
+            msg.react('🛑');
+            break;
         //Print Queue
         case "q":
         case "cola":
@@ -449,7 +446,8 @@ bot.on('message',async msg => {
             let currrent_song_index = play.get_playing_index();
             if (!utils.queue_length(_queue)){
                 //?Can the bot react to his own message?
-                msg.channel.send("`Cola vacia`")
+                (await msg.channel.send("`Cola vacia`"))
+                    attachments(own_msg => own_msg.react(CORTE))
                 msg.react(CORTE);
             }
             else {

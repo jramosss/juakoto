@@ -1,7 +1,7 @@
 //Server stuff
 const PORT = process.env.PORT || 5000;
 
-require('dotenv').config({path:'../.env'});
+//require('dotenv').config({path:'../.env'});
 
 //External libraries
 const fs = require('fs')
@@ -12,8 +12,8 @@ const Prefix = require('./Prefix.js')
 const Youtube = require('./Youtube');
 const Utils = require('./Utils.js')
 const Player = require('./Play.js')
-const Embeds = require('../resources/Embeds');
 const Alias = require('./Alias');
+const Embeds = require('../resources/Embeds');
 
 //Global consts
 const ULTIMO_PREVIA_Y_CACHENGUE = 35;
@@ -25,7 +25,7 @@ const play = new Player();
 const prefix_obj = new Prefix();
 const utils = new Utils();
 const yt = new Youtube();
-const alias = new Alias.AliasUtils();
+const alias = new Alias();
 
 //Global vars
 let prefix = prefix_obj.load_prefix();
@@ -47,9 +47,9 @@ const X = '❌';
 
 //bot.setTimeout()
 
-bot.on('ready', () => { console.log("Buendiaaa");})
+//bot.on('ready', () => console.log("Buendiaaa"))
 
-bot.once('ready',() => Alias.Alias.sync());
+bot.once('ready',async () => await alias.sync())
 
 //Core Function
 bot.on('message',async msg => {
@@ -83,10 +83,11 @@ bot.on('message',async msg => {
                 msg.react(X);
                 break;
             }
-            await alias.create(args[1],args[2]);
-            msg.channel.send("Nuevo alias registrado `" + args[1] + "` linkeado a " + args[2]);
+            msg.channel.send("Nuevo alias registrado `" + 
+                                args[1] + "` linkeado a " + args[2]);
             msg.react(DISK);
-            aliases = await alias.all();
+            alias.create(args[1],args[2]).then(
+                    async () => aliases = await alias.all());
             break;
 
         //display all aliases

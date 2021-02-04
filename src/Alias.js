@@ -5,53 +5,59 @@ const sequelize = new Sequelize('database', 'user', 'password', {
 	host: 'localhost',
 	dialect: 'sqlite',
 	logging: false,
-	storage: path.resolve(__dirname,'../db/aliases.sqlite'),
+    storage: path.resolve(__dirname,'../db/aliases.sqlite'),
 });
 
-const Alias = sequelize.define('alias', {
-    alias : Sequelize.STRING,
-    link : Sequelize.STRING,
-});
+module.exports = class AliasUtils {
 
-class AliasUtils {
+    model = sequelize.define('alias',{
+        name : Sequelize.STRING,
+        link : Sequelize.STRING,
+    },
+    {
+        freezeTableName : true,
+        timestamps : false,
+        underscored : true,
+        tableName : 'alias',
+    })
 
     //i stands for input
-    create = async (i_alias,i_link) => 
-        await Alias.create({
-            alias : i_alias,
+    create = async (i_name,i_link) => 
+        await this.model.create({
+            name : i_name,
             link : i_link,
         });
     
-    find = async (i_alias) =>
-        await Alias.findOne({where : {alias : i_alias}});
+    find = async (i_name) =>
+        await this.model.findOne({where : {name : i_name}});
 
-    //you only redefine the link, but i need the alias to find the row
-    redefine = async (i_alias,i_link) => {
-        const affected_rows = await Alias.update
-            ({link : i_link},{where : {alias : i_alias}});
+    //you only redefine the link, but i need the this.model to find the row
+    redefine = async (i_name,i_link) => {
+        const affected_rows = await this.model.update
+            ({link : i_link},{where : {name : i_name}});
 
         if (affected_rows <= 0)
             throw Error("Couldn`t find wanted row");
     }
 
-    delete = async (i_alias) => {
+    delete = async (i_name) => {
         try {
-            await Alias.destroy({where : {alias : i_alias}});
+            await this.model.destroy({where : {name : i_name}});
         }
         catch (e) {
-            throw Error("Alias does not exist");
+            throw Error("this.model does not exist");
         }
     }
 
     all = async () => {
-        const db_all = await Alias.findAll();
+        const db_all = await this.model.findAll();
         const dict = {};
 
         for (let i = 0; i < db_all.length; i++)
-            dict[db_all[i].dataValues.alias] = db_all[i].dataValues.link;
+            dict[db_all[i].dataValues.name] = db_all[i].dataValues.link;
 
         return dict;
     } 
-}
 
-module.exports = {Alias,AliasUtils};
+    sync = async () => await this.model.sync(); 
+}

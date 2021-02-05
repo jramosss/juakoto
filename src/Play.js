@@ -47,7 +47,7 @@ module.exports = class Player {
                 this.play_song(msg);
             }
             else {
-                if (loop) {
+                if (this.loop) {
                     this.playing_i_b4_looping = this.playing_index;
                     this.playing_index = 0;
                     this.play_song(msg);

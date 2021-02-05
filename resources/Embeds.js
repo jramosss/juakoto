@@ -1,6 +1,7 @@
 const Discord = require('discord.js');
 
 module.exports = class Embeds {
+    //? How do i make this private?
     make_embed_fields (queue,current_song) {
         const len = current_song + 9;
         let fields = [];
@@ -85,5 +86,27 @@ module.exports = class Embeds {
         .addField("Encolando la playlist " + name + " (Puede tomar un tiempo)",url)
         .setThumbnail(thumbnail);
         return msg1;
+    }
+
+    make_embed_aliases = (dict) => {
+        const keys = Object.keys(dict);
+        const values = Object.values(dict);
+        const len = keys.length;
+        let res = [];
+        for (let i = 0; i < len; i++)
+            if (keys[i] && values[i])
+                res.push({name : keys[i],value : values[i]});
+        
+        return res;
+    }
+
+    aliases = (dict) => {
+        if (!dict) return;
+        const res = this.make_embed_aliases(dict);
+        const message4 = new Discord.MessageEmbed()
+        .setColor('RANDOM')
+        .addFields(res)
+    
+        return message4;
     }
 }

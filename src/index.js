@@ -29,7 +29,7 @@ const alias = new Alias();
 
 //Global vars
 let prefix = prefix_obj.load_prefix();
-let aliases = alias.all();
+let aliases;
 //let loop = false;
 
 
@@ -47,9 +47,14 @@ const X = '❌';
 
 //bot.setTimeout()
 
-//bot.on('ready', () => console.log("Buendiaaa"))
+bot.login(process.env.BOT_TOKEN);
 
-bot.once('ready',async () => await alias.sync())
+bot.once('ready', () => {
+    console.log("Buendiaaa");
+    alias.sync().then(async () =>
+        aliases = await alias.all()
+    );
+});
 
 //Core Function
 bot.on('message',async msg => {
@@ -93,11 +98,12 @@ bot.on('message',async msg => {
         //display all aliases
         case "aliases":
             try {
-                msg.channel.send("Aliases: \n");
-                msg.channel.send("```"+utils.objToString(aliases)+"```");
+                msg.channel.send("Dame un sec");
+                msg.channel.send('https://tenor.com/view/loading-cat-thinking-wait-what-gif-15922897');
+                msg.channel.send(embeds.aliases(aliases));
             }
             catch (e) {
-                msg.channel.send("No hay aliases ");
+                msg.channel.send("No hay aliases registrados");
                 console.log("Exception in aliases: " + e);
             }
             break;
@@ -447,8 +453,7 @@ bot.on('message',async msg => {
             let currrent_song_index = play.get_playing_index();
             if (!utils.queue_length(_queue)){
                 //?Can the bot react to his own message?
-                (await msg.channel.send("`Cola vacia`"))
-                    attachments(own_msg => own_msg.react(CORTE))
+                await msg.channel.send("`Cola vacia`")
                 msg.react(CORTE);
             }
             else {

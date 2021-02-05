@@ -29,7 +29,8 @@ module.exports = class AliasUtils {
         });
     
     find = async (i_name) =>
-        await this.model.findOne({where : {name : i_name}});
+        await (await this.model.findOne({where : {name : i_name}}))
+              .getDataValue('link');
 
     //you only redefine the link, but i need the this.model to find the row
     redefine = async (i_name,i_link) => {
@@ -50,9 +51,16 @@ module.exports = class AliasUtils {
     }
 
     all = async () => {
-        const db_all = await this.model.findAll();
-        const dict = {};
-
+        //! Problem is surely here
+        let db_all;
+        let dict = {};
+        try {
+            db_all = await this.model.findAll({attributes : ['name','link']});
+        }
+        catch (e) {
+            console.log(e);
+        }
+        if (!db_all) return;
         for (let i = 0; i < db_all.length; i++)
             dict[db_all[i].dataValues.name] = db_all[i].dataValues.link;
 

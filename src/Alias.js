@@ -28,9 +28,11 @@ module.exports = class AliasUtils {
             link : i_link,
         });
     
-    find = async (i_name) =>
-        await (await this.model.findOne({where : {name : i_name}}))
-              .getDataValue('link');
+    find = async (i_name) => {
+        const search = await this.model.findOne({where : {name : i_name}});
+        if (search)
+            return search.getDataValue('link');
+    }
 
     //you only redefine the link, but i need the this.model to find the row
     redefine = async (i_name,i_link) => {

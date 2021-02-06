@@ -7,11 +7,8 @@ test.js
 itest.js
 TODO
 
-#Py
-tests/__pycache__
-tests/.pytest_cache
-
 .env
 *.sqlite
 aliases.sqlite
 db/prefix
+prefix

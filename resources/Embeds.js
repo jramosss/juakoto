@@ -109,4 +109,13 @@ module.exports = class Embeds {
     
         return message4;
     }
+
+    queues = (list) => {
+        if (!list) return;
+        const msg3 = new Discord.MessageEmbed()
+        .setColor('RANDOM')
+        //.setTitle("Colas")
+        .addField("Colas",list);
+        return msg3;
+    }
 }

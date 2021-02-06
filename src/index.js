@@ -14,6 +14,7 @@ const Utils = require('./Utils.js')
 const Player = require('./Play.js')
 const Alias = require('./Alias');
 const Embeds = require('../resources/Embeds');
+const Queues = require('./Queues');
 
 //Global consts
 const ULTIMO_PREVIA_Y_CACHENGUE = 35;
@@ -26,10 +27,12 @@ const prefix_obj = new Prefix();
 const utils = new Utils();
 const yt = new Youtube();
 const alias = new Alias();
+const queues = new Queues();
 
 //Global vars
 let prefix = prefix_obj.load_prefix();
 let aliases;
+let custom_queues;
 //let loop = false;
 
 
@@ -53,6 +56,9 @@ bot.once('ready', () => {
     console.log("Buendiaaa");
     alias.sync().then(async () =>
         aliases = await alias.all()
+    );
+    queues.sync().then(async () =>
+        custom_queues = await queues.all()
     );
 });
 
@@ -338,7 +344,7 @@ bot.on('message',async msg => {
                 break;
             }
             const response1 = await play.enqueue(msg,args);
-            args[1] = response1 ? response1 : "Algo salio mal";
+            args[1] = response1+1;
             
         //Jumps to the n-th song in the queue
         case "jump":
@@ -354,7 +360,7 @@ bot.on('message',async msg => {
                 msg.react('🛐');
                 play.play_song(msg);
                 //Could be an embed
-                msg.channel.send("Saltando a la cancion nº" + num + 
+                msg.channel.send("Saltando a la cancion nº" + num+1 + 
                                  ": `" + queuex[num].title + '`');
             }
             else 
@@ -469,8 +475,9 @@ bot.on('message',async msg => {
 
         //Show all saved queues
         case "queues":
-            let queues = fs.readdirSync('../db/queues/');
-            msg.channel.send("```Queues: " + queues + "```");
+            let names = [];
+            custom_queues.forEach(q => names.push(q.getDataValue('name')));
+            msg.channel.send(embeds.queues(names));
             break;
         //Selects a random song from aliases file
         case "random":
@@ -553,34 +560,24 @@ bot.on('message',async msg => {
         case "sq":
         case "savequeue":
         case "guardarcola":
+            const queue1 = play.get_queue();
+            if (!args[1]){
+                msg.channel.send("No me pasaste parametros. usage juakoto sq <filename>");
+                msg.react(X);
+                break;
+            }
+            let links = [];
             try{
-                const queue1 = play.get_queue();
-                if (!args[1]){
-                    msg.channel.send("No me pasaste parametros. usage juakoto sq <filename>");
-                    msg.react(X);
-                    break;
-                }
-                const filepath = "../db/queues/" + args[1];
-                if (fs.existsSync(filepath)){
-                    msg.react(CORTE);
-                    msg.channel.send('Ya existe una cola con ese nombre' +
-                                     'asi que la voy a reemplazar')
-                }
-                const queue_len = utils.queue_length(queue1);
-                let songs = "";
-                for (let i = 0; i < queue_len; i++) {
-                    songs += queue1[i].url;
-                    if (i !== queue_len-1)
-                        songs += ','
-                }
 
-                utils.write_to_file(filepath,songs,'w');
+                for (let i = 0; i < Object.keys(queue1).length; i++)
+                    links.push(queue1[i].url)
 
-                msg.channel.send("`Cola guardada en " + filepath + '`');
+                await queues.create(args[1],links);
+                msg.channel.send("`Cola guardada: " + args[1] + '`');
                 msg.react(DISK);
             }
             catch (error){
-                console.log("Exception in savequeue " + error);
+                console.log("Exception in savequeue: ", error);
             }
 
             break;

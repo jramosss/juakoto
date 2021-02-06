@@ -14,3 +14,4 @@ tests/.pytest_cache
 .env
 *.sqlite
 aliases.sqlite
+db/prefix

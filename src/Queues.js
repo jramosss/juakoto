@@ -28,8 +28,8 @@ module.exports = class Queues {
 
     find = async (i_name) => {
         try {
-            (await this.model.findOne({where : {name : i_name}}))
-            .getDataValue('songs');
+            const search = await this.model.findOne({where : {name : i_name}})
+            return search.getDataValue('songs');
         }
         catch (e) {
             console.log("Couln`t find table ",i_name);

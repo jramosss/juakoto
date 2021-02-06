@@ -1,10 +1,11 @@
+//? How can this file be shorter?
+
 //Server stuff
 const PORT = process.env.PORT || 5000;
 
 //require('dotenv').config({path:'../.env'});
 
 //External libraries
-const fs = require('fs')
 const Discord = require('discord.js');
 
 //Files
@@ -57,8 +58,9 @@ bot.once('ready', () => {
     alias.sync().then(async () =>
         aliases = await alias.all()
     );
-    queues.sync().then(async () =>
-        custom_queues = await queues.all()
+    queues.sync().then(async () => {
+        custom_queues = await queues.all();
+    }
     );
 });
 
@@ -137,6 +139,20 @@ bot.on('message',async msg => {
             play.set_last_index(1);
             play.pause();
             break;
+
+        case "dq":
+        case "deletequeue":
+            if(!utils.args1_check(args[1],msg,"dq <queue name>")) break;
+            try {
+                await queues.delete(args[1]);
+                msg.channel.send("`Cola " + args[1] + " Borrada`");
+                custom_queues = await queues.all();
+            }
+            catch (e) {
+                console.log("Exception in dq: ",e);
+                msg.channel.send("No existe ninguna cola con ese nombre");
+            }
+            break;
         
         //greets
         case "gracias":
@@ -189,6 +205,7 @@ bot.on('message',async msg => {
             break;
         
         //Loads queue from file
+        //!Somehow this is buggy
         case "lq":
         case "loadqueue":
         case "cargarcola":
@@ -197,31 +214,15 @@ bot.on('message',async msg => {
                 msg.react(X);
                 break;
             }
-            const filepath = "../db/queues/" + args[1];
-            if (!fs.existsSync(filepath)){
-                msg.channel.send("No existe un archivo con ese nombre.\n")
-                msg.react(X);
-                break;
-            }
+            
             try {
-                const files = fs.readdirSync("../db/queues/");
-                let list = "";
-                for (let i = 0; i < files.length; i++){
-                    if (files[i] === args[1]){
-                        list = fs.readFileSync(filepath,'utf8')
-                        break;
-                    }
-                }
-                const links = utils.get_song_links(list);
-                let infos = [];
-
-                for (let i = 0; i < links.length; i++) 
-                    infos.push(await yt.get_video(links[i]));
-
-                infos.forEach(song => play.enqueue(msg,song));
+                let songs = await queues.find(args[1]);
+                songs = songs.split(',');
+                songs.forEach(l => play.enqueue(msg,l));
             }
-            catch (err) {
-                console.log("Exception in lq " + err);
+            catch(e){
+                console.log("Exception in lq: ",e);
+                msg.channel.send("No existe ninguna cola con ese nombre");
                 msg.react(X);
             }
             break;
@@ -229,8 +230,8 @@ bot.on('message',async msg => {
         //Displays the title of the current playing song
         case "quesuena":
             try {
-                let queue2 = play.get_queue();
-                let current = play.get_playing_index();
+                const queue2 = play.get_queue();
+                const current = play.get_playing_index();
                 msg.channel.send(queue2[current] ? embeds.now_playing_song(queue2[current]) : 
                                     "No esta sonando nada che flayero")
             }
@@ -286,11 +287,7 @@ bot.on('message',async msg => {
                     msg.channel.send("Na mentira, decile a juli");
                     break;
             }
-            msg.channel.send("Por el momento no puedo reproducir playlists por" +
-                            " por que el que me programo es un deficiente mental" +
-                            " pero si queres te paso una playlist y la pones en el groovy" +
-                            " que esta programado por gente mas picante");
-            msg.channel.send(playlist);
+            play.enqueue(playlist);
             break;
         
         //Mutes the bot
@@ -315,15 +312,13 @@ bot.on('message',async msg => {
                 msg.react(X);
                 break;
             }
+            msg.react('▶️');
             try {
                 play.enqueue(msg,args);
-                msg.react('▶️');
             }
             //TODO make this work
             catch(e){
-                if (e instanceof play.NotAllowed)
-                    msg.channel.send("No me diste permisos bro\n");
-                else if (e instanceof play.NotInAChannel)
+                if (e.name === play.NOT_IN_A_CHANNEL)
                     msg.channel.send("No estas en un canal bro\n");
                 else{
                     console.log("Error en play (index.js)" + e);
@@ -371,12 +366,10 @@ bot.on('message',async msg => {
         case "paraguayo":
         case "paradoja":
             msg.channel.send("Perdon por trollear :(").then(process.exit(0));
-            break; //Not necessary
-
 
         case "ping":
         case "ms":
-            let ping = bot.ws.ping;
+            const ping = bot.ws.ping;
             if (ping > 230) {
                 msg.channel.send("Toy re lageado padreee, tengo " + ping + " de ping");
                 msg.react(CORTE);
@@ -438,7 +431,7 @@ bot.on('message',async msg => {
 
         //Sends the bot status through a message
         case "status":
-            let status = play.status()
+            const status = play.status()
             let message1 = "";
             message1 += "*Initialized*: "
             message1 += status.init ? ":white_check_mark: \n" : ":x:\n";
@@ -455,16 +448,17 @@ bot.on('message',async msg => {
         case "q":
         case "cola":
         case "queue":
-            let _queue = play.get_queue();
-            let currrent_song_index = play.get_playing_index();
+            const _queue = play.get_queue();
+            const currrent_song_index = play.get_playing_index();
             if (!utils.queue_length(_queue)){
                 //?Can the bot react to his own message?
-                await msg.channel.send("`Cola vacia`")
+                msg.channel.send("`Cola vacia`");
                 msg.react(CORTE);
             }
             else {
                 try{
-                    msg.channel.send(embeds.queue_embed(_queue,currrent_song_index));
+                    msg.channel.send(
+                        embeds.queue_embed(_queue,currrent_song_index));
                 }
                 catch(error) {
                     console.log("Exception in queue ", error);
@@ -476,14 +470,20 @@ bot.on('message',async msg => {
         //Show all saved queues
         case "queues":
             let names = [];
+            if (custom_queues === [] || !custom_queues) {
+                await msg.channel.send("No hay colas guardadas");
+                break;
+            }
             custom_queues.forEach(q => names.push(q.getDataValue('name')));
-            msg.channel.send(embeds.queues(names));
+            if (names != [])
+                msg.channel.send(embeds.queues(names));
             break;
         //Selects a random song from aliases file
+        //TODO refactor this to adapt to database
         case "random":
-            let keys = utils.get_keys(aliases);
-            let random = Math.floor(Math.random() * keys.length);
-            let song = aliases[keys[random]];
+            const keys = utils.get_keys(aliases);
+            const random = Math.floor(Math.random() * keys.length);
+            const song = aliases[keys[random]];
             play.enqueue(msg,song);
             break;
         
@@ -532,14 +532,14 @@ bot.on('message',async msg => {
         
             //Spams a message n times
         case "spam":
-            let message = args[1]
-            let times = args[2];
             if (!args[1] || !args[2]){
                 msg.channel.send("No me mandaste argumentos mogolico\n" + 
-                                 "usage = juakoto spam <message> <times>");
+                "usage = juakoto spam <message> <times>");
                 msg.react(X);
                 break;
             }
+            const message = args[1];
+            const times = args[2];
             msg.react(CORTE);
             for (let i = 0; i < times; i++){
                 msg.channel.send(message);
@@ -566,15 +566,17 @@ bot.on('message',async msg => {
                 msg.react(X);
                 break;
             }
-            let links = [];
+            let _links = [];
+            
+            for (let i = 0; i < Object.keys(queue1).length; i++)
+                _links.push(queue1[i].url)
+            
+            msg.channel.send("`Cola guardada: " + args[1] + '`');
+            msg.react(DISK);
             try{
-
-                for (let i = 0; i < Object.keys(queue1).length; i++)
-                    links.push(queue1[i].url)
-
-                await queues.create(args[1],links);
-                msg.channel.send("`Cola guardada: " + args[1] + '`');
-                msg.react(DISK);
+                queues.create(args[1],_links).then(async () => 
+                    custom_queues = await queues.all()
+                );
             }
             catch (error){
                 console.log("Exception in savequeue: ", error);

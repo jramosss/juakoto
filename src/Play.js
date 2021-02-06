@@ -24,12 +24,13 @@ module.exports = class Player {
     previous_volume = this.volume;
     playing_i_b4_looping = this.playing_index;
     loop = false;
+    NOT_IN_A_CHANNEL = "Not in a channel"
     
     //!This is always the same message, may cause problems
     async play_song (msg) {
         this.init = true; 
         const connection = await utils.channel_join(msg);
-        if (!connection) return;
+        if (!connection) throw new Error(this.NOT_IN_A_CHANNEL);
         try {
             const current_song_link = this.queue[this.playing_index].url;
             this.dispatcher = connection.play(ytdl(current_song_link));
@@ -88,7 +89,12 @@ module.exports = class Player {
         }
         else if (is_sp_playlist){
             const plist_preview = await sp.get_playlist_name_and_image(link);
-            msg.channel.send(embeds.wait_queue(link,plist_preview[0],plist_preview[1]));
+            try {
+                msg.channel.send(embeds.wait_queue(link,plist_preview[0],plist_preview[1]));
+            }
+            catch (e) {
+                console.log("Exception in enqueue 95: ",e);
+            }
             const track_names = await sp.get_playlist_track_names(link);
     
             for (let i = 0; i < track_names.length; i++){
@@ -102,7 +108,7 @@ module.exports = class Player {
                     }
                 }
                 catch (e){
-                    console.log("Couldn`t get song: ",track_names[i]);
+                    console.log("Couldn`t get song: ",track_names[i],e);
                     msg.channel.send("No encontre nada parecido a " + track_names[i] +
                                      " en youtube");
                     continue;
@@ -131,16 +137,27 @@ module.exports = class Player {
     
         if (link){
             if (this.last_index-1 === this.playing_index || !this.init){
-                if (is_yt_playlist || is_sp_playlist)
-                    msg.channel.send(embeds.now_playing_playlist(link));
-                else 
-                    msg.channel.send(embeds.now_playing_song(this.queue[this.last_index-1]));
+                try {
+                    if (is_yt_playlist || is_sp_playlist)
+                        msg.channel.send(embeds.now_playing_playlist(link));
+                    else 
+                        msg.channel.send(embeds.now_playing_song(this.queue[this.last_index-1]));
+                }
+                catch (e) {
+                    console.log(e);
+                }
                 this.play_song(msg);
             }
-            else
-                msg.channel.send(is_yt_playlist || is_sp_playlist ?
-                                 embeds.enqueued_playlist(link) :
-                                 embeds.enqueued_song(this.queue[this.last_index-1]))
+            else {
+                try  {
+                    msg.channel.send(is_yt_playlist || is_sp_playlist ?
+                                     embeds.enqueued_playlist(link) :
+                                     embeds.enqueued_song(this.queue[this.last_index-1]))
+                }
+                catch (e) {
+                    console.log(e);
+                }
+            }
     
             //returns the number that the song was asociated with
             return this.last_index-1;

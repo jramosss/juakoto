@@ -227,4 +227,13 @@ module.exports = class Utils {
         else
             return await msg.member.voice.channel.join();
     }
+
+    args1_check = (args1,msg,usage = "",reaction='❌') => {
+        if (!args1){
+            msg.channel.send("No me pasaste argumentos, "+ usage);
+            msg.react(reaction);
+            return false;
+        }
+        return true;
+    }
 }

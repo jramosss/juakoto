@@ -18,14 +18,11 @@ Pero tambien puto el que lee, re puto el que lee
 
 ### TODO:
 
-* Loop function
-* Remove alias option
 * Set timeout so bot doesnt stay there forever
-* Change aliases to aliases.js, so its easier to remove an alias
 * Fast Forward (https://github.com/fent/node-ytdl-core/blob/master/README.md)
-* alias redefine
 * assemble teams function (move random members to different channels)
 * Should songs dequeue when they already played?
-* Make more embeds
 * Stats
-* Jump has plenty edge cases, keep an eye on it
+* Taria bueno hacer una pagina para el bot no? asi de paso aprendo un poco de front ahi bien sukiii
+* I should reaaaaly migrate to yt oficial api 
+* Each server should have its own queue

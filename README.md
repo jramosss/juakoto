@@ -8,7 +8,7 @@
 * `node src/index.js`
 
 ## Instalacion:
-Lo queres en tu server? Click [aca](https://discord.com/oauth2/authorize?client_id=764653800068743199&scope=bot&permissions=3148864)  
+Lo queres en tu server? Click [aca](https://discord.com/oauth2/authorize?client_id=741796245751726133&scope=bot&permissions=1597205592)  
 
 ## Que tiene este bot que otros no tengan?  
 La verdad que nada, realmente no se para que hago este readme si no lo va a leer nadie.  

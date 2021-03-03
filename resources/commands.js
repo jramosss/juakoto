@@ -33,7 +33,6 @@ const stats       = new Stats();
 //Emojis
 const CORTE =       '776276782125940756';
 const SPEAKER =     '🔈';
-const PLAY =        '▶️';
 const DISK =        '💾';
 const OK =          '👍';
 const X =           '❌';
@@ -45,17 +44,14 @@ module.exports = class Commands {
         if (!args[1] || !args[2]){
             msg.channel.send("No me pasaste argumentos, usage: juakoto alias <alias> <link>");
             msg.react(X);
-            break;
         }
         if (await alias.find(args[1])){
             msg.channel.send("Alias " + args[1] + " ya registrado");
             msg.react(X);
-            break;
         }
         if (!utils.valid_URL(args[2])){
             msg.channel.send("Link invalido");
             msg.react(X);
-            break;
         }
         msg.channel.send("Nuevo alias registrado `" + 
                             args[1] + "` linkeado a " + args[2]);
@@ -71,7 +67,7 @@ module.exports = class Commands {
             else
                 msg.channel.send("Link invalido")
         else
-            play.enqueue(msg,aliass)
+            play.enqueue(msg,args);
     }
 
     show_aliases = async (msg,aliases) => {
@@ -102,7 +98,7 @@ module.exports = class Commands {
     }
 
     delete_queue = async (msg,args) => {
-        if(!utils.args1_check(args[1],msg,"dq <queue name>")) break;
+        if(!utils.args1_check(args[1],msg,"dq <queue name>")) return;
         try {
             await queues.delete(args[1]);
             msg.channel.send("`Cola " + args[1] + " Borrada`");
@@ -118,7 +114,6 @@ module.exports = class Commands {
         if (!args[1]){
             msg.channel.send("No me pasaste argumentos, usage juakoto " + args[0] + "<titulo del video>");
             msg.react(X);
-            break;
         }
         const link = await yt.get_song_link(utils.adapt_input(args));
         msg.channel.send(embeds.link_search(raw_input,link));
@@ -145,7 +140,6 @@ module.exports = class Commands {
         if (!args[1]){
             msg.channel.send("No me pasaste argumentos. usage juakoto lq <filename>");
             msg.react(X);
-            break;
         }
         
         try {
@@ -177,7 +171,6 @@ module.exports = class Commands {
         if (!args[1]){
             msg.channel.send("Mood que? usage = juakoto mood <mood> (podes listar los mood con juakoto mood list)");
             msg.react(X);
-            break;
         }
         let playlist = "";
         switch(args[1]){
@@ -221,13 +214,12 @@ module.exports = class Commands {
         play.enqueue(playlist);
     }
 
-    play = async (msg) => {
+    play = async (msg,args) => {
         if (!args[1]){
             msg.channel.send("Que queres que meta en la cola? Pasame algo,"+
                              "por que me encanta meterme cosas en la cola\n",
                              "usage = juakoto play/p <song name/song youtube link>")
             msg.react(X);
-            break;
         }
         msg.react('▶️');
         try {
@@ -248,7 +240,6 @@ module.exports = class Commands {
         if (!args[1]){
             msg.channel.send("Que queres que reproduzca? No soy adivino pa");
             msg.react(X);
-            break;
         }
         const response1 = await play.enqueue(msg,args);
         args[1] = response1+1;
@@ -259,7 +250,6 @@ module.exports = class Commands {
         if (!args[1]) {
             msg.channel.send("No me pasaste parametros");
             msg.react(X);
-            break;
         }
         const queuex = play.get_queue();
         const num = args[1]-1;
@@ -320,7 +310,6 @@ module.exports = class Commands {
             msg.channel.send("Parametro inexistente \n" + 
                              "usage juakoto prefix <prefix>");
             msg.react(X);
-            break;
         }
 
         prefix_obj.change_prefix(prefix);
@@ -351,12 +340,10 @@ module.exports = class Commands {
                 embeds.queue_embed(_queue,currrent_song_index));
     }
 
-    show_queues = async (msg) => {
+    show_queues = async (msg,custom_queues) => {
         let names = [];
-        if (custom_queues === [] || !custom_queues) {
-            await msg.channel.send("No hay colas guardadas");
-            break;
-        }
+        if (custom_queues === [] || !custom_queues)
+            msg.channel.send("No hay colas guardadas");
         custom_queues.forEach(q => names.push(q.getDataValue('name')));
         if (names != [])
             msg.channel.send(embeds.queues(names));
@@ -387,7 +374,6 @@ module.exports = class Commands {
             msg.channel.send("No me mandaste argumentos mogolico\n" + 
             "usage = juakoto spam <message> <times>");
             msg.react(X);
-            break;
         }
         const message = args[1];
         const times = args[2];
@@ -410,7 +396,6 @@ module.exports = class Commands {
         if (!args[1]){
             msg.channel.send("No me pasaste parametros. usage juakoto sq <filename>");
             msg.react(X);
-            break;
         }
         let _links = [];
         

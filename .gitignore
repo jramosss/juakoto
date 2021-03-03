@@ -10,5 +10,4 @@ TODO
 .env
 *.sqlite
 aliases.sqlite
-db/prefix
 prefix

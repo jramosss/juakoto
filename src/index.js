@@ -11,11 +11,15 @@ const bot = new Discord.Client();
 
 const Alias = require('../classes/Alias');
 const Commands = require('../resources/commands');
+const Prefix = require('../classes/Prefix');
+const Queues = require('../classes/Queues')
 const alias = new Alias();
 const commands = new Commands();
+const _prefix = new Prefix();
+const queues = new Queues();
 
 //Global vars
-let prefix = prefix_obj.load_prefix();
+let prefix = _prefix.load_prefix();
 let aliases;
 let custom_queues;
 //let loop = false;
@@ -28,14 +32,9 @@ let custom_queues;
 const CORTE =       '776276782125940756';
 const SPEAKER =     '🔈';
 const PLAY =        '▶️';
-const DISK =        '💾';
-const OK =          '👍';
-const X =           '❌';
 
 
 //bot.setTimeout()
-
-
 
 bot.login(process.env.BOT_TOKEN);
 
@@ -163,7 +162,7 @@ bot.on('message',async msg => {
         //Play song by input (natural language or yt link)
         case "p":
         case "play":
-            commands.play(msg);
+            commands.play(msg,args);
             break;
         
         //Plays a song instantly, without adding it to the queue
@@ -230,7 +229,7 @@ bot.on('message',async msg => {
 
         //Show all saved queues
         case "queues":
-            commands.show_queues(msg);
+            commands.show_queues(msg,custom_queues);
             break;
         //Selects a random song from aliases file
         //TODO refactor this to adapt to database

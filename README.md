@@ -1,6 +1,16 @@
+<p align="right">
+  <a href="https://github.com/jramosss">
+    <img
+      alt="juakoto"
+      src="https://i.imgur.com/wpSY9E5.png"
+      width="200"
+    />
+  </a>
+</p>
+
 # Juakoto
 
-## A discord bot with just learning puropouses
+## A discord bot with just learning purpouses
 
 ### **Compilation:**
 * `npm i` in root dir
@@ -40,3 +50,4 @@ I tried to make it the most correct in software enginering aspect, that`s why i 
 * Taria bueno hacer una pagina para el bot no? asi de paso aprendo un poco de front ahi bien sukiii
 * I should reaaaaly migrate to yt oficial api 
 * Each server should have its own queue
+* Align the image of this readme 

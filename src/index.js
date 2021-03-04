@@ -12,11 +12,14 @@ const bot = new Discord.Client();
 const Alias = require('../classes/Alias');
 const Commands = require('../resources/commands');
 const Prefix = require('../classes/Prefix');
-const Queues = require('../classes/Queues')
+const Queues = require('../classes/Queues');
+const Utils = require('../classes/Utils')
+
 const alias = new Alias();
 const commands = new Commands();
 const _prefix = new Prefix();
 const queues = new Queues();
+const utils = new Utils();
 
 //Global vars
 let prefix = _prefix.load_prefix();
@@ -31,7 +34,6 @@ let custom_queues;
 //Emojis
 const CORTE =       '776276782125940756';
 const SPEAKER =     '🔈';
-const PLAY =        '▶️';
 
 
 //bot.setTimeout()
@@ -118,12 +120,7 @@ bot.on('message',async msg => {
         //Invoke bot into actual voice channel
         case "hola":
         case "veni":
-        case "te":
-            if (args[0] === "te")
-                if ((args[1] === "invoco"))
-                    break;
-            else 
-                commands.enter();
+            utils.channel_join(msg,true);
             break;
         
         //Loops queue
@@ -188,7 +185,10 @@ bot.on('message',async msg => {
         case "paradoja":
         case "die":
         case "reset":
-            msg.channel.send("Perdon por trollear :(").then(process.exit(0));
+            if (msg.author.id === 5131)
+                msg.channel.send("Perdon por trollear :(").then(process.exit(0));
+            else
+                msg.channel.send("Mira si vos me vas a apagar el bot a mi");
 
         //Sends bot ping in miliseconds
         case "ping":

@@ -29,6 +29,43 @@ module.exports = class Utils {
         });
         return full_input;
     }
+
+    //TODO make custom exceptions
+    /** 
+     * @param {opt}: is to recognize when the user sent the command
+     * play and not the command "hola"
+    **/ 
+   async channel_join (msg,opt=false) {
+        const vc = msg.member.voice.channel;
+        if (!vc) {
+            //msg.react(X).then(msg.react(CORTE));
+            msg.channel.send("A que canal queres que me meta si no estas en ninguno mogolico de mierda");
+            await utils.sleep(2500);
+            msg.channel.send("La verdad que me pareces un irrespetuoso");
+            await utils.sleep(3000);
+            msg.channel.send("Hijo de remil puta");
+            return;
+        }
+        else{
+            const permissions = vc.permissionsFor(msg.client.user);
+            if (!permissions.has('CONNECT') || !permissions.has('SPEAK'))
+                return msg.channel.send("Me sacaste los permisos imbecil");
+        }
+        if (msg.guild.voice && msg.guild.voice.channel){
+            if (msg.member.voice.channel.id === msg.guild.voice.channelID && opt){
+                msg.channel.send("Ya estoy en el canal pa, sos estupido?");
+                return undefined;
+            }
+            else if (msg.member.voice.channel.id !== msg.guild.voice.channelID){
+                msg.channel.send("Estoy en otro canal")
+                return undefined;
+            }
+            else 
+                return await msg.member.voice.channel.join();
+        }
+        else
+            return await msg.member.voice.channel.join();
+    }
     
     queue_length = (dict) => Object.keys(dict).length;
     

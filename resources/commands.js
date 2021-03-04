@@ -410,7 +410,7 @@ module.exports = class Commands {
         msg.react('🔀');
     }
 
-    save_queue = async (msg) => {
+    save_queue = async (msg,args) => {
         const queue1 = play.get_queue();
         if (!args[1]){
             msg.channel.send("No me pasaste parametros. usage juakoto sq <filename>");

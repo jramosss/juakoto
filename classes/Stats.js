@@ -1,3 +1,9 @@
+/*
+ * INCOMPLETE
+ * This is the stats database control module, it only has database-related
+ * functions. 
+*/
+
 const {Sequelize} = require('sequelize');
 
 const sequelize = new Sequelize('database', 'user', 'password', {

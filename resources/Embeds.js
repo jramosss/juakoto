@@ -8,8 +8,12 @@ module.exports = class Embeds {
         let opt = Object.keys(queue).length > 10;
         for (let i = opt ? current_song : 0; i <= len; i++)
             if (queue[i])
-                fields.push({name : i+1 + ":  " + queue[i].title,
-                             value : queue[i].duration.timestamp});
+                if (i === current_song)
+                    fields.push({name : "-> " + (i+1) + ":  " + queue[i].title,
+                        value : queue[i].duration.timestamp});  
+                else
+                    fields.push({name : i+1 + ":  " + queue[i].title,
+                                value : queue[i].duration.timestamp});
         return fields;
     }
     

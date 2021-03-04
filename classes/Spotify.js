@@ -1,7 +1,15 @@
+/*
+ * This module has spotify-related functions, to get a song name,
+ * thumbnail, know if the passed link is a playlist, etc.
+ * This is the library i use https://www.npmjs.com/package/spotify-url-info
+*/
+
 const sp_url_info = require("spotify-url-info");
 const { Spotify } = require("spotify-info.js");
 const infos = new Spotify({
     clientID: '3b57291372f7424f8f343e3a874005af',
+    //This is your Spotify api key, you can get yours here 
+    //https://developer.spotify.com/documentation/general/guides/authorization-guide/
     clientSecret: process.env.SPOTIFY_KEY,
 });
 

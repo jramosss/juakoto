@@ -1,3 +1,8 @@
+/*
+ * This is the queues database control module, it only has database-related
+ * functions. 
+*/
+
 const { Sequelize } = require("sequelize");
 const path = require('path')
 

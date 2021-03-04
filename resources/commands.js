@@ -1,41 +1,46 @@
+//All comands are here, here is where all the work gets done
+
 //Server stuff
 const PORT = process.env.PORT || 5000;
 
 //require('dotenv').config({path:'../.env'});
 
 //External libraries
-const Discord   = require('discord.js');
+const Discord     = require('discord.js');
 
 //Files
-const Prefix    = require('../classes/Prefix.js')
-const Youtube   = require('../classes/Youtube');
-const Utils     = require('../classes/Utils.js')
-const Player    = require('../classes/Play.js')
-const Alias     = require('../classes/Alias');
-const Embeds    = require('./Embeds');
-const Queues    = require('../classes/Queues');
-const Stats     = require('../classes/Stats')
+const Alias       = require('../classes/Alias');
+const Embeds      = require('./Embeds');
+const Player      = require('../classes/Play.js')
+const Prefix      = require('../classes/Prefix.js')
+const Stats       = require('../classes/Stats')
+const Queues      = require('../classes/Queues');
+const Utils       = require('../classes/Utils.js')
+const Youtube     = require('../classes/Youtube');
 
 //Global consts
-const ULTIMO_PREVIA_Y_CACHENGUE = 35;
 const bot         = new Discord.Client();
+const ULTIMO_PREVIA_Y_CACHENGUE = 35;
 
 //Objects
+const alias       = new Alias();
 const embeds      = new Embeds();
 const play        = new Player();
 const prefix_obj  = new Prefix();
-const utils       = new Utils();
-const yt          = new Youtube();
-const alias       = new Alias();
 const queues      = new Queues();
 const stats       = new Stats();
+const utils       = new Utils();
+const yt          = new Youtube();
 
 //Emojis
-const CORTE =       '776276782125940756';
-const SPEAKER =     '🔈';
-const DISK =        '💾';
-const OK =          '👍';
-const X =           '❌';
+const CORTE       = '776276782125940756';
+const SPEAKER     = '🔈';
+const DISK        = '💾';
+const OK          = '👍';
+const X           = '❌';
+
+//Global vars
+let aliases;
 
 module.exports = class Commands {
     constructor() {}
@@ -47,6 +52,9 @@ module.exports = class Commands {
         }
         if (await alias.find(args[1])){
             msg.channel.send("Alias " + args[1] + " ya registrado");
+            //TODO ask for input to know if the user wants to redefine the alias
+            msg.channel.send("Cambiando valor de " + args[1] + "a " + args[2]);
+            alias.redefine(args[1],args[2]);
             msg.react(X);
         }
         if (!utils.valid_URL(args[2])){
@@ -56,10 +64,10 @@ module.exports = class Commands {
         msg.channel.send("Nuevo alias registrado `" + 
                             args[1] + "` linkeado a " + args[2]);
         msg.react(DISK);
-        alias.create(args[1],args[2]).then(
-                async () => aliases = await alias.all());
+        await alias.create(args[1],args[2]);
+        return alias.all();
     }
-
+    /*
     handle_alias = async (msg,args) => {
         if (args[1])
             if (utils.valid_URL(args[1]))
@@ -68,7 +76,7 @@ module.exports = class Commands {
                 msg.channel.send("Link invalido")
         else
             play.enqueue(msg,args);
-    }
+    }*/
 
     show_aliases = async (msg,aliases) => {
         try {
@@ -89,9 +97,11 @@ module.exports = class Commands {
             msg.channel.send("No estas en un canal");
     }
 
-    clear_queue = async (msg) => {
+    //because bot.on('disconnect') doesn`t have any {msg}
+    clear_queue = async (msg=null) => {
         play.clear_queue();
-        msg.channel.send("`Cola vaciada`\n");
+        if (msg)
+            msg.channel.send("`Cola vaciada`\n");
         play.set_playing_index(1);
         play.set_last_index(1);
         play.pause();
@@ -120,12 +130,51 @@ module.exports = class Commands {
         msg.react('🔍');
     }
 
+    //TODO make custom exceptions
+    /** 
+     * @param {opt}: is to recognize when the user sent the command
+     * play and not the command "hola"
+    **/ 
+    async channel_join (msg,opt=false) {
+        const vc = msg.member.voice.channel;
+        if (!vc) {
+            //msg.react(X).then(msg.react(CORTE));
+            msg.channel.send("A que canal queres que me meta si no estas en ninguno mogolico de mierda");
+            await sleep(2500);
+            msg.channel.send("La verdad que me pareces un irrespetuoso");
+            await sleep(3000);
+            msg.channel.send("Hijo de remil puta");
+            return;
+        }
+        else{
+            const permissions = vc.permissionsFor(msg.client.user);
+            if (!permissions.has('CONNECT') || !permissions.has('SPEAK'))
+                return msg.channel.send("Me sacaste los permisos imbecil");
+        }
+        if (msg.guild.voice && msg.guild.voice.channel){
+            if (msg.member.voice.channel.id === msg.guild.voice.channelID && opt){
+                msg.channel.send("Ya estoy en el canal pa, sos estupido?");
+                return undefined;
+            }
+            else if (msg.member.voice.channel.id !== msg.guild.voice.channelID){
+                msg.channel.send("Estoy en otro canal")
+                return undefined;
+            }
+            else 
+                return await msg.member.voice.channel.join();
+        }
+        else
+            return await msg.member.voice.channel.join();
+    }
+
     display_help = async (msg) => {
         const help1 = utils.read_from_file('../db/help');
         const help2 = utils.read_from_file('../db/help2');
         msg.channel.send(embeds.help(help1));
         msg.channel.send(embeds.help(help2));
     }
+
+    enter = () => utils.channel_join(msg,true);
 
     loop = async (msg) => {
         const loop = play.get_loop();
@@ -206,9 +255,7 @@ module.exports = class Commands {
                 msg.channel.send("chill/sad/cachengue/indie/rock/eng/trap/techno/viejito");
                 break;
             default:
-                msg.channel.send("Mood no especificado " +
-                                "si tenes quejas metetelas en el orto");
-                msg.channel.send("Na mentira, decile a juli");
+                msg.channel.send("Mood no especificado: <juakoto mood list>");
                 break;
         }
         play.enqueue(playlist);
@@ -258,7 +305,7 @@ module.exports = class Commands {
             msg.react('🛐');
             play.play_song(msg);
             //Could be an embed
-            msg.channel.send("Saltando a la cancion nº" + num+1 + 
+            msg.channel.send("Saltando a la cancion nº" + (num+1) + 
                              ": `" + queuex[num].title + '`');
         }
         else 
@@ -327,6 +374,12 @@ module.exports = class Commands {
         msg.channel.send(message1);
     }
 
+    stop = (msg) => {
+        play.stop();
+        play.clear_queue();
+        msg.react('🛑');
+    }
+
     display_queue = async (msg) => {
         const _queue = play.get_queue();
         const currrent_song_index = play.get_playing_index();
@@ -367,6 +420,11 @@ module.exports = class Commands {
         }
         else 
             play.pause()
+    }
+
+    resume = _ => {
+        play.resume();
+        msg.react(PLAY);
     }
 
     spam = async (msg,args) => {

@@ -1,4 +1,10 @@
+/*
+ * This is the youtube related module, this class has many handful methods
+ * that just need the song link or the video name 
+*/
+
 const yt = require('yt-search');
+//https://www.npmjs.com/package/yt-search
 module.exports = class YoutubeUtils {
     constructor(){}
 

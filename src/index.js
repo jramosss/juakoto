@@ -49,6 +49,8 @@ bot.once('ready', () => {
     );
 });
 
+bot.on('disconnect',() => commands.clear_queue())
+
 //Core Function
 bot.on('message',async msg => {
     if (msg.author.bot) return;
@@ -59,14 +61,13 @@ bot.on('message',async msg => {
 
     //Handle aliases
     const aliass = await alias.find(args[0]);
-    if (aliass) commands.handle_alias(msg,args);
+    if (aliass) commands.play(msg,aliass);
 
     switch (args[0]){
         
-        //Register a new alias
-        //TODO check if alias link is valid
+        //Register a new alias for a song
         case "alias":
-            commands.register_alias(msg,args);
+            aliases = await commands.register_alias(msg,args);
             break;
 
         //display all aliases
@@ -89,6 +90,7 @@ bot.on('message',async msg => {
             commands.clear_queue(msg);
             break;
 
+        //Deletes queue from database
         case "dq":
         case "deletequeue":
             commands.delete_queue(msg,args);
@@ -121,9 +123,10 @@ bot.on('message',async msg => {
                 if ((args[1] === "invoco"))
                     break;
             else 
-                utils.channel_join(msg,true);
+                commands.enter();
             break;
         
+        //Loops queue
         case "loop":
         case "l":
             commands.loop(msg);
@@ -153,13 +156,13 @@ bot.on('message',async msg => {
             msg.react(CORTE);
             break;
             
-        //Pauses the bot
+        //Pauses music
         case "pause":
             play.pause();
             msg.react('⏸️');
             break;
 
-        //Play song by input (natural language or yt link)
+        //Play song by input (natural language, yt link, spotify link)
         case "p":
         case "play":
             commands.play(msg,args);
@@ -174,20 +177,25 @@ bot.on('message',async msg => {
             commands.playI(msg,args);
             break;
             
-        //Jumps to the n-th song in the queue
+        //Jumps to the args-th song in the queue
         case "jump":
             commands.jump(msg,args);
             break;
     
-        //Makes bot stop
+        //Makes bot crash
+        //TODO make this command accesible only by me
         case "paraguayo":
         case "paradoja":
+        case "die":
+        case "reset":
             msg.channel.send("Perdon por trollear :(").then(process.exit(0));
 
+        //Sends bot ping in miliseconds
         case "ping":
         case "ms":
             commands.ping(msg);
             break;
+
         //Encola las sesiones de previa y cachengue desde n hasta m especificados
         //TODO make const ULTIMO_PYC refresh automatically whenever ferpa uploads a new session
         case "previaycachengue":
@@ -200,7 +208,7 @@ bot.on('message',async msg => {
             prefix = commands.change_prefix(msg,args);
             break;
         
-        //Sends the prefix through the actual channel
+        //Sends the actual prefix through the actual channel
         case "showprefix":
             msg.channel.send("`Prefix: " + prefix + '`');
             break;
@@ -210,11 +218,12 @@ bot.on('message',async msg => {
             commands.status(msg);
             break;
         
+        //Stops music definitively
         case "stop":
-            play.stop();
-            msg.react('🛑');
+            commands.stop(msg);
             break;
-        //Print Queue
+
+        //Displays Queue
         case "q":
         case "cola":
         case "queue":
@@ -227,12 +236,12 @@ bot.on('message',async msg => {
             }
             break;
 
-        //Show all saved queues
+        //Displays all saved queues
         case "queues":
             commands.show_queues(msg,custom_queues);
             break;
-        //Selects a random song from aliases file
-        //TODO refactor this to adapt to database
+
+        //enqueues a random song from aliases
         case "random":
             commands.random_song(msg);
             break;
@@ -240,8 +249,7 @@ bot.on('message',async msg => {
         //Resume
         case "r":
         case "resume":
-            play.resume();
-            msg.react(PLAY);
+            commands.resume();
             break;
 
         //Skip to next song
@@ -264,14 +272,15 @@ bot.on('message',async msg => {
             msg.react(SPEAKER);
             break;
 
-
+        
         case "source":
         case "code":
         case "sourcecode":
+        case "sc":
             msg.channel.send("https://github.com/jramosss/juakoto");
             break;
         
-            //Spams a message n times
+        //Spams a message args times
         case "spam":
             commands.spam(msg,args);
             break;
@@ -298,6 +307,7 @@ bot.on('message',async msg => {
         case "test":
             stats.increment(msg.author.username,args[1]);
             break;
+            
         //Unmutes the bot, setting volume to previous volume
         case "unmute":
             play.unmute();

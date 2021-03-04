@@ -1,3 +1,7 @@
+/*
+ * This module has functions to change and load the prefix of the bot 
+*/
+
 const Utils = require('./Utils.js')
 const utils = new Utils();
 

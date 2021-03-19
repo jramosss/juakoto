@@ -67,16 +67,6 @@ module.exports = class Commands {
         await alias.create(args[1],args[2]);
         return alias.all();
     }
-    /*
-    handle_alias = async (msg,args) => {
-        if (args[1])
-            if (utils.valid_URL(args[1]))
-                alias.redefine(args[0],args[1]);
-            else
-                msg.channel.send("Link invalido")
-        else
-            play.enqueue(msg,args);
-    }*/
 
     show_aliases = async (msg,aliases) => {
         try {
@@ -358,7 +348,9 @@ module.exports = class Commands {
         let names = [];
         if (custom_queues === [] || !custom_queues)
             msg.channel.send("No hay colas guardadas");
-        custom_queues.forEach(q => names.push(q.getDataValue('name')));
+        else
+            custom_queues.forEach(q => names.push(q[0].getDataValue('name')));
+            
         if (names != [])
             msg.channel.send(embeds.queues(names));
     }
@@ -382,6 +374,10 @@ module.exports = class Commands {
         else 
             play.pause()
     }
+
+    mute = () => play.mute();
+
+    pause = () => play.pause();
 
     resume = _ => {
         play.resume();
@@ -423,10 +419,11 @@ module.exports = class Commands {
         
         msg.channel.send("`Cola guardada: " + args[1] + '`');
         msg.react(DISK);
-        queues.create(args[1],_links).then(async () => 
-                    custom_queues = await queues.all()
-        );
+        await queues.create(args[1],_links);
+        return queues.all();
     }
+
+    unmute = () => play.unmute();
 
     volume_set = async (msg,args) => {
 

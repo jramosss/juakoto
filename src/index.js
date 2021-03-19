@@ -149,13 +149,13 @@ bot.on('message',async msg => {
         
         //Mutes the bot
         case "mute":
-            play.mute();
+            commands.mute();
             msg.react(CORTE);
             break;
             
         //Pauses music
         case "pause":
-            play.pause();
+            commands.pause();
             msg.react('⏸️');
             break;
 
@@ -238,7 +238,8 @@ bot.on('message',async msg => {
 
         //Displays all saved queues
         case "queues":
-            commands.show_queues(msg,custom_queues);
+            //console.log(custom_queues)
+            commands.show_queues(msg,[custom_queues]);
             break;
 
         //enqueues a random song from aliases
@@ -267,7 +268,7 @@ bot.on('message',async msg => {
         //makes songs go brrrrrr
         case "satura":
         case "earrape":
-            play.set_volume(10);
+            commands.volume_set(msg,10);
             msg.channel.send("Espero que nadie este por hacer un clutch\n");
             msg.react(SPEAKER);
             break;
@@ -295,7 +296,7 @@ bot.on('message',async msg => {
         case "savequeue":
         case "guardarcola":
             try{
-                commands.save_queue(msg);
+                custom_queues = commands.save_queue(msg,args);
             }
             catch (error){
                 console.log("Exception in savequeue: ", error);
@@ -310,7 +311,7 @@ bot.on('message',async msg => {
             
         //Unmutes the bot, setting volume to previous volume
         case "unmute":
-            play.unmute();
+            commands.unmute();
             msg.react(SPEAKER);
             break;
         

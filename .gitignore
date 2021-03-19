@@ -9,5 +9,5 @@ TODO
 
 .env
 *.sqlite
-aliases.sqlite
+#aliases.sqlite
 prefix

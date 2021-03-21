@@ -8,6 +8,4 @@ itest.js
 TODO
 
 .env
-*.sqlite
-#aliases.sqlite
 prefix

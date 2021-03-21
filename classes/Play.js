@@ -91,6 +91,7 @@ module.exports = class Player {
         //           incoming from the database or not
         const link = utils.object_is_video(args) ? args.url :
                      await utils.handle_args(args);
+        console.log(link);
     
         const is_yt_playlist = yt.is_playlist(link);
         const is_sp_playlist = sp.is_playlist(link);

@@ -178,6 +178,7 @@ module.exports = class Commands {
                 playlist = "https://open.spotify.com/playlist/0aNQUD5KlbMZRA0NfP7Iey?si=l4XzJkksQoaa8IScTmPz-A";
                 break;
             case "sad":
+                playlist = "https://open.spotify.com/playlist/0sH5tySeyLIlOHfuUOBtMs?si=JQ3aGzbBTcybX8xJ1t4etA";
                 break;
             case "cachengue":
                 playlist = "https://open.spotify.com/playlist/3AWPgqd0Bk5t2UKAghlKWy?si=JbeMWPzETlOO89YVN5WL8Q";

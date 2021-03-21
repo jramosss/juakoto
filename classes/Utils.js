@@ -110,27 +110,25 @@ module.exports = class Utils {
     
     /**
      * *Returns a link based on natural language input 
-     * @param {the natural language input or link}
+     * @param link or natural language input
+     * @returns link
     */
     async handle_args (args) {
-        let link = "";
         //TODO should be a smarter & shorter way to do this
         if (this.object_is_video(args))
-            link = args.url;
+            return args.url;
         else if (args[1]) {
             if (this.object_is_video(args[1])) 
-                link = args[1].url;
+                return args[1].url;
             else if (this.valid_URL(args))
-                link = args;
+                return args;
             else if (this.valid_URL(args[0]))
-                link = args[0]
+                return args[0]
             else if (this.valid_URL(args[1]))
-                link = args[1]
+                return args[1]
             else 
-                link = await yt.get_song_link(this.adapt_input(args));
+                return await yt.get_song_link(this.adapt_input(args));
         }
-        
-        return link;
     }
     
     /**
@@ -151,14 +149,10 @@ module.exports = class Utils {
     array_shuffle(array) {
         var currentIndex = array.length, temporaryValue, randomIndex;
       
-        // While there remain elements to shuffle...
         while (currentIndex) {
-      
-          // Pick a remaining element...
           randomIndex = Math.floor(Math.random() * currentIndex);
           currentIndex--;
       
-          // And swap it with the current element.
           temporaryValue = array[currentIndex];
           array[currentIndex] = array[randomIndex];
           array[randomIndex] = temporaryValue;

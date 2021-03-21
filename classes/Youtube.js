@@ -19,10 +19,9 @@ module.exports = class YoutubeUtils {
 
     get_list_id = (link) => {
         const splitted = link.split('&');
-        for (let i = 0; i < splitted.length; i++) {
+        for (let i = 0; i < splitted.length; i++)
             if (splitted[i].startsWith('list='))
                 return splitted[i].replace('list=','');
-        }
     }
     
     get_song_link = async (args) => {
@@ -31,7 +30,7 @@ module.exports = class YoutubeUtils {
     }
 
      /**
-     * @param {playlist}
+     * @param {playlist} playlist the playlist url
      * @returns {links} the obtained links from playlist
      */
     get_playlist_songs_info = async (playlist) =>{

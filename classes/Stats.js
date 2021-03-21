@@ -1,5 +1,5 @@
 /*
- * INCOMPLETE
+ * WIP
  * This is the stats database control module, it only has database-related
  * functions. 
 */

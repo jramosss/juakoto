@@ -59,7 +59,7 @@ bot.on('message',async msg => {
     let args = msg.content.substring(prefix.length+1).split(" ");
     const raw_input = msg.content.substring(prefix.length+1).replace(args[0],"");
     if (!msg.content.startsWith(prefix)) return;
-    console.log("Message: ",args); 
+    console.log("Message: ",args, " Sent by ",msg.author.username); 
 
     //Handle aliases
     const aliass = await alias.find(args[0]);
@@ -185,10 +185,12 @@ bot.on('message',async msg => {
         case "paradoja":
         case "die":
         case "reset":
-            if (msg.author.id === 5131)
+            if (msg.author.discriminator === '5131')
                 msg.channel.send("Perdon por trollear :(").then(process.exit(0));
             else
                 msg.channel.send("Mira si vos me vas a apagar el bot a mi");
+
+            break;
 
         //Sends bot ping in miliseconds
         case "ping":

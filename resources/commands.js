@@ -209,7 +209,7 @@ module.exports = class Commands {
                 msg.channel.send("Mood no especificado: <juakoto mood list>");
                 break;
         }
-        play.enqueue(playlist);
+        play.enqueue(msg,playlist);
     }
 
     play = async (msg,args) => {
@@ -428,9 +428,14 @@ module.exports = class Commands {
     volume_set = async (msg,args) => {
 
         const volume = args[1] ? args[1] : 1;
-        play.set_volume(volume)
+        const prev_volume = play.get_volume();
+        play.set_volume(volume);
 
         msg.react(SPEAKER);
+        if (volume > prev_volume)
+            msg.react('➕');
+        else if (volume < prev_volume)
+            msg.react('➖');
         if (volume > 10)
             msg.channel.send("Nt pero el volumen maximo es 10");
             

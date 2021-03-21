@@ -11,6 +11,7 @@ const infos = new Spotify({
     //This is your Spotify api key, you can get yours here 
     //https://developer.spotify.com/documentation/general/guides/authorization-guide/
     clientSecret: process.env.SPOTIFY_KEY,
+    //and this is an enviroment variable, you should create your own
 });
 
 module.exports = class SpotifyUtils {

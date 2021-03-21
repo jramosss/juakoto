@@ -46,6 +46,7 @@ module.exports = class Player {
         }
         catch (e){
             console.log("Exception in play_song: ",e);
+            return;
         }
         this.paused = false;
     
@@ -210,6 +211,8 @@ module.exports = class Player {
     
     set_last_index = (index) => this.last_index = index;
     
+    get_volume = () => this.volume;
+
     set_volume (new_volume) {
         this.previous_volume = this.volume;
         this.dispatcher.setVolume(new_volume);
@@ -239,7 +242,8 @@ module.exports = class Player {
     status () {
         return {
             "paused" : this.paused,
-            "init" : this.init};
+            "init" : this.init
+        };
     }
     
     get_song_number (name) {

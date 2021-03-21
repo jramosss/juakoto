@@ -14,8 +14,8 @@
 
 ### **Compilation:**
 * `npm i` in root dir
-* `node src/index`
 * Set BOT_TOKEN,YT_KEY,SPOTIFY_KEY enviroment vars with your discord bot token, youtube api key and spotify api key respectively.
+* `node src/index`
 
 ### **Instalation:**
 Do you want to try it in your server? [Click here](https://discord.com/oauth2/authorize?client_id=741796245751726133&scope=bot&permissions=1597205592)  
@@ -50,4 +50,7 @@ I tried to make it the most correct in software enginering aspect, that`s why i 
 * Taria bueno hacer una pagina para el bot no? asi de paso aprendo un poco de front ahi bien sukiii
 * I should reaaaaly migrate to yt oficial api 
 * Each server should have its own queue
-* Align the image of this readme 
+* Align the image of this readme  
+* When u try to enqueue a playlist before actually playing a song it doesnt play anything
+* When u shuffle the queue, u lose the first song, if u re playing song no 2 and shuffle, now the song no 2 is other, but the previous song keeps playing
+* Make bot server deafen himself.

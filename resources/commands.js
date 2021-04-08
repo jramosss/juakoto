@@ -380,7 +380,7 @@ module.exports = class Commands {
 
     pause = () => play.pause();
 
-    resume = _ => {
+    resume = (msg) => {
         play.resume();
         msg.react(PLAY);
     }

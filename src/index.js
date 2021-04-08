@@ -27,6 +27,9 @@ let aliases;
 let custom_queues;
 //let loop = false;
 
+//Global Consts
+const CHULS_DISCRIMINATOR = '5131';
+
 
 //const Spotify = require('./Spotify');
 //const sp = new Spotify();
@@ -123,6 +126,11 @@ bot.on('message',async msg => {
             utils.channel_join(msg,true);
             break;
         
+        case "juernes":
+            commands.play(msg,"https://www.youtube.com/watch?v=_XxLrVu9UHE")
+            msg.react('🤪')
+            break;
+
         //Loops queue
         case "loop":
         case "l":
@@ -185,7 +193,7 @@ bot.on('message',async msg => {
         case "paradoja":
         case "die":
         case "reset":
-            if (msg.author.discriminator === '5131')
+            if (msg.author.discriminator === CHULS_DISCRIMINATOR)
                 msg.channel.send("Perdon por trollear :(").then(process.exit(0));
             else
                 msg.channel.send("Mira si vos me vas a apagar el bot a mi");

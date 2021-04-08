@@ -14,7 +14,7 @@
 
 ### **Compilation:**
 * `npm i` in root dir
-* Set BOT_TOKEN,YT_KEY,SPOTIFY_KEY enviroment vars with your discord bot token, youtube api key and spotify api key respectively.
+* Set [BOT_TOKEN](https://discord.com/developers/applications),[YT_KEY](https://console.cloud.google.com/apis/credentials),[SPOTIFY_KEY](https://developer.spotify.com/documentation/general/guides/authorization-guide/) enviroment vars with your discord bot token, youtube api key and spotify api key respectively.
 * `node src/index`
 
 ### **Instalation:**

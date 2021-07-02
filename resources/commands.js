@@ -70,7 +70,7 @@ module.exports = class Commands {
 
     show_aliases = async (msg, aliases) => {
         try {
-            msg.channel.send(embeds.aliases(aliases));
+            await msg.channel.send(embeds.aliases(aliases));
         }
         catch (e) {
             msg.channel.send("No hay aliases registrados");
@@ -130,10 +130,8 @@ module.exports = class Commands {
     loop = async (msg) => {
         const loop = play.get_loop();
         play.set_loop(!loop);
-        if (loop)
-            msg.channel.send("`Dejando de loopear la cola`")
-        else
-            msg.channel.send("`Loopeando la cola`")
+        await msg.channel.send(loop ? "`Dejando de loopear la cola`" :
+            "`Loopeando la cola`")
     }
 
     load_queue = async (msg, args) => {
@@ -158,7 +156,8 @@ module.exports = class Commands {
         try {
             const queue2 = play.get_queue();
             const current = play.get_playing_index();
-            msg.channel.send(queue2[current] ? embeds.now_playing_song(queue2[current]) :
+            const nowplaying = queue2[current];
+            await msg.channel.send(nowplaying ? embeds.now_playing_song(nowplaying) :
                 "No esta sonando nada che flayero")
         }
         catch (e) {
@@ -184,7 +183,7 @@ module.exports = class Commands {
                 playlist = "https://open.spotify.com/playlist/3AWPgqd0Bk5t2UKAghlKWy?si=JbeMWPzETlOO89YVN5WL8Q";
                 break;
             case "indie":
-                msg.channel.send("Berka sali del canal hippie sucio");
+                await msg.channel.send("Berka sali del canal hippie sucio");
                 playlist = "https://open.spotify.com/playlist/2KK44e1fAYc9Y0aYf3Zulf?si=8mCTXETuQLawplK2fxBCrQ";
                 break;
             case "rock":
@@ -204,13 +203,13 @@ module.exports = class Commands {
                 playlist = "https://open.spotify.com/playlist/4mj2O0ItodoLlqI670pngS?si=F8Zox4H0RIGyb8AL-IXQ2w";
                 break;
             case "list":
-                msg.channel.send("chill/sad/cachengue/indie/rock/eng/trap/techno/viejito");
+                await msg.channel.send("chill/sad/cachengue/indie/rock/eng/trap/techno/viejito");
                 break;
             default:
-                msg.channel.send("Mood no especificado: <juakoto mood list>");
+                await msg.channel.send("Mood no especificado: <juakoto mood list>");
                 break;
         }
-        play.enqueue(msg, playlist);
+        await play.enqueue(msg, playlist);
     }
 
     play = async (msg, args) => {
@@ -222,7 +221,7 @@ module.exports = class Commands {
         }
         msg.react('▶️');
         try {
-            play.enqueue(msg, args);
+            await play.enqueue(msg, args);
         }
         //TODO make this work
         catch (e) {
@@ -242,7 +241,7 @@ module.exports = class Commands {
         }
         const response1 = await play.enqueue(msg, args);
         args[1] = response1 + 1;
-        this.jump(msg, args);
+        await this.jump(msg, args);
     }
 
     jump = async (msg, args) => {
@@ -254,54 +253,44 @@ module.exports = class Commands {
         const num = args[1] - 1;
         if (queuex[num]) {
             play.jump(num);
-            msg.react('🛐');
-            play.play_song(msg);
+            await msg.react('🛐');
+            await play.play_song(msg);
             //Could be an embed
-            msg.channel.send("Saltando a la cancion nº" + (num + 1) +
+            await msg.channel.send("Saltando a la cancion nº" + (num + 1) +
                 ": `" + queuex[num].title + '`');
         }
         else
-            msg.channel.send("Man que flayas no esta esa cancion en la cola")
+            await msg.channel.send("Man que flayas no esta esa cancion en la cola")
     }
 
     ping = async (msg) => {
         const ping = bot.ws.ping;
-        if (ping > 230) {
-            msg.channel.send("Toy re lageado padreee, tengo " + ping + " de ping");
-            msg.react(CORTE);
+        if (ping > 200) {
+            await msg.channel.send("Toy re lageado padreee, tengo " + ping + " de ping");
+            await msg.react(CORTE);
         }
         else {
-            msg.channel.send("Tengo " + ping + " de ping");
-            msg.react(OK);
+            await msg.channel.send("Tengo " + ping + " de ping");
+            await msg.react(OK);
         }
     }
 
     previa_y_cachengue = async (msg, args) => {
-        let from;
-        let to;
+        const from = args[1] | 1;
+        const to = args[2] | ULTIMO_PREVIA_Y_CACHENGUE;
 
         if (!args[1]) {
             msg.channel.send("No especificaste desde donde,terrible mogolico,defaulteando a 1")
             msg.react(X);
-            from = 1;
         }
-        else
-            from = args[1];
 
         if (!args[2]) {
-            msg.channel.send("No especificaste hasta donde,terrible mogolico,defaulteando a" + ULTIMO_PREVIA_Y_CACHENGUE)
+            msg.channel.send("No especificaste hasta donde,terrible mogolico,defaulteando a " + ULTIMO_PREVIA_Y_CACHENGUE)
             msg.react(X);
-            to = ULTIMO_PREVIA_Y_CACHENGUE;
         }
-        else
-            to = args[2];
 
-        let arr1 = [];
-        for (let j = from; j <= to; j++) {
-            arr1.push("previa y cachengue " + j);
-            play.enqueue(msg, arr1);
-            arr1 = [];
-        }
+        for (let j = from; j <= to; j++)
+            await play.enqueue(msg, ["previa y cachengue" + j]);
     }
 
     change_prefix = async (msg, args) => {
@@ -323,13 +312,13 @@ module.exports = class Commands {
         message1 += status.init ? ":white_check_mark: \n" : ":x:\n";
         message1 += "*Playing*: "
         message1 += status.paused ? ":x:" : ":white_check_mark:";
-        msg.channel.send(message1);
+        await msg.channel.send(message1);
     }
 
-    stop = (msg) => {
+    stop = async (msg) => {
         play.stop();
         play.clear_queue();
-        msg.react('🛑');
+        await msg.react('🛑');
     }
 
     display_queue = async (msg) => {
@@ -337,30 +326,30 @@ module.exports = class Commands {
         const currrent_song_index = play.get_playing_index();
         if (!utils.queue_length(_queue)) {
             //?Can the bot react to his own message?
-            msg.channel.send("`Cola vacia`");
-            msg.react(CORTE);
+            await msg.channel.send("`Cola vacia`");
+            await msg.react(CORTE);
         }
         else
-            msg.channel.send(
+            await msg.channel.send(
                 embeds.queue_embed(_queue, currrent_song_index));
     }
 
     show_queues = async (msg, custom_queues) => {
         let names = [];
         if (custom_queues === [] || !custom_queues)
-            msg.channel.send("No hay colas guardadas");
+            await msg.channel.send("No hay colas guardadas");
         else
             custom_queues.forEach(q => names.push(q[0].getDataValue('name')));
 
         if (names != [])
-            msg.channel.send(embeds.queues(names));
+            await msg.channel.send(embeds.queues(names));
     }
 
     random_song = async (msg) => {
         const keys = utils.get_keys(aliases);
         const random = Math.floor(Math.random() * keys.length);
         const song = aliases[keys[random]];
-        play.enqueue(msg, song);
+        await play.enqueue(msg, song);
     }
 
     next = async (msg) => {
@@ -369,8 +358,8 @@ module.exports = class Commands {
         msg.react('⏭️');
         if (queue[playing_index1 + 1]) {
             play.queue_shift();
-            msg.channel.send(embeds.now_playing_song(queue[playing_index1 + 1]));
-            play.play_song(msg);
+            await msg.channel.send(embeds.now_playing_song(queue[playing_index1 + 1]));
+            await play.play_song(msg);
         }
         else
             play.pause()
@@ -380,22 +369,22 @@ module.exports = class Commands {
 
     pause = () => play.pause();
 
-    resume = (msg) => {
+    resume = async (msg) => {
         play.resume();
-        msg.react(PLAY);
+        await msg.react(PLAY);
     }
 
     spam = async (msg, args) => {
         if (!args[1] || !args[2]) {
-            msg.channel.send("No me mandaste argumentos mogolico\n" +
+            await msg.channel.send("No me mandaste argumentos mogolico\n" +
                 "usage = juakoto spam <message> <times>");
-            msg.react(X);
+            await msg.react(X);
         }
         const message = args[1];
         const times = args[2];
-        msg.react(CORTE);
+        await msg.react(CORTE);
         for (let i = 0; i < times; i++) {
-            msg.channel.send(message);
+            await msg.channel.send(message);
             await utils.sleep(1000);
         }
     }
@@ -404,7 +393,7 @@ module.exports = class Commands {
         const queue = play.get_queue();
         const dict1 = utils.dict_shuffle(queue);
         play.set_queue(dict1);
-        msg.react('🔀');
+        await msg.react('🔀');
     }
 
     save_queue = async (msg, args) => {
@@ -418,10 +407,10 @@ module.exports = class Commands {
         for (let i = 0; i < Object.keys(queue1).length; i++)
             _links.push(queue1[i].url)
 
-        msg.channel.send("`Cola guardada: " + args[1] + '`');
-        msg.react(DISK);
+        await msg.channel.send("`Cola guardada: " + args[1] + '`');
+        await msg.react(DISK);
         await queues.create(args[1], _links);
-        return queues.all();
+        return await queues.all();
     }
 
     unmute = () => play.unmute();
@@ -432,15 +421,15 @@ module.exports = class Commands {
         const prev_volume = play.get_volume();
         play.set_volume(volume);
 
-        msg.react(SPEAKER);
+        await msg.react(SPEAKER);
         if (volume > prev_volume)
-            msg.react('➕');
+            await msg.react('➕');
         else if (volume < prev_volume)
-            msg.react('➖');
+            await msg.react('➖');
         if (volume > 10)
-            msg.channel.send("Nt pero el volumen maximo es 10");
+            await msg.channel.send("Nt pero el volumen maximo es 10");
 
-        msg.channel.send(args[1] ? "Volumen seteado a " + volume :
+        await msg.channel.send(args[1] ? "Volumen seteado a " + volume :
             "No me pasaste parametros, seteando a 1");
     }
 }

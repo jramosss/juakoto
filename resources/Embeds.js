@@ -2,93 +2,97 @@ const Discord = require('discord.js');
 
 module.exports = class Embeds {
     //? How do i make this private?
-    make_embed_fields (queue,current_song) {
+    make_embed_fields(queue, current_song) {
         const len = current_song + 9;
         let fields = [];
         let opt = Object.keys(queue).length > 10;
         for (let i = opt ? current_song : 0; i <= len; i++)
             if (queue[i])
                 if (i === current_song)
-                    fields.push({name : "-> " + (i+1) + ":  " + queue[i].title,
-                        value : queue[i].duration.timestamp});  
+                    fields.push({
+                        name: "-> " + (i + 1) + ":  " + queue[i].title,
+                        value: queue[i].duration.timestamp
+                    });
                 else
-                    fields.push({name : i+1 + ":  " + queue[i].title,
-                                value : queue[i].duration.timestamp});
+                    fields.push({
+                        name: i + 1 + ":  " + queue[i].title,
+                        value: queue[i].duration.timestamp
+                    });
         return fields;
     }
-    
-    queue_embed = (queue,current_song) => {
+
+    queue_embed = (queue, current_song) => {
         if (!queue || current_song === undefined) return;
-        const embeds = this.make_embed_fields(queue,current_song);
+        const embeds = this.make_embed_fields(queue, current_song);
         const message = new Discord.MessageEmbed()
-        .setColor('BLUE')
-        .setTitle("Cola")
-        .setThumbnail('https://i.imgur.com/yUQgHbh.jpg[/img]')
-        .addFields(embeds)
-    
+            .setColor('BLUE')
+            .setTitle("Cola")
+            .setThumbnail('https://i.imgur.com/yUQgHbh.jpg[/img]')
+            .addFields(embeds)
+
         return message;
     }
-    
+
     enqueued_song = (song) => {
         if (!song) return;
         const message1 = new Discord.MessageEmbed()
-        .setColor('BLUE')
-        .setTitle("Añadida a la cola")
-        .addField(song.title,song.duration.timestamp)
-    
+            .setColor('BLUE')
+            .setTitle("Añadida a la cola")
+            .addField(song.title, song.duration.timestamp)
+
         return message1;
     }
-    
+
     enqueued_playlist = (pl_link) => {
         if (!pl_link) return;
         const message1 = new Discord.MessageEmbed()
-        .setColor('DARK_BUT_NOT_BLACK')
-        .setTitle("Añadida a la cola")
-        .addField("Playlist",pl_link)
-    
+            .setColor('DARK_BUT_NOT_BLACK')
+            .setTitle("Añadida a la cola")
+            .addField("Playlist", pl_link)
+
         return message1;
     }
-    
+
     now_playing_song = (song1) => {
         if (!song1) return;
         const message2 = new Discord.MessageEmbed()
-        .setColor('GREEN')
-        .setTitle("Reproduciendo")
-        .addField(song1.title,song1.duration.timestamp)
-    
+            .setColor('GREEN')
+            .setTitle("Reproduciendo")
+            .addField(song1.title, song1.duration.timestamp)
+
         return message2;
     }
-    
+
     now_playing_playlist = (playlist) => {
         if (!playlist) return;
         const message3 = new Discord.MessageEmbed()
-        .setColor('BLURPLE')
-        .setTitle("Reproduciendo")
-        .addField("Playlist",playlist)
-    
+            .setColor('BLURPLE')
+            .setTitle("Reproduciendo")
+            .addField("Playlist", playlist)
+
         return message3;
     }
-    
-    link_search = (args,link) => {
+
+    link_search = (args, link) => {
         if (!link) return;
         const message3 = new Discord.MessageEmbed()
-        .setColor('DARK_NAVY')
-        .addField("Resultado de la busqueda " + args,link);
-    
+            .setColor('DARK_NAVY')
+            .addField("Resultado de la busqueda " + args, link);
+
         return message3;
     }
-    
+
     help = (text) => {
         const msg = new Discord.MessageEmbed()
-        .setColor('RANDOM')
-        .addField("Comandos" ,text)
+            .setColor('RANDOM')
+            .addField("Comandos", text)
         return msg;
     }
-    wait_queue = (url,name,thumbnail) => {
+    wait_queue = (url, name, thumbnail) => {
         const msg1 = new Discord.MessageEmbed()
-        .setColor('RANDOM')
-        .addField("Encolando la playlist " + name + " (Puede tomar un tiempo)",url)
-        .setThumbnail(thumbnail);
+            .setColor('RANDOM')
+            .addField("Encolando la playlist " + name + " (Puede tomar un tiempo)", url)
+            .setThumbnail(thumbnail);
         return msg1;
     }
 
@@ -99,8 +103,8 @@ module.exports = class Embeds {
         let res = [];
         for (let i = 0; i < len; i++)
             if (keys[i] && values[i])
-                res.push({name : keys[i],value : values[i]});
-        
+                res.push({ name: keys[i], value: values[i] });
+
         return res;
     }
 
@@ -108,18 +112,18 @@ module.exports = class Embeds {
         if (!dict) return;
         const res = this.make_embed_aliases(dict);
         const message4 = new Discord.MessageEmbed()
-        .setColor('RANDOM')
-        .addFields(res)
-    
+            .setColor('RANDOM')
+            .addFields(res)
+
         return message4;
     }
 
     queues = (list) => {
         if (!list) return;
         const msg3 = new Discord.MessageEmbed()
-        .setColor('RANDOM')
-        //.setTitle("Colas")
-        .addField("Colas",list);
+            .setColor('RANDOM')
+            //.setTitle("Colas")
+            .addField("Colas", list);
         return msg3;
     }
 }

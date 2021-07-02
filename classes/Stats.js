@@ -4,49 +4,49 @@
  * functions. 
 */
 
-const {Sequelize} = require('sequelize');
+const { Sequelize } = require('sequelize');
 
 const sequelize = new Sequelize('database', 'user', 'password', {
-	host: 'localhost',
-	dialect: 'sqlite',
-	logging: false,
+    host: 'localhost',
+    dialect: 'sqlite',
+    logging: false,
     storage: '../db/stats.sqlite',
 });
 
-const command = sequelize.define('command',{
-    command : Sequelize.STRING,
-    count : Sequelize.INTEGER,
-    },
+const command = sequelize.define('command', {
+    command: Sequelize.STRING,
+    count: Sequelize.INTEGER,
+},
     {
-        freezeTableName : true,
-        timestamps : false,
+        freezeTableName: true,
+        timestamps: false,
     }
 );
 
-const model = sequelize.define('stats',{
-    user : Sequelize.STRING,
+const model = sequelize.define('stats', {
+    user: Sequelize.STRING,
 },
-{
-    freezeTableName : true,
-    timestamps : false,
-})
+    {
+        freezeTableName: true,
+        timestamps: false,
+    })
 
-model.hasMany(command,{foreignKey : 'username'});
+model.hasMany(command, { foreignKey: 'username' });
 command.belongsTo(model);
 module.exports = class Stats {
     //!This is a one to many, act like that
 
     create = async (uname) =>
-        await this.model.create({user : uname});
+        await this.model.create({ user: uname });
 
-    increment = async (uname,command) => {
+    increment = async (uname, command) => {
         try {
-            const table = await model.findOne({where : {user : uname}});
+            const table = await model.findOne({ where: { user: uname } });
             const cc = table.getDataValue('command_count');
-            console.log(cc);
+            //console.log(cc);
         }
         catch (e) {
-            console.log("Exception in increment: ",e);
+            console.error("Exception in Stats.increment: ", e);
         }
 
     }

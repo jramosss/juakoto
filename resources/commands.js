@@ -6,80 +6,80 @@ const PORT = process.env.PORT || 5000;
 //require('dotenv').config({path:'../.env'});
 
 //External libraries
-const Discord     = require('discord.js');
+const Discord = require('discord.js');
 
 //Files
-const Alias       = require('../classes/Alias');
-const Embeds      = require('./Embeds');
-const Player      = require('../classes/Play.js')
-const Prefix      = require('../classes/Prefix.js')
-const Stats       = require('../classes/Stats')
-const Queues      = require('../classes/Queues');
-const Utils       = require('../classes/Utils.js')
-const Youtube     = require('../classes/Youtube');
+const Alias = require('../classes/Alias');
+const Embeds = require('./Embeds');
+const Player = require('../classes/Play.js')
+const Prefix = require('../classes/Prefix.js')
+const Stats = require('../classes/Stats')
+const Queues = require('../classes/Queues');
+const Utils = require('../classes/Utils.js')
+const Youtube = require('../classes/Youtube');
 
 //Global consts
-const bot         = new Discord.Client();
+const bot = new Discord.Client();
 const ULTIMO_PREVIA_Y_CACHENGUE = 35;
 
 //Objects
-const alias       = new Alias();
-const embeds      = new Embeds();
-const play        = new Player();
-const prefix_obj  = new Prefix();
-const queues      = new Queues();
-const stats       = new Stats();
-const utils       = new Utils();
-const yt          = new Youtube();
+const alias = new Alias();
+const embeds = new Embeds();
+const play = new Player();
+const prefix_obj = new Prefix();
+const queues = new Queues();
+const stats = new Stats();
+const utils = new Utils();
+const yt = new Youtube();
 
 //Emojis
-const CORTE       = '776276782125940756';
-const SPEAKER     = '🔈';
-const DISK        = '💾';
-const OK          = '👍';
-const X           = '❌';
+const CORTE = '776276782125940756';
+const SPEAKER = '🔈';
+const DISK = '💾';
+const OK = '👍';
+const X = '❌';
 
 //Global vars
 let aliases;
 
 module.exports = class Commands {
-    constructor() {}
+    constructor() { }
 
-    register_alias = async (msg,args) => {
-        if (!args[1] || !args[2]){
+    register_alias = async (msg, args) => {
+        if (!args[1] || !args[2]) {
             msg.channel.send("No me pasaste argumentos, usage: juakoto alias <alias> <link>");
             msg.react(X);
         }
-        if (await alias.find(args[1])){
+        if (await alias.find(args[1])) {
             msg.channel.send("Alias " + args[1] + " ya registrado");
             //TODO ask for input to know if the user wants to redefine the alias
             msg.channel.send("Cambiando valor de " + args[1] + "a " + args[2]);
-            alias.redefine(args[1],args[2]);
+            alias.redefine(args[1], args[2]);
             msg.react(X);
         }
-        if (!utils.valid_URL(args[2])){
+        if (!utils.valid_URL(args[2])) {
             msg.channel.send("Link invalido");
             msg.react(X);
         }
-        msg.channel.send("Nuevo alias registrado `" + 
-                            args[1] + "` linkeado a " + args[2]);
+        msg.channel.send("Nuevo alias registrado `" +
+            args[1] + "` linkeado a " + args[2]);
         msg.react(DISK);
-        await alias.create(args[1],args[2]);
+        await alias.create(args[1], args[2]);
         return alias.all();
     }
 
-    show_aliases = async (msg,aliases) => {
+    show_aliases = async (msg, aliases) => {
         try {
             msg.channel.send(embeds.aliases(aliases));
         }
         catch (e) {
             msg.channel.send("No hay aliases registrados");
-            console.log("Exception in aliases: " + e);
+            console.error("Exception in show_aliases: " + e);
         }
     }
 
     leave = async (msg) => {
-        if (msg.member.voice && msg.member.voice.channel){
+        if (msg.member.voice && msg.member.voice.channel) {
             msg.member.voice.channel.leave();
             play.clear_queue();
         }
@@ -88,7 +88,7 @@ module.exports = class Commands {
     }
 
     //because bot.on('disconnect') doesn`t have any {msg}
-    clear_queue = async (msg=null) => {
+    clear_queue = async (msg = null) => {
         play.clear_queue();
         if (msg)
             msg.channel.send("`Cola vaciada`\n");
@@ -97,26 +97,26 @@ module.exports = class Commands {
         play.pause();
     }
 
-    delete_queue = async (msg,args) => {
-        if(!utils.args1_check(args[1],msg,"dq <queue name>")) return;
+    delete_queue = async (msg, args) => {
+        if (!utils.args1_check(args[1], msg, "dq <queue name>")) return;
         try {
             await queues.delete(args[1]);
             msg.channel.send("`Cola " + args[1] + " Borrada`");
             custom_queues = await queues.all();
         }
         catch (e) {
-            console.log("Exception in dq: ",e);
+            console.error("Exception in Commands.delete_queue: ", e);
             msg.channel.send("No existe ninguna cola con ese nombre");
         }
     }
 
-    find = async (msg,args,raw_input) => {
-        if (!args[1]){
+    find = async (msg, args, raw_input) => {
+        if (!args[1]) {
             msg.channel.send("No me pasaste argumentos, usage juakoto " + args[0] + "<titulo del video>");
             msg.react(X);
         }
         const link = await yt.get_song_link(utils.adapt_input(args));
-        msg.channel.send(embeds.link_search(raw_input,link));
+        msg.channel.send(embeds.link_search(raw_input, link));
         msg.react('🔍');
     }
 
@@ -136,19 +136,19 @@ module.exports = class Commands {
             msg.channel.send("`Loopeando la cola`")
     }
 
-    load_queue = async (msg,args) => {
-        if (!args[1]){
+    load_queue = async (msg, args) => {
+        if (!args[1]) {
             msg.channel.send("No me pasaste argumentos. usage juakoto lq <filename>");
             msg.react(X);
         }
-        
+
         try {
             let songs = await queues.find(args[1]);
             songs = songs.split(',');
-            songs.forEach(l => play.enqueue(msg,l));
+            songs.forEach(l => play.enqueue(msg, l));
         }
-        catch(e){
-            console.log("Exception in lq: ",e);
+        catch (e) {
+            console.error("Exception in load_queue: " + e);
             msg.channel.send("No existe ninguna cola con ese nombre");
             msg.react(X);
         }
@@ -158,22 +158,22 @@ module.exports = class Commands {
         try {
             const queue2 = play.get_queue();
             const current = play.get_playing_index();
-            msg.channel.send(queue2[current] ? embeds.now_playing_song(queue2[current]) : 
-                                "No esta sonando nada che flayero")
+            msg.channel.send(queue2[current] ? embeds.now_playing_song(queue2[current]) :
+                "No esta sonando nada che flayero")
         }
         catch (e) {
-            console.log("Exception in quesuena: " , e);
+            console.error("Exception in Commands.now_playing: " + e);
             msg.channel.send("Me parece que no esta sonando nada pa");
         }
     }
 
-    mood = async (msg,args) => {
-        if (!args[1]){
+    mood = async (msg, args) => {
+        if (!args[1]) {
             msg.channel.send("Mood que? usage = juakoto mood <mood> (podes listar los mood con juakoto mood list)");
             msg.react(X);
         }
         let playlist = "";
-        switch(args[1]){
+        switch (args[1]) {
             case "chill":
                 playlist = "https://open.spotify.com/playlist/0aNQUD5KlbMZRA0NfP7Iey?si=l4XzJkksQoaa8IScTmPz-A";
                 break;
@@ -210,57 +210,57 @@ module.exports = class Commands {
                 msg.channel.send("Mood no especificado: <juakoto mood list>");
                 break;
         }
-        play.enqueue(msg,playlist);
+        play.enqueue(msg, playlist);
     }
 
-    play = async (msg,args) => {
-        if (!args[1]){
-            msg.channel.send("Que queres que meta en la cola? Pasame algo,"+
-                             "por que me encanta meterme cosas en la cola\n",
-                             "usage = juakoto play/p <song name/song youtube link>")
+    play = async (msg, args) => {
+        if (!args[1]) {
+            msg.channel.send("Que queres que meta en la cola? Pasame algo," +
+                "por que me encanta meterme cosas en la cola\n",
+                "usage = juakoto play/p <song name/song youtube link>")
             msg.react(X);
         }
         msg.react('▶️');
         try {
-            play.enqueue(msg,args);
+            play.enqueue(msg, args);
         }
         //TODO make this work
-        catch(e){
+        catch (e) {
             if (e.name === play.NOT_IN_A_CHANNEL)
                 msg.channel.send("No estas en un canal bro\n");
-            else{
-                console.log("Error en play (index.js)" + e);
+            else {
+                console.error("Exception in Commands.play" + e);
                 msg.channel.send("Problemitas tecnicos\n");
             }
         }
     }
 
-    playI = async (msg,args) => {
-        if (!args[1]){
+    playI = async (msg, args) => {
+        if (!args[1]) {
             msg.channel.send("Que queres que reproduzca? No soy adivino pa");
             msg.react(X);
         }
-        const response1 = await play.enqueue(msg,args);
-        args[1] = response1+1;
-        this.jump(msg,args);
+        const response1 = await play.enqueue(msg, args);
+        args[1] = response1 + 1;
+        this.jump(msg, args);
     }
 
-    jump = async (msg,args) => {
+    jump = async (msg, args) => {
         if (!args[1]) {
             msg.channel.send("No me pasaste parametros");
             msg.react(X);
         }
         const queuex = play.get_queue();
-        const num = args[1]-1;
-        if (queuex[num]){
+        const num = args[1] - 1;
+        if (queuex[num]) {
             play.jump(num);
             msg.react('🛐');
             play.play_song(msg);
             //Could be an embed
-            msg.channel.send("Saltando a la cancion nº" + (num+1) + 
-                             ": `" + queuex[num].title + '`');
+            msg.channel.send("Saltando a la cancion nº" + (num + 1) +
+                ": `" + queuex[num].title + '`');
         }
-        else 
+        else
             msg.channel.send("Man que flayas no esta esa cancion en la cola")
     }
 
@@ -276,19 +276,19 @@ module.exports = class Commands {
         }
     }
 
-    previa_y_cachengue = async (msg,args) => {
+    previa_y_cachengue = async (msg, args) => {
         let from;
         let to;
 
-        if (!args[1]){
+        if (!args[1]) {
             msg.channel.send("No especificaste desde donde,terrible mogolico,defaulteando a 1")
             msg.react(X);
             from = 1;
-        }   
-        else 
+        }
+        else
             from = args[1];
 
-        if (!args[2]){
+        if (!args[2]) {
             msg.channel.send("No especificaste hasta donde,terrible mogolico,defaulteando a" + ULTIMO_PREVIA_Y_CACHENGUE)
             msg.react(X);
             to = ULTIMO_PREVIA_Y_CACHENGUE;
@@ -297,17 +297,17 @@ module.exports = class Commands {
             to = args[2];
 
         let arr1 = [];
-        for (let j = from; j <= to; j++){
+        for (let j = from; j <= to; j++) {
             arr1.push("previa y cachengue " + j);
-            play.enqueue(msg,arr1);
+            play.enqueue(msg, arr1);
             arr1 = [];
         }
     }
 
-    change_prefix = async(msg,args) => {
-        if (!args[1]){
-            msg.channel.send("Parametro inexistente \n" + 
-                             "usage juakoto prefix <prefix>");
+    change_prefix = async (msg, args) => {
+        if (!args[1]) {
+            msg.channel.send("Parametro inexistente \n" +
+                "usage juakoto prefix <prefix>");
             msg.react(X);
         }
 
@@ -335,23 +335,23 @@ module.exports = class Commands {
     display_queue = async (msg) => {
         const _queue = play.get_queue();
         const currrent_song_index = play.get_playing_index();
-        if (!utils.queue_length(_queue)){
+        if (!utils.queue_length(_queue)) {
             //?Can the bot react to his own message?
             msg.channel.send("`Cola vacia`");
             msg.react(CORTE);
         }
         else
             msg.channel.send(
-                embeds.queue_embed(_queue,currrent_song_index));
+                embeds.queue_embed(_queue, currrent_song_index));
     }
 
-    show_queues = async (msg,custom_queues) => {
+    show_queues = async (msg, custom_queues) => {
         let names = [];
         if (custom_queues === [] || !custom_queues)
             msg.channel.send("No hay colas guardadas");
         else
             custom_queues.forEach(q => names.push(q[0].getDataValue('name')));
-            
+
         if (names != [])
             msg.channel.send(embeds.queues(names));
     }
@@ -360,19 +360,19 @@ module.exports = class Commands {
         const keys = utils.get_keys(aliases);
         const random = Math.floor(Math.random() * keys.length);
         const song = aliases[keys[random]];
-        play.enqueue(msg,song);
+        play.enqueue(msg, song);
     }
 
     next = async (msg) => {
         const queue = play.get_queue();
         const playing_index1 = play.get_playing_index()
         msg.react('⏭️');
-        if (queue[playing_index1+1]){
+        if (queue[playing_index1 + 1]) {
             play.queue_shift();
-            msg.channel.send(embeds.now_playing_song(queue[playing_index1+1]));
+            msg.channel.send(embeds.now_playing_song(queue[playing_index1 + 1]));
             play.play_song(msg);
         }
-        else 
+        else
             play.pause()
     }
 
@@ -385,16 +385,16 @@ module.exports = class Commands {
         msg.react(PLAY);
     }
 
-    spam = async (msg,args) => {
-        if (!args[1] || !args[2]){
-            msg.channel.send("No me mandaste argumentos mogolico\n" + 
-            "usage = juakoto spam <message> <times>");
+    spam = async (msg, args) => {
+        if (!args[1] || !args[2]) {
+            msg.channel.send("No me mandaste argumentos mogolico\n" +
+                "usage = juakoto spam <message> <times>");
             msg.react(X);
         }
         const message = args[1];
         const times = args[2];
         msg.react(CORTE);
-        for (let i = 0; i < times; i++){
+        for (let i = 0; i < times; i++) {
             msg.channel.send(message);
             await utils.sleep(1000);
         }
@@ -407,26 +407,26 @@ module.exports = class Commands {
         msg.react('🔀');
     }
 
-    save_queue = async (msg,args) => {
+    save_queue = async (msg, args) => {
         const queue1 = play.get_queue();
-        if (!args[1]){
+        if (!args[1]) {
             msg.channel.send("No me pasaste parametros. usage juakoto sq <filename>");
             msg.react(X);
         }
         let _links = [];
-        
+
         for (let i = 0; i < Object.keys(queue1).length; i++)
             _links.push(queue1[i].url)
-        
+
         msg.channel.send("`Cola guardada: " + args[1] + '`');
         msg.react(DISK);
-        await queues.create(args[1],_links);
+        await queues.create(args[1], _links);
         return queues.all();
     }
 
     unmute = () => play.unmute();
 
-    volume_set = async (msg,args) => {
+    volume_set = async (msg, args) => {
 
         const volume = args[1] ? args[1] : 1;
         const prev_volume = play.get_volume();
@@ -439,8 +439,8 @@ module.exports = class Commands {
             msg.react('➖');
         if (volume > 10)
             msg.channel.send("Nt pero el volumen maximo es 10");
-            
-        msg.channel.send(args[1] ? "Volumen seteado a " + volume : 
-                        "No me pasaste parametros, seteando a 1");
+
+        msg.channel.send(args[1] ? "Volumen seteado a " + volume :
+            "No me pasaste parametros, seteando a 1");
     }
 }

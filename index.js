@@ -22,7 +22,8 @@ const queues = new Queues();
 const utils = new Utils();
 
 //Global vars
-let prefix = _prefix.load_prefix() | 'juakoto';
+let prefix = _prefix.load_prefix();
+if (!prefix) prefix = 'juakoto';
 let aliases;
 let custom_queues;
 //let loop = false;
@@ -59,7 +60,14 @@ bot.on('disconnect', async () => await commands.clear_queue())
 //Core Function
 bot.on('message', async msg => {
     if (msg.author.bot) return;
-    let args = msg.content.substring(prefix.length + 1).split(" ");
+    let args = null;
+    try {
+        args = msg.content.substring(prefix.length + 1).split(" ");
+    }
+    catch (e) {
+        console.error(e);
+        args = msg.content.substring('juakoto'.length + 1).split(" ");
+    }
     const raw_input = msg.content.substring(prefix.length + 1).replace(args[0], "");
     if (!msg.content.startsWith(prefix)) return;
     console.log("Message: ", args, " Sent by ", msg.author.username);

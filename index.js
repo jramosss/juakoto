@@ -22,7 +22,7 @@ const queues = new Queues();
 const utils = new Utils();
 
 //Global vars
-let prefix = _prefix.load_prefix();
+let prefix = _prefix.load_prefix() | 'juakoto';
 let aliases;
 let custom_queues;
 //let loop = false;

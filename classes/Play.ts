@@ -21,11 +21,8 @@ const utils = new Utils();
 const yt = new YoutubeUtils();
 
 export default class Player {
-  constructor() {}
-
-  //VARS
   queue: YTVideos = [];
-  dispatcher: StreamDispatcher = new StreamDispatcher({});
+  dispatcher: any; //: StreamDispatcher = new StreamDispatcher({});
   last_index = 0;
   playing_index = 0;
   init = false;
@@ -130,7 +127,7 @@ export default class Player {
   }*/
 
   //Sit tight bc this is the largest function
-  async user_enqueue(msg: Message, args: string[] | URL) {
+  async user_enqueue(msg: Message, args: string[]) {
     //Check if the user is in a channel, otherwise the bot doesn`t know
     //where he should enter to play the song
     if (msg.member && msg.member.voice && !msg.member.voice.channel) {
@@ -145,7 +142,7 @@ export default class Player {
     //const link = utils.object_is_video(args)
     //  ? args.url
     //  : await utils.handle_args(args);
-    const link: URL = await utils.handle_args(args);
+    const link = await utils.handle_args(args);
 
     const is_yt_playlist = yt.is_playlist(link);
     //const is_sp_playlist = sp.is_playlist(link);

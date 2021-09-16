@@ -25,7 +25,7 @@ export default class YoutubeUtils {
       if (s.startsWith('list=')) return s.replace('list=', '');
   };
 
-  get_song_link = async (args: String[] | string) => {
+  get_song_link = async (args: String[] | string): Promise<URL> => {
     let info = await this.get_video(args);
     return info.url;
   };

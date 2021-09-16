@@ -39,7 +39,7 @@ bot.once('ready', () => {
 bot.on('disconnect', async () =>
   /*await commands.clear_queue()*/ console.log('Byee')
 );
-console.log(prefix);
+
 //Core Function
 bot.on('message', async msg => {
   if (msg.author.bot) return;
@@ -63,7 +63,6 @@ bot.on('message', async msg => {
   //const aliass = await alias.find(args[0]);
   //if (aliass) await commands.play(msg, aliass);
   const command = args[0];
-  console.log('Command: ', command);
   switch (command) {
     //Register a new alias for a song
     case 'alias':
@@ -124,7 +123,7 @@ bot.on('message', async msg => {
       break;
 
     case 'juernes':
-      await commands.play(msg, 'https://www.youtube.com/watch?v=_XxLrVu9UHE');
+      await commands.play(msg, ['https://www.youtube.com/watch?v=_XxLrVu9UHE']);
       await msg.react('🤪');
       break;
 

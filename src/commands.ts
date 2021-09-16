@@ -225,10 +225,10 @@ export default class Commands {
         await msg.channel.send('Mood no especificado: <juakoto mood list>');
         break;
     }
-    await play.user_enqueue(msg, playlist);
+    await play.user_enqueue(msg, [playlist]);
   };
 
-  play = async (msg: Message, args: string[] | URL) => {
+  play = async (msg: Message, args: string[]) => {
     if (!args[1]) {
       msg.channel.send(
         'Que queres que meta en la cola? Pasame algo,' +

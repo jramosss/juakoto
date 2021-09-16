@@ -29,10 +29,9 @@ export default class Utils {
   //Takes a message and adapt the string to make it readable by other functions
   //i.e: it takes ["","play","oasis","wonderwall","live"] into "oasis wondewall live"
   //TODO get rid of this, this isnt C
-  adapt_input = (str1: string) => {
-    let str = String(str1);
+  adapt_input = (str: string[]) => {
     let full_input = '';
-    str.split(' ').forEach(word => {
+    str.forEach(word => {
       if (word !== 'juakoto' && word !== 'p' && word !== 'play') {
         full_input += word += ' ';
       }
@@ -141,11 +140,9 @@ export default class Utils {
     }
   }*/
 
-  async handle_args(args: string[] | string) {
-    console.log(args);
-
+  async handle_args(args: string[]): Promise<string> {
     if (this.valid_URL(args[0])) return args[0];
-    else return await yt.get_song_link(args);
+    else return await yt.get_song_link(this.adapt_input(args));
   }
 
   //Used to shuffle the queue, I obviously copied this.

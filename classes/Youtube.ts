@@ -25,7 +25,7 @@ export default class YoutubeUtils {
       if (s.startsWith('list=')) return s.replace('list=', '');
   };
 
-  get_song_link = async (args: String[]) => {
+  get_song_link = async (args: String[] | string) => {
     let info = await this.get_video(args);
     return info.url;
   };
@@ -35,9 +35,9 @@ export default class YoutubeUtils {
    * @returns {links} the obtained links from playlist
    */
   get_playlist_songs_info = async (playlist: URL) => {
-    let songs = [];
+    let songs: any[] = [];
     const plist = await yt({ listId: this.get_list_id(playlist) });
-    plist.videos.forEach(async song => {
+    plist.videos.forEach(async (song: any) => {
       try {
         const full_song = await yt({ videoId: song.videoId });
         songs.push(full_song);

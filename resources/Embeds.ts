@@ -1,11 +1,12 @@
 import { MessageEmbed } from 'discord.js';
-import { URL } from '../utils/types';
+import { YTVideo } from '../utils/interfaces';
+import { URL, YTVideos } from '../utils/types';
 
 export default class Embeds {
-  private make_embed_fields(queue, current_song) {
+  private make_embed_fields(queue: YTVideos, current_song: number) {
     const len = current_song + 9;
     let fields = [];
-    let opt = Object.keys(queue).length > 10;
+    let opt = queue.length > 10;
     for (let i = opt ? current_song : 0; i <= len; i++)
       if (queue[i])
         if (i === current_song)
@@ -21,8 +22,7 @@ export default class Embeds {
     return fields;
   }
 
-  queue_embed = (queue, current_song) => {
-    if (!queue || current_song === undefined) return;
+  queue_embed = (queue: YTVideos, current_song: number) => {
     const embeds = this.make_embed_fields(queue, current_song);
     const message = new MessageEmbed()
       .setColor('BLUE')
@@ -33,8 +33,7 @@ export default class Embeds {
     return message;
   };
 
-  enqueued_song = song => {
-    if (!song) return;
+  enqueued_song = (song: YTVideo) => {
     const message1 = new MessageEmbed()
       .setColor('BLUE')
       .setTitle('Añadida a la cola')
@@ -43,8 +42,7 @@ export default class Embeds {
     return message1;
   };
 
-  enqueued_playlist = pl_link => {
-    if (!pl_link) return;
+  enqueued_playlist = (pl_link: URL) => {
     const message1 = new MessageEmbed()
       .setColor('DARK_BUT_NOT_BLACK')
       .setTitle('Añadida a la cola')
@@ -53,8 +51,7 @@ export default class Embeds {
     return message1;
   };
 
-  now_playing_song = song1 => {
-    if (!song1) return;
+  now_playing_song = (song1: YTVideo) => {
     const message2 = new MessageEmbed()
       .setColor('GREEN')
       .setTitle('Reproduciendo')
@@ -63,18 +60,16 @@ export default class Embeds {
     return message2;
   };
 
-  now_playing_playlist = playlist => {
-    if (!playlist) return;
+  now_playing_playlist = (link: URL) => {
     const message3 = new MessageEmbed()
       .setColor('BLURPLE')
       .setTitle('Reproduciendo')
-      .addField('Playlist', playlist);
+      .addField('Playlist', link);
 
     return message3;
   };
 
-  link_search = (args, link: URL) => {
-    if (!link) return;
+  link_search = (args: string[], link: URL) => {
     const message3 = new MessageEmbed()
       .setColor('DARK_NAVY')
       .addField('Resultado de la busqueda ' + args, link);
@@ -82,13 +77,13 @@ export default class Embeds {
     return message3;
   };
 
-  help = text => {
+  help = (text: string) => {
     const msg = new MessageEmbed()
       .setColor('RANDOM')
       .addField('Comandos', text);
     return msg;
   };
-  wait_queue = (url, name, thumbnail) => {
+  wait_queue = (url: URL, name: string, thumbnail: string) => {
     const msg1 = new MessageEmbed()
       .setColor('RANDOM')
       .addField(
@@ -99,6 +94,7 @@ export default class Embeds {
     return msg1;
   };
 
+  /*
   make_embed_aliases = dict => {
     const keys = Object.keys(dict);
     const values = Object.values(dict);
@@ -126,4 +122,5 @@ export default class Embeds {
       .addField('Colas', list);
     return msg3;
   };
+  */
 }

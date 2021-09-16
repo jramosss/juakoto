@@ -12,12 +12,15 @@ import { Message } from 'discord.js';
 //const Alias = require('../classes/Alias');
 import Embeds from '../resources/Embeds';
 import Emojis from '../utils/emojis';
-import Player from '../classes/Play.js';
-import Prefix from '../classes/Prefix.js';
+import Player from '../classes/Play';
+import Prefix from '../classes/Prefix';
 //import Stats from '../classes/Stats';
 //const Queues = require('../classes/Queues');
-import Utils from '../classes/Utils.js';
+import Utils from '../classes/Utils';
 import Youtube from '../classes/Youtube';
+import { URL } from '../utils/types';
+import { YTVideo } from '../utils/interfaces';
+import { help1, help2 } from '../utils/consts';
 
 //Global consts
 const ULTIMO_PREVIA_Y_CACHENGUE = 35;
@@ -33,13 +36,6 @@ const prefix_obj = new Prefix();
 const utils = new Utils();
 const yt = new Youtube();
 
-//Emojis
-const CORTE = '776276782125940756';
-const SPEAKER = '🔈';
-const DISK = '💾';
-const OK = '👍';
-const X = '❌';
-
 //Global vars
 let aliases;
 
@@ -52,18 +48,18 @@ export default class Commands {
       msg.channel.send(
         'No me pasaste argumentos, usage: juakoto alias <alias> <link>'
       );
-      msg.react(X);
+      msg.react(emojis.X);
     }
     if (await alias.find(args[1])) {
       msg.channel.send('Alias ' + args[1] + ' ya registrado');
       //TODO ask for input to know if the user wants to redefine the alias
       msg.channel.send('Cambiando valor de ' + args[1] + 'a ' + args[2]);
       alias.redefine(args[1], args[2]);
-      msg.react(X);
+      msg.react(emojis.X);
     }
     if (!utils.valid_URL(args[2])) {
       msg.channel.send('Link invalido');
-      msg.react(X);
+      msg.react(emojis.X);
     }
     msg.channel.send(
       'Nuevo alias registrado `' + args[1] + '` linkeado a ' + args[2]
@@ -84,14 +80,14 @@ export default class Commands {
   */
 
   leave = async (msg: Message) => {
-    if (msg.member.voice && msg.member.voice.channel) {
+    if (msg.member && msg.member.voice && msg.member.voice.channel) {
       msg.member.voice.channel.leave();
       play.clear_queue();
     } else msg.channel.send('No estas en un canal');
   };
 
   //because bot.on('disconnect') doesn`t have any {msg}
-  clear_queue = async (msg: Message = null) => {
+  clear_queue = async (msg?: Message) => {
     play.clear_queue();
     if (msg) msg.channel.send('`Cola vaciada`\n');
     play.set_playing_index(1);
@@ -117,35 +113,34 @@ export default class Commands {
     if (!args[1]) {
       msg.channel.send(
         'No me pasaste argumentos, usage juakoto ' +
-          args[0] +
+          args[1] +
           '<titulo del video>'
       );
-      msg.react(X);
+      msg.react(emojis.X);
     }
-    const link = await yt.get_song_link(utils.adapt_input(args));
-    msg.channel.send(embeds.link_search(raw_input, link));
+    //const link = await yt.get_song_link(utils.adapt_input(args));
+    //msg.channel.send(embeds.link_search(raw_input, link));
     msg.react('🔍');
   };
 
-  display_help = async msg => {
-    const help1 = utils.read_from_file('../db/help');
-    const help2 = utils.read_from_file('../db/help2');
+  display_help = async (msg: Message) => {
     msg.channel.send(embeds.help(help1));
     msg.channel.send(embeds.help(help2));
   };
 
-  loop = async msg => {
-    const loop = play.get_loop();
+  loop = async (msg: Message) => {
+    const loop = play.isLooping();
     play.set_loop(!loop);
     await msg.channel.send(
       loop ? '`Dejando de loopear la cola`' : '`Loopeando la cola`'
     );
   };
 
-  load_queue = async (msg, args) => {
+  /*
+  load_queue = async (msg: Message, args) => {
     if (!args[1]) {
       msg.channel.send('No me pasaste argumentos. usage juakoto lq <filename>');
-      msg.react(X);
+      msg.react(emojis.X);
     }
 
     try {
@@ -155,32 +150,31 @@ export default class Commands {
     } catch (e) {
       console.error('Exception in load_queue: ' + e);
       msg.channel.send('No existe ninguna cola con ese nombre');
-      msg.react(X);
+      msg.react(emojis.X);
     }
   };
+  */
 
-  now_playing = async msg => {
+  now_playing = async (msg: Message) => {
     try {
       const queue2 = play.get_queue();
       const current = play.get_playing_index();
-      const nowplaying = queue2[current];
-      await msg.channel.send(
-        nowplaying
-          ? embeds.now_playing_song(nowplaying)
-          : 'No esta sonando nada che flayero'
-      );
+      //const nowplaying: YTVideo = queue2[current];
+      //if (nowplaying)
+      //  await msg.channel.send(embeds.now_playing_song(nowplaying));
+      //else await msg.channel.send('No esta sonando nada che flayero');
     } catch (e) {
       console.error('Exception in Commands.now_playing: ' + e);
       msg.channel.send('Me parece que no esta sonando nada pa');
     }
   };
 
-  mood = async (msg, args) => {
+  mood = async (msg: Message, args: string[]) => {
     if (!args[1]) {
       msg.channel.send(
         'Mood que? usage = juakoto mood <mood> (podes listar los mood con juakoto mood list)'
       );
-      msg.react(X);
+      msg.react(emojis.X);
     }
     let playlist = '';
     switch (args[1]) {
@@ -234,80 +228,62 @@ export default class Commands {
     await play.user_enqueue(msg, playlist);
   };
 
-  play = async (msg, args) => {
+  play = async (msg: Message, args: string[] | URL) => {
     if (!args[1]) {
       msg.channel.send(
         'Que queres que meta en la cola? Pasame algo,' +
-          'por que me encanta meterme cosas en la cola\n',
-        'usage = juakoto play/p <song name/song youtube link>'
+          'por que me encanta meterme cosas en la cola\n' +
+          'usage = juakoto play/p <song name/song youtube link>'
       );
-      msg.react(X);
+      msg.react(emojis.X);
     }
-    msg.react('▶️');
+    msg.react(emojis.PLAY);
     try {
       await play.user_enqueue(msg, args);
     } catch (e) {
-      //TODO make this work
-      if (e.name === play.NOT_IN_A_CHANNEL)
-        msg.channel.send('No estas en un canal bro\n');
-      else {
-        console.error('Exception in Commands.play' + e);
-        msg.channel.send('Problemitas tecnicos\n');
-      }
+      console.error(e);
     }
   };
 
-  playI = async (msg, args) => {
+  playI = async (msg: Message, args: string[]) => {
     if (!args[1]) {
       msg.channel.send('Que queres que reproduzca? No soy adivino pa');
-      msg.react(X);
+      msg.react(emojis.X);
     }
     const response1 = await play.user_enqueue(msg, args);
-    args[1] = response1 + 1;
+    //TODO fix
     await this.jump(msg, args);
   };
 
-  jump = async (msg, args) => {
+  jump = async (msg: Message, args: string[]) => {
     if (!args[1]) {
       msg.channel.send('No me pasaste parametros');
-      msg.react(X);
+      msg.react(emojis.X);
     }
-    const queuex = play.get_queue();
-    const num = args[1] - 1;
-    if (queuex[num]) {
+    const queue = play.get_queue();
+    const num = parseInt(args[1]) - 1;
+    const selected: YTVideo = queue[num];
+    if (selected) {
       play.jump(num);
       await msg.react('🛐');
       await play.play_song(msg);
       //Could be an embed
       await msg.channel.send(
-        'Saltando a la cancion nº' + (num + 1) + ': `' + queuex[num].title + '`'
+        'Saltando a la cancion nº' + (num + 1) + ': `' + selected + '`'
       );
     } else
       await msg.channel.send('Man que flayas no esta esa cancion en la cola');
   };
 
-  ping = async msg => {
-    const ping = bot.ws.ping;
-    if (ping > 200) {
-      await msg.channel.send(
-        'Toy re lageado padreee, tengo ' + ping + ' de ping'
-      );
-      await msg.react(CORTE);
-    } else {
-      await msg.channel.send('Tengo ' + ping + ' de ping');
-      await msg.react(OK);
-    }
-  };
-
-  previa_y_cachengue = async (msg, args) => {
-    const from = args[1] | 1;
-    const to = args[2] | ULTIMO_PREVIA_Y_CACHENGUE;
+  previa_y_cachengue = async (msg: Message, args: string[]) => {
+    const from = parseInt(args[1]) | 1;
+    const to = parseInt(args[2]) | ULTIMO_PREVIA_Y_CACHENGUE;
 
     if (!args[1]) {
       msg.channel.send(
         'No especificaste desde donde,terrible mogolico,defaulteando a 1'
       );
-      msg.react(X);
+      msg.react(emojis.X);
     }
 
     if (!args[2]) {
@@ -315,27 +291,29 @@ export default class Commands {
         'No especificaste hasta donde,terrible mogolico,defaulteando a ' +
           ULTIMO_PREVIA_Y_CACHENGUE
       );
-      msg.react(X);
+      msg.react(emojis.X);
     }
 
     for (let j = from; j <= to; j++)
       await play.user_enqueue(msg, ['previa y cachengue' + j]);
   };
 
-  change_prefix = async (msg, args) => {
+  change_prefix = async (msg: Message, args: string[]) => {
     if (!args[1]) {
       msg.channel.send(
         'Parametro inexistente \n' + 'usage juakoto prefix <prefix>'
       );
-      msg.react(X);
+      msg.react(emojis.X);
     }
 
-    prefix_obj.change_prefix(prefix);
-    msg.channel.send('`Prefix cambiado a ' + prefix + '`');
-    return args[1];
+    const new_prefix = args[1];
+
+    prefix_obj.change_prefix(new_prefix);
+    msg.channel.send('`Prefix cambiado a ' + new_prefix + '`');
+    return new_prefix;
   };
 
-  status = async msg => {
+  status = async (msg: Message) => {
     const status = play.status();
     let message1 = '';
     message1 += '*Initialized*: ';
@@ -345,24 +323,25 @@ export default class Commands {
     await msg.channel.send(message1);
   };
 
-  stop = async msg => {
+  stop = async (msg: Message) => {
     play.stop();
     play.clear_queue();
     await msg.react('🛑');
   };
 
-  display_queue = async msg => {
-    const _queue = play.get_queue();
+  display_queue = async (msg: Message) => {
+    const queue = play.get_queue();
     const currrent_song_index = play.get_playing_index();
-    if (!utils.queue_length(_queue)) {
+    if (!queue.length) {
       //?Can the bot react to his own message?
       await msg.channel.send('`Cola vacia`');
-      await msg.react(CORTE);
+      await msg.react(emojis.CORTE);
     } else
-      await msg.channel.send(embeds.queue_embed(_queue, currrent_song_index));
+      await msg.channel.send(embeds.queue_embed(queue, currrent_song_index));
   };
 
-  show_queues = async (msg, custom_queues) => {
+  /*
+  show_queues = async (msg: Message, custom_queues) => {
     let names = [];
     if (custom_queues === [] || !custom_queues)
       await msg.channel.send('No hay colas guardadas');
@@ -377,8 +356,9 @@ export default class Commands {
     const song = aliases[keys[random]];
     await play.enqueue(msg, song);
   };
+  */
 
-  next = async msg => {
+  next = async (msg: Message) => {
     const queue = play.get_queue();
     const playing_index1 = play.get_playing_index();
     msg.react('⏭️');
@@ -395,40 +375,41 @@ export default class Commands {
 
   pause = () => play.pause();
 
-  resume = async msg => {
+  resume = async (msg: Message) => {
     play.resume();
-    await msg.react(PLAY);
+    await msg.react(emojis.PLAY);
   };
 
-  spam = async (msg, args) => {
+  spam = async (msg: Message, args: string[]) => {
     if (!args[1] || !args[2]) {
       await msg.channel.send(
         'No me mandaste argumentos mogolico\n' +
           'usage = juakoto spam <message> <times>'
       );
-      await msg.react(X);
+      await msg.react(emojis.X);
     }
     const message = args[1];
-    const times = args[2];
-    await msg.react(CORTE);
+    const times = parseInt(args[2]);
+    await msg.react(emojis.CORTE);
     for (let i = 0; i < times; i++) {
       await msg.channel.send(message);
       await utils.sleep(1000);
     }
   };
 
-  shuffle_queue = async msg => {
+  shuffle_queue = async (msg: Message) => {
     const queue = play.get_queue();
-    const dict1 = utils.dict_shuffle(queue);
+    const dict1 = utils.array_shuffle(queue);
     play.set_queue(dict1);
     await msg.react('🔀');
   };
 
-  save_queue = async (msg, args) => {
+  /*
+  save_queue = async (msg: Message, args) => {
     const queue1 = play.get_queue();
     if (!args[1]) {
       msg.channel.send('No me pasaste parametros. usage juakoto sq <filename>');
-      msg.react(X);
+      msg.react(emojis.X);
     }
     let _links = [];
 
@@ -440,15 +421,16 @@ export default class Commands {
     await queues.create(args[1], _links);
     return await queues.all();
   };
+  */
 
   unmute = () => play.unmute();
 
-  volume_set = async (msg, args) => {
-    const volume = args[1] ? args[1] : 1;
+  volume_set = async (msg: Message, args: string[]) => {
+    const volume = args[1] ? parseInt(args[1]) : 1;
     const prev_volume = play.get_volume();
     play.set_volume(volume);
 
-    await msg.react(SPEAKER);
+    await msg.react(emojis.SPEAKER);
     if (volume > prev_volume) await msg.react('➕');
     else if (volume < prev_volume) await msg.react('➖');
     if (volume > 10) await msg.channel.send('Nt pero el volumen maximo es 10');

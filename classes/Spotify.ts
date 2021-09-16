@@ -4,6 +4,7 @@
  * This is the library i use https://www.npmjs.com/package/spotify-url-info
  */
 
+/*
 const sp_url_info = require('spotify-url-info');
 import { Spotify } from 'spotify-info.js';
 const dotenv = require('dotenv').config();
@@ -44,8 +45,9 @@ export default class SpotifyUtils {
 
   async get_playlist_track_names(pl_link: string): Promise<string[]> {
     const playlist = await infos.getPlaylistByURL(pl_link);
-    let songs = [];
-    playlist.tracks.items.forEach(song => songs.push(song.track.name));
+    let songs: any = [];
+    playlist.tracks.items.forEach((song: any) => songs.push(song.track.name));
     return songs;
   }
 }
+*/

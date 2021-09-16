@@ -1,28 +1,26 @@
-import Discord from 'discord.js';
+const Discord = require('discord.js');
 const bot = new Discord.Client();
-import dotenv from 'dotenv';
-dotenv.config();
+require('dotenv').config();
 
-//const Commands = require('./src/commands');
-import { redir } from './src/redir';
-//const commands = Commands();
+//Global vars
+let prefix = '-';
 
 bot.login(process.env.BOT_TOKEN);
 
 bot.once('ready', () => {
   console.log('Buendiaaa');
-  //alias.sync().then(async () => (aliases = await alias.all()));
-  //queues.sync().then(async () => {
-  //  custom_queues = await queues.all();
-  //});
 });
-
-bot.on('disconnect', async () =>
-  /*await commands.clear_queue()*/ console.log('Byee')
-);
 
 //Core Function
 bot.on('message', async msg => {
   if (msg.author.bot) return;
-  redir(msg);
+  const args = msg.content.substring(prefix.length + 1).split(' ');
+  const raw_input = msg.content
+    .substring(prefix.length + 1)
+    .replace(args[0], '');
+
+  if (!msg.content.startsWith(prefix)) return;
+
+  console.log('Args: ', args);
+  console.log('Message: ', args, ' Sent by ', msg.author.username);
 });

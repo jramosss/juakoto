@@ -1,11 +1,14 @@
-import { Message } from 'discord.js';
-
+//Run with ts-node index
+import Discord from 'discord.js';
+const bot = new Discord.Client();
+import dotenv from 'dotenv';
+dotenv.config();
 //import Alias from '../classes/Alias';
-import Commands from './commands';
-import Emojis from '../utils/emojis';
-import Prefix from '../classes/Prefix';
+import Commands from './src/commands';
+import Emojis from './utils/emojis';
+import Prefix from './classes/Prefix';
 //import Queues from '../classes/Queues';
-import Utils from '../classes/Utils';
+import Utils from './classes/Utils';
 
 //const alias = new Alias();
 const commands = new Commands();
@@ -14,17 +17,32 @@ const _prefix = new Prefix();
 //const queues = new Queues();
 const utils = new Utils();
 
+const CHULS_DISCRIMINATOR = '';
+
 //Global vars
 let prefix = _prefix.load_prefix();
 if (!prefix) prefix = 'juakoto';
-let aliases;
-let custom_queues;
+//let aliases = null;
+//let custom_queues = null;
 //let loop = false;
 
-//Global Consts
-const CHULS_DISCRIMINATOR = '5131';
+bot.login(process.env.BOT_TOKEN);
 
-export default async function redir(msg: Message) {
+bot.once('ready', () => {
+  console.log('Buendiaaa');
+  //alias.sync().then(async () => (aliases = await alias.all()));
+  //queues.sync().then(async () => {
+  //  custom_queues = await queues.all();
+  //});
+});
+
+bot.on('disconnect', async () =>
+  /*await commands.clear_queue()*/ console.log('Byee')
+);
+console.log(prefix);
+//Core Function
+bot.on('message', async msg => {
+  if (msg.author.bot) return;
   const args = msg.content.substring(prefix.length + 1).split(' ');
   const raw_input = msg.content
     .substring(prefix.length + 1)
@@ -32,9 +50,7 @@ export default async function redir(msg: Message) {
 
   if (!msg.content.startsWith(prefix)) return;
 
-  console.log('Args: ', args);
   console.log('Message: ', args, ' Sent by ', msg.author.username);
-  //return;
 
   //TODO blacklist
   if (msg.author.id === '342858177064337409') {
@@ -46,8 +62,9 @@ export default async function redir(msg: Message) {
   //Handle aliases
   //const aliass = await alias.find(args[0]);
   //if (aliass) await commands.play(msg, aliass);
-
-  switch (args[0]) {
+  const command = args[0];
+  console.log('Command: ', command);
+  switch (command) {
     //Register a new alias for a song
     case 'alias':
       //aliases = await commands.register_alias(msg, args);
@@ -81,8 +98,10 @@ export default async function redir(msg: Message) {
 
     //greets
     case 'gracias':
-      await msg.channel.send('De nada ' + msg.member.user.username);
-      await msg.react('🥰');
+      if (msg.member) {
+        //await msg.channel.send('De nada ' + msg.member.user.username);
+        await msg.react('🥰');
+      }
       break;
 
     //Get song link by input (natural language)
@@ -120,7 +139,7 @@ export default async function redir(msg: Message) {
     case 'lq':
     case 'loadqueue':
     case 'cargarcola':
-      await commands.load_queue(msg, args);
+      //await commands.load_queue(msg, args);
       break;
 
     //Displays the title of the current playing song
@@ -142,7 +161,7 @@ export default async function redir(msg: Message) {
     //Pauses music
     case 'pause':
       commands.pause();
-      msg.react('⏸️');
+      msg.react(emojis.PAUSE);
       break;
 
     //Play song by input (natural language, yt link, spotify link)
@@ -175,12 +194,6 @@ export default async function redir(msg: Message) {
         msg.channel.send('Perdon por trollear :(').then(process.exit(0));
       else msg.channel.send('Mira si vos me vas a apagar el bot a mi');
 
-      break;
-
-    //Sends bot ping in miliseconds
-    case 'ping':
-    case 'ms':
-      await commands.ping(msg);
       break;
 
     //Encola las sesiones de previa y cachengue desde n hasta m especificados
@@ -224,12 +237,12 @@ export default async function redir(msg: Message) {
     //Displays all saved queues
     case 'queues':
       //console.log(custom_queues)
-      await commands.show_queues(msg, [custom_queues]);
+      //await commands.show_queues(msg, [custom_queues]);
       break;
 
     //enqueues a random song from aliases
     case 'random':
-      await commands.random_song(msg);
+      //await commands.random_song(msg);
       break;
 
     //Resume
@@ -252,7 +265,7 @@ export default async function redir(msg: Message) {
     //makes songs go brrrrrr
     case 'satura':
     case 'earrape':
-      await commands.volume_set(msg, 10);
+      await commands.volume_set(msg, ['', '10']);
       await msg.channel.send('Espero que nadie este por hacer un clutch\n');
       await msg.react(emojis.SPEAKER);
       break;
@@ -279,7 +292,8 @@ export default async function redir(msg: Message) {
     case 'savequeue':
     case 'guardarcola':
       try {
-        custom_queues = await commands.save_queue(msg, args);
+        //custom_queues = await commands.save_queue(msg, args);
+        console.log('Ignore');
       } catch (error) {
         console.error('Exception in savequeue: ', error);
       }
@@ -314,4 +328,4 @@ export default async function redir(msg: Message) {
             break;
         */
   }
-}
+});

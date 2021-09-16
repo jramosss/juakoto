@@ -8,13 +8,15 @@ import YoutubeUtils from './Youtube';
 import ytdl from 'ytdl-core';
 
 import Embeds from '../resources/Embeds';
-import Spotify from './Spotify';
+//import Spotify from './Spotify';
 import { Message, StreamDispatcher } from 'discord.js';
 import { URL } from '../utils/types';
 import { UserNotInChannel } from '../utils/exceptions';
+import { YTVideos } from '../utils/types';
+import { YTVideo } from '../utils/interfaces';
 
 const embeds = new Embeds();
-const sp = new Spotify();
+//const sp = new Spotify();
 const utils = new Utils();
 const yt = new YoutubeUtils();
 
@@ -22,8 +24,8 @@ export default class Player {
   constructor() {}
 
   //VARS
-  queue = {};
-  dispatcher: StreamDispatcher;
+  queue: YTVideos = [];
+  dispatcher: StreamDispatcher = new StreamDispatcher({});
   last_index = 0;
   playing_index = 0;
   init = false;
@@ -57,7 +59,7 @@ export default class Player {
     this.dispatcher.setVolumeLogarithmic(5 / 5);
   }
 
-  enqueue = (song: URL) => (this.queue[this.last_index] = song);
+  enqueue = (song: YTVideo) => this.queue.push(song);
 
   async handle_next_song(msg: Message) {
     //If there is a song next
@@ -94,6 +96,7 @@ export default class Player {
     }
   }
 
+  /*
   async handleSpotifyPlaylist(msg: Message, link: URL) {
     const plist_preview = await sp.get_playlist_name_and_image(link);
     await msg.channel
@@ -124,13 +127,13 @@ export default class Player {
       }
       this.last_index++;
     }
-  }
+  }*/
 
   //Sit tight bc this is the largest function
   async user_enqueue(msg: Message, args: string[] | URL) {
     //Check if the user is in a channel, otherwise the bot doesn`t know
     //where he should enter to play the song
-    if (!msg.member.voice.channel) {
+    if (msg.member && msg.member.voice && !msg.member.voice.channel) {
       msg.channel.send('No estas en un canal bro');
       return;
     }
@@ -145,7 +148,7 @@ export default class Player {
     const link: URL = await utils.handle_args(args);
 
     const is_yt_playlist = yt.is_playlist(link);
-    const is_sp_playlist = sp.is_playlist(link);
+    //const is_sp_playlist = sp.is_playlist(link);
 
     if (is_yt_playlist)
       await this.handleYoutubePlaylist(link).catch(e =>
@@ -153,6 +156,7 @@ export default class Player {
           'Ocurrio un error cargando la playlist pero no le des bola pq esta hecho medio como el orto'
         )
       );
+    /*
     else if (is_sp_playlist) await this.handleSpotifyPlaylist(msg, link);
     //If it is a spotify song
     else if (sp.is_song(link)) {
@@ -166,6 +170,7 @@ export default class Player {
         return;
       }
     }
+    */
     //If it is a youtube song
     else {
       //this.queue[this.last_index] = utils.object_is_video(args)
@@ -179,7 +184,7 @@ export default class Player {
       //If current song is the last one enqueued and bot isnt playing
       if (this.last_index - 1 === this.playing_index || !this.init) {
         //Send an embed message saying that that song is now playing
-        if (is_yt_playlist || is_sp_playlist)
+        if (is_yt_playlist /*|| is_sp_playlist*/)
           msg.channel.send(embeds.now_playing_playlist(link));
         else
           msg.channel.send(
@@ -190,7 +195,7 @@ export default class Player {
         //Otherwise send an embed message saying that the song was enqueued
         try {
           msg.channel.send(
-            is_yt_playlist || is_sp_playlist
+            is_yt_playlist /*|| is_sp_playlist*/
               ? embeds.enqueued_playlist(link)
               : embeds.enqueued_song(this.queue[this.last_index - 1])
           );
@@ -206,7 +211,7 @@ export default class Player {
 
   get_queue = () => this.queue;
 
-  clear_queue = () => (this.queue = {});
+  clear_queue = () => (this.queue = []);
 
   queue_shift = () => this.playing_index++;
 
@@ -252,13 +257,13 @@ export default class Player {
 
   //?
   get_song_number(name: string | string[]) {
-    for (let i = 0; i < utils.queue_length(this.queue); i++)
-      if (this.queue[i] === name) return i;
+    for (let i = 0; i < this.queue.length; i++)
+      if (this.queue[i].title === name) return i;
     return null;
   }
 
   //pretty sure this is a very bad practice
-  set_queue = new_queue => (this.queue = new_queue);
+  set_queue = (new_queue: YTVideos) => (this.queue = new_queue);
 
   isLooping = () => this.loop;
 

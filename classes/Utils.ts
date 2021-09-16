@@ -6,6 +6,7 @@ import {
   BotInAnotherChannel,
   BotNotAllowed,
 } from '../utils/exceptions';
+import { YTVideos } from '../utils/types';
 
 const yt = new YoutubeUtils();
 
@@ -27,7 +28,8 @@ export default class Utils {
 
   //Takes a message and adapt the string to make it readable by other functions
   //i.e: it takes ["","play","oasis","wonderwall","live"] into "oasis wondewall live"
-  adapt_input = str1 => {
+  //TODO get rid of this, this isnt C
+  adapt_input = (str1: string) => {
     let str = String(str1);
     let full_input = '';
     str.split(' ').forEach(word => {
@@ -44,36 +46,49 @@ export default class Utils {
    * play and not the command "hola"
    **/
   async channel_join(msg: Message, opt = false) {
-    const vc = msg.member.voice.channel;
-    if (!vc) {
-      //msg.react(X).then(msg.react(CORTE));
-      msg.channel.send(
-        'A que canal queres que me meta si no estas en ninguno mogolico de mierda'
-      );
-      await this.sleep(2500);
-      msg.channel.send('La verdad que me pareces un irrespetuoso');
-      await this.sleep(3000);
-      msg.channel.send('Hijo de remil puta');
-      return;
-    } else {
-      const permissions = vc.permissionsFor(msg.client.user);
-      if (!permissions.has('CONNECT') || !permissions.has('SPEAK')) {
-        msg.channel.send('Me sacaste los permisos imbecil');
-        throw new BotNotAllowed();
+    if (msg && msg.member && msg.member.voice) {
+      const vc = msg.member.voice.channel;
+      if (!vc) {
+        //msg.react(X).then(msg.react(CORTE));
+        msg.channel.send(
+          'A que canal queres que me meta si no estas en ninguno mogolico de mierda'
+        );
+        await this.sleep(2500);
+        msg.channel.send('La verdad que me pareces un irrespetuoso');
+        await this.sleep(3000);
+        msg.channel.send('Hijo de remil puta');
+        return;
+      } else {
+        //if (msg && msg.client && msg.client.user) {
+        //  const permissions = vc.permissionsFor(msg.client.user);
+        //  if (
+        //    (permissions && !permissions.has('CONNECT')) ||
+        //    !permissions.has('SPEAK')
+        //  ) {
+        //    msg.channel.send('Me sacaste los permisos imbecil');
+        //    throw new BotNotAllowed();
+        //  }
+        //}
       }
-    }
-    if (msg.guild.voice && msg.guild.voice.channel) {
-      if (msg.member.voice.channel.id === msg.guild.voice.channelID && opt) {
-        msg.channel.send('Ya estoy en el canal pa, sos estupido?');
-        throw new BotAlreadyInChannel();
-      } else if (msg.member.voice.channel.id !== msg.guild.voice.channelID) {
-        msg.channel.send('Estoy en otro canal');
-        throw new BotInAnotherChannel();
+      if (msg && msg.guild && msg.guild.voice && msg.guild.voice.channel) {
+        if (msg.member.voice.channel.id === msg.guild.voice.channelID && opt) {
+          msg.channel.send('Ya estoy en el canal pa, sos estupido?');
+          throw new BotAlreadyInChannel();
+        } else if (
+          msg &&
+          msg.member &&
+          msg.member.voice &&
+          msg.member.voice.channel &&
+          msg.guild &&
+          msg.guild.voice &&
+          msg.member.voice.channel.id !== msg.guild.voice.channelID
+        ) {
+          msg.channel.send('Estoy en otro canal');
+          throw new BotInAnotherChannel();
+        } else return await msg.member.voice.channel.join();
       } else return await msg.member.voice.channel.join();
-    } else return await msg.member.voice.channel.join();
+    }
   }
-
-  queue_length = dict => Object.keys(dict).length;
 
   //Used to store the prefix
   write_to_file(filename: string, text: string, flagg: string) {
@@ -106,7 +121,7 @@ export default class Utils {
     return false;
   }
 
-  object_is_video = obj => this.str_arr_contains(Object.keys(obj), 'ago');
+  //object_is_video = obj => this.str_arr_contains(Object.keys(obj), 'ago');
 
   /**
    * *Returns a link based on natural language input
@@ -130,24 +145,11 @@ export default class Utils {
     console.log(args);
 
     if (this.valid_URL(args[0])) return args[0];
-    else return;
-  }
-
-  /**
-   * get dict keys
-   * @param {dict}
-   * @returns {array with keys}
-   * */
-  //! I should get rid of this
-  get_keys(dict) {
-    let keys = [];
-    for (const [key, value] of Object.entries(dict)) keys.push(key);
-
-    return keys;
+    else return await yt.get_song_link(args);
   }
 
   //Used to shuffle the queue, I obviously copied this.
-  array_shuffle(array) {
+  array_shuffle(array: YTVideos) {
     var currentIndex = array.length,
       temporaryValue,
       randomIndex;
@@ -163,27 +165,4 @@ export default class Utils {
 
     return array;
   }
-
-  dict_shuffle(dict) {
-    let random_nums = [];
-    for (let i = 0; i < this.queue_length(dict); i++) random_nums.push(i);
-    this.array_shuffle(random_nums);
-
-    let new_dict = {};
-
-    for (let i = 0; i < random_nums.length; i++)
-      new_dict[i] = dict[random_nums[i]];
-
-    return new_dict;
-  }
-
-  //Pretty unnecesary
-  args1_check = (args1, msg, usage = '', reaction = '❌') => {
-    if (!args1) {
-      msg.channel.send('No me pasaste argumentos, ' + usage);
-      msg.react(reaction);
-      return false;
-    }
-    return true;
-  };
 }

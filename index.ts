@@ -1,94 +1,77 @@
-//? How can i make this file shorter?
-
-//Server stuff
-const PORT = process.env.PORT || 5000;
-
-//require('dotenv').config({path:'../.env'});
-
-//External libraries
-const Discord = require('discord.js');
+//Run with ts-node index
+import Discord from 'discord.js';
 const bot = new Discord.Client();
-const dotenv = require('dotenv').config();
+import dotenv from 'dotenv';
+dotenv.config();
+//import Alias from '../classes/Alias';
+import Commands from './src/commands';
+import Emojis from './utils/emojis';
+import Prefix from './classes/Prefix';
+//import Queues from '../classes/Queues';
+import Utils from './classes/Utils';
 
-const Alias = require('./classes/Alias');
-const Commands = require('./resources/commands');
-const Prefix = require('./classes/Prefix');
-const Queues = require('./classes/Queues');
-const Utils = require('./classes/Utils');
-
-const alias = new Alias();
+//const alias = new Alias();
 const commands = new Commands();
+const emojis = new Emojis();
 const _prefix = new Prefix();
-const queues = new Queues();
+//const queues = new Queues();
 const utils = new Utils();
+
+const CHULS_DISCRIMINATOR = '';
 
 //Global vars
 let prefix = _prefix.load_prefix();
 if (!prefix) prefix = 'juakoto';
-let aliases;
-let custom_queues;
+//let aliases = null;
+//let custom_queues = null;
 //let loop = false;
-
-//Global Consts
-const CHULS_DISCRIMINATOR = '5131';
-
-//const Spotify = require('./Spotify');
-//const sp = new Spotify();
-
-//Emojis
-const CORTE = '776276782125940756';
-const SPEAKER = '🔈';
-
-//bot.setTimeout()
 
 bot.login(process.env.BOT_TOKEN);
 
 bot.once('ready', () => {
   console.log('Buendiaaa');
-  alias.sync().then(async () => (aliases = await alias.all()));
-  queues.sync().then(async () => {
-    custom_queues = await queues.all();
-  });
+  //alias.sync().then(async () => (aliases = await alias.all()));
+  //queues.sync().then(async () => {
+  //  custom_queues = await queues.all();
+  //});
 });
 
-bot.on('disconnect', async () => await commands.clear_queue());
+bot.on('disconnect', async () =>
+  /*await commands.clear_queue()*/ console.log('Byee')
+);
 
 //Core Function
 bot.on('message', async msg => {
   if (msg.author.bot) return;
-  let args = null;
-  try {
-    args = msg.content.substring(prefix.length + 1).split(' ');
-  } catch (e) {
-    console.error(e);
-    args = msg.content.substring('juakoto'.length + 1).split(' ');
-  }
+  const args = msg.content.substring(prefix.length + 1).split(' ');
   const raw_input = msg.content
     .substring(prefix.length + 1)
     .replace(args[0], '');
+
   if (!msg.content.startsWith(prefix)) return;
+
   console.log('Message: ', args, ' Sent by ', msg.author.username);
-  if (
-    msg.author.id === 342858177064337409 ||
-    msg.author.id === '342858177064337409'
-  ) {
+
+  //TODO blacklist
+  if (msg.author.id === '342858177064337409') {
     await msg.reply('No le hago caso a gente cara de verga');
     msg.react('❌');
     return;
   }
-  //Handle aliases
-  const aliass = await alias.find(args[0]);
-  if (aliass) await commands.play(msg, aliass);
 
-  switch (args[0]) {
+  //Handle aliases
+  //const aliass = await alias.find(args[0]);
+  //if (aliass) await commands.play(msg, aliass);
+  const command = args[0];
+  switch (command) {
     //Register a new alias for a song
     case 'alias':
-      aliases = await commands.register_alias(msg, args);
+      //aliases = await commands.register_alias(msg, args);
       break;
 
     //display all aliases
     case 'aliases':
-      await commands.show_aliases(msg, aliases);
+      //await commands.show_aliases(msg, aliases);
       break;
 
     //Make bot leave
@@ -109,13 +92,15 @@ bot.on('message', async msg => {
     //Deletes queue from database
     case 'dq':
     case 'deletequeue':
-      await commands.delete_queue(msg, args);
+      //await commands.delete_queue(msg, args);
       break;
 
     //greets
     case 'gracias':
-      await msg.channel.send('De nada ' + msg.member.user.username);
-      await msg.react('🥰');
+      if (msg.member) {
+        //await msg.channel.send('De nada ' + msg.member.user.username);
+        await msg.react('🥰');
+      }
       break;
 
     //Get song link by input (natural language)
@@ -138,7 +123,7 @@ bot.on('message', async msg => {
       break;
 
     case 'juernes':
-      await commands.play(msg, 'https://www.youtube.com/watch?v=_XxLrVu9UHE');
+      await commands.play(msg, ['https://www.youtube.com/watch?v=_XxLrVu9UHE']);
       await msg.react('🤪');
       break;
 
@@ -153,7 +138,7 @@ bot.on('message', async msg => {
     case 'lq':
     case 'loadqueue':
     case 'cargarcola':
-      await commands.load_queue(msg, args);
+      //await commands.load_queue(msg, args);
       break;
 
     //Displays the title of the current playing song
@@ -169,13 +154,13 @@ bot.on('message', async msg => {
     //Mutes the bot
     case 'mute':
       commands.mute();
-      msg.react(CORTE);
+      msg.react(emojis.CORTE);
       break;
 
     //Pauses music
     case 'pause':
       commands.pause();
-      msg.react('⏸️');
+      msg.react(emojis.PAUSE);
       break;
 
     //Play song by input (natural language, yt link, spotify link)
@@ -210,12 +195,6 @@ bot.on('message', async msg => {
 
       break;
 
-    //Sends bot ping in miliseconds
-    case 'ping':
-    case 'ms':
-      await commands.ping(msg);
-      break;
-
     //Encola las sesiones de previa y cachengue desde n hasta m especificados
     //TODO make const ULTIMO_PYC refresh automatically whenever ferpa uploads a new session
     case 'previaycachengue':
@@ -245,7 +224,6 @@ bot.on('message', async msg => {
 
     //Displays Queue
     case 'q':
-    case 'cola':
     case 'queue':
       try {
         await commands.display_queue(msg);
@@ -258,18 +236,18 @@ bot.on('message', async msg => {
     //Displays all saved queues
     case 'queues':
       //console.log(custom_queues)
-      await commands.show_queues(msg, [custom_queues]);
+      //await commands.show_queues(msg, [custom_queues]);
       break;
 
     //enqueues a random song from aliases
     case 'random':
-      await commands.random_song(msg);
+      //await commands.random_song(msg);
       break;
 
     //Resume
     case 'r':
     case 'resume':
-      await commands.resume();
+      await commands.resume(msg);
       break;
 
     //Skip to next song
@@ -286,9 +264,9 @@ bot.on('message', async msg => {
     //makes songs go brrrrrr
     case 'satura':
     case 'earrape':
-      await commands.volume_set(msg, 10);
+      await commands.volume_set(msg, ['', '10']);
       await msg.channel.send('Espero que nadie este por hacer un clutch\n');
-      await msg.react(SPEAKER);
+      await msg.react(emojis.SPEAKER);
       break;
 
     case 'source':
@@ -313,7 +291,8 @@ bot.on('message', async msg => {
     case 'savequeue':
     case 'guardarcola':
       try {
-        custom_queues = await commands.save_queue(msg, args);
+        //custom_queues = await commands.save_queue(msg, args);
+        console.log('Ignore');
       } catch (error) {
         console.error('Exception in savequeue: ', error);
       }
@@ -321,13 +300,13 @@ bot.on('message', async msg => {
       break;
 
     case 'test':
-      stats.increment(msg.author.username, args[1]);
+      //stats.increment(msg.author.username, args[1]);
       break;
 
     //Unmutes the bot, setting volume to previous volume
     case 'unmute':
       commands.unmute();
-      msg.react(SPEAKER);
+      msg.react(emojis.SPEAKER);
       break;
 
     //Set bot volume
@@ -339,7 +318,7 @@ bot.on('message', async msg => {
     //Greets
     case 'wendia':
       msg.channel.send('AAAAAAAAAH!!!!!!!!!');
-      msg.react(CORTE);
+      msg.react(emojis.CORTE);
       break;
 
     /*

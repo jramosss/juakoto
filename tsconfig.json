@@ -1,0 +1,8 @@
+{
+  "compileOnSave": true,
+  "ts-node": {
+    "compiler": "typescript",
+    "pretty": true,
+    "preferTsExts": true
+  }
+}

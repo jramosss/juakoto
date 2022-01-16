@@ -1,8 +1,8 @@
 //Run with ts-node index
-import Discord from 'discord.js';
-const bot = new Discord.Client();
-import dotenv from 'dotenv';
-dotenv.config();
+import { Client } from 'discord.js';
+const bot = new Client({ intents: 1 });
+import { config } from 'dotenv';
+config();
 //import Alias from '../classes/Alias';
 import Commands from './src/commands';
 import Emojis from './utils/emojis';

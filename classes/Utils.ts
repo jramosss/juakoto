@@ -1,4 +1,4 @@
-import { Message } from 'discord.js';
+import { Client, Message } from 'discord.js';
 import fs from 'fs';
 import YoutubeUtils from './Youtube';
 import {
@@ -8,6 +8,10 @@ import {
 } from '../utils/exceptions';
 import { YTVideos } from '../utils/types';
 import Emojis from '../utils/emojis';
+import {
+  DiscordGatewayAdapterCreator,
+  joinVoiceChannel,
+} from '@discordjs/voice';
 
 const yt = new YoutubeUtils();
 
@@ -45,71 +49,37 @@ export default class Utils {
    * play and not the command "hola"
    **/
   async channel_join(msg: Message, opt = false) {
-    if (msg && msg.member && msg.member.voice) {
+    if (msg.member.voice) {
       const vc = msg.member.voice.channel;
-      if (!vc) {
-        return;
-      } else {
-        //if (msg && msg.client && msg.client.user) {
-        //  const permissions = vc.permissionsFor(msg.client.user);
-        //  if (
-        //    (permissions && !permissions.has('CONNECT')) ||
-        //    !permissions.has('SPEAK')
-        //  ) {
-        //    msg.channel.send('Me sacaste los permisos imbecil');
-        //    throw new BotNotAllowed();
-        //  }
-        //}
-      }
-      if (msg && msg.guild && msg.guild.voice && msg.guild.voice.channel) {
-        if (msg.member.voice.channel.id === msg.guild.voice.channelID && opt) {
+
+      if (!vc) return;
+
+      if (msg.client.user) {
+        const permissions = vc.permissionsFor(msg.client.user);
+        if (
+          (permissions && !permissions.has('CONNECT')) ||
+          !permissions.has('SPEAK')
+        ) {
+          msg.channel.send('Me sacaste los permisos imbecil');
+          throw new BotNotAllowed();
+        }
+      } else if (msg.guild.available) {
+        /*
+        if (msg.member.voice.channel.id === msg.guild.) {
           msg.channel.send('Ya estoy en el canal pa, sos estupido?');
           throw new BotAlreadyInChannel();
-        } else if (
-          msg &&
-          msg.member &&
-          msg.member.voice &&
-          msg.member.voice.channel &&
-          msg.guild &&
-          msg.guild.voice &&
-          msg.member.voice.channel.id !== msg.guild.voice.channelID
-        ) {
-          msg.channel.send('Estoy en otro canal');
-          throw new BotInAnotherChannel();
-        } else return await msg.member.voice.channel.join();
-      } else return await msg.member.voice.channel.join();
+        } else if (msg.member.voice.channel.id !== msg.guild.voice.channelID) {
+            msg.channel.send('Estoy en otro canal');
+            throw new BotInAnotherChannel();
+        }*/
+
+        return joinVoiceChannel({
+          channelId: msg.member.voice.channel.name,
+          guildId: msg.guild.id,
+          adapterCreator: msg.guild.voiceAdapterCreator as any,
+        });
+      }
     }
-  }
-
-  //Used to store the prefix
-  write_to_file(filename: string, text: string, flagg: string) {
-    try {
-      fs.writeFileSync(filename, text, {
-        encoding: 'utf8',
-        flag: flagg,
-      });
-    } catch (err) {
-      console.error('Exception in Utils.write_to_file: ' + err);
-    }
-  }
-
-  /**
-    * Used to read the prefix
-    @returns {file content} if file exists, null otherwise
-    */
-  read_from_file(filename: string) {
-    try {
-      return fs.existsSync(filename) ? fs.readFileSync(filename, 'utf8') : null;
-    } catch (err) {
-      console.error('Exception in Utils.read_from_file' + err);
-    }
-  }
-
-  //TODO google if it`s a shorter way to do this
-  str_arr_contains(str_arr: string[], word: string) {
-    for (const s of str_arr) if (s === word) return true;
-
-    return false;
   }
 
   //object_is_video = obj => this.str_arr_contains(Object.keys(obj), 'ago');
@@ -134,7 +104,7 @@ export default class Utils {
 
   async handle_args(args: string[]): Promise<string> {
     if (this.valid_URL(args[0])) return args[0];
-    else return await yt.get_song_link(this.adapt_input(args));
+    //else return await yt.get_song_link(this.adapt_input(args));
   }
 
   //Used to shuffle the queue, I obviously copied this.

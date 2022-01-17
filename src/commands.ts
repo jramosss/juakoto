@@ -6,7 +6,7 @@ const PORT = process.env.PORT || 5000;
 //require('dotenv').config({path:'../.env'});
 
 //External libraries
-import { Message } from 'discord.js';
+import { Emoji, Message } from 'discord.js';
 
 //Files
 //const Alias = require('../classes/Alias');
@@ -84,6 +84,10 @@ export default class Commands {
       msg.member.voice.disconnect();
       play.clear_queue();
     } else msg.channel.send('No estas en un canal');
+  };
+
+  join = async (msg: Message) => {
+    await utils.channel_join(msg, true);
   };
 
   //because bot.on('disconnect') doesn`t have any {msg}
@@ -441,5 +445,29 @@ export default class Commands {
         ? 'Volumen seteado a ' + volume
         : 'No me pasaste parametros, seteando a 1'
     );
+  };
+
+  gracias = async (msg: Message) => {
+    if (msg.member) {
+      await msg.channel.send('De nada ' + msg.member.user.username);
+      await msg.react(Emojis.LOVE);
+    }
+  };
+
+  juernes = async (msg: Message) => {
+    const juernesSoundtrack = 'https://www.youtube.com/watch?v=_XxLrVu9UHE';
+    await this.play(msg, [juernesSoundtrack]);
+    await msg.react(Emojis.CRAZY);
+  };
+
+  satura = async (msg: Message) => {
+    await this.volume_set(msg, ['', '10']);
+    await msg.channel.send('Espero que nadie este por hacer un clutch\n');
+    await msg.react(Emojis.SPEAKER);
+  };
+
+  wendia = async (msg: Message) => {
+    msg.channel.send('AAAAAAAAAH!!!!!!!!!');
+    msg.react(Emojis.CORTE);
   };
 }

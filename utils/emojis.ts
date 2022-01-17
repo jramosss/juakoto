@@ -7,6 +7,8 @@ const Emojis = {
   PAUSE: '⏸️',
   PLAY: '▶️',
   FF: '⏭️',
+  CRAZY: '🤪',
+  LOVE: '🥰',
 };
 
 export default Emojis;

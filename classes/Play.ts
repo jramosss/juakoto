@@ -14,6 +14,11 @@ import { URL } from '../utils/types';
 import { UserNotInChannel } from '../utils/exceptions';
 import { YTVideos } from '../utils/types';
 import { YTVideo } from '../utils/interfaces';
+import {
+  createAudioPlayer,
+  createAudioResource,
+  NoSubscriberBehavior,
+} from '@discordjs/voice';
 
 const embeds = new Embeds();
 //const sp = new Spotify();
@@ -32,6 +37,11 @@ export default class Player {
   playing_i_b4_looping = this.playing_index;
   loop = false;
   NOT_IN_A_CHANNEL = 'Not in a channel';
+  Player = createAudioPlayer({
+    behaviors: {
+      noSubscriber: NoSubscriberBehavior.Stop,
+    },
+  });
 
   async play_song(msg: Message) {
     //Mark the dispatcher as initialized once someone enqueued a song in this session
@@ -42,7 +52,8 @@ export default class Player {
 
     try {
       const current_song_link = this.queue[this.playing_index].url;
-      this.dispatcher = connection.play(ytdl(current_song_link));
+      const resource = createAudioResource(ytdl(current_song_link));
+      this.dispatcher = this.Player.play(resource);
     } catch (e) {
       console.error('In Play.play_song: ' + e);
       return;
@@ -82,11 +93,10 @@ export default class Player {
       //Use youtube library to get all songs in the youtube playlist
       const plist_songs = await yt.get_playlist_songs_info(link);
 
-      for (const song of plist_songs) {
-        //And enqueue those links
+      plist_songs.forEach(song => {
         this.enqueue(song);
         this.last_index++;
-      }
+      });
     } catch (e) {
       console.error('Exception in enqueue yt playlist: ' + e);
     }

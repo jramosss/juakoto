@@ -4,9 +4,6 @@ node_modules/
 
 #Innecesary stuff
 test.js
-itest.js
-TODO
 
 .env
 prefix
-getToken.js

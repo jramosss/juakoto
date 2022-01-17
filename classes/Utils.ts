@@ -7,6 +7,7 @@ import {
   BotNotAllowed,
 } from '../utils/exceptions';
 import { YTVideos } from '../utils/types';
+import Emojis from '../utils/emojis';
 
 const yt = new YoutubeUtils();
 
@@ -26,18 +27,17 @@ export default class Utils {
     return !!pattern.test(str);
   }
 
-  //Takes a message and adapt the string to make it readable by other functions
-  //i.e: it takes ["","play","oasis","wonderwall","live"] into "oasis wondewall live"
-  //TODO get rid of this, this isnt C
-  adapt_input = (str: string[]) => {
-    let full_input = '';
-    str.forEach(word => {
-      if (word !== 'juakoto' && word !== 'p' && word !== 'play') {
-        full_input += word += ' ';
-      }
-    });
-    return full_input;
-  };
+  async threaten(msg: Message) {
+    await msg.react(Emojis.X);
+    msg.react(Emojis.CORTE);
+    msg.channel.send(
+      'A que canal queres que me meta si no estas en ninguno mogolico de mierda'
+    );
+    await this.sleep(2500);
+    msg.channel.send('La verdad que me pareces un irrespetuoso');
+    await this.sleep(3000);
+    msg.channel.send('Hijo de remil puta');
+  }
 
   //TODO make custom exceptions
   /**
@@ -48,14 +48,6 @@ export default class Utils {
     if (msg && msg.member && msg.member.voice) {
       const vc = msg.member.voice.channel;
       if (!vc) {
-        //msg.react(X).then(msg.react(CORTE));
-        msg.channel.send(
-          'A que canal queres que me meta si no estas en ninguno mogolico de mierda'
-        );
-        await this.sleep(2500);
-        msg.channel.send('La verdad que me pareces un irrespetuoso');
-        await this.sleep(3000);
-        msg.channel.send('Hijo de remil puta');
         return;
       } else {
         //if (msg && msg.client && msg.client.user) {

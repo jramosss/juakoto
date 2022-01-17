@@ -3,6 +3,7 @@
  * functions.
  */
 
+/*
 import { Sequelize } from 'sequelize';
 import path from 'path';
 
@@ -76,3 +77,4 @@ module.exports = class AliasUtils {
 
   sync = async () => await this.model.sync();
 };
+*/

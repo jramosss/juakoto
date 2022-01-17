@@ -9,7 +9,7 @@ import ytdl from 'ytdl-core';
 
 import Embeds from '../resources/Embeds';
 //import Spotify from './Spotify';
-import { Message, StreamDispatcher } from 'discord.js';
+import { Message } from 'discord.js';
 import { URL } from '../utils/types';
 import { UserNotInChannel } from '../utils/exceptions';
 import { YTVideos } from '../utils/types';
@@ -25,7 +25,7 @@ export default class Player {
   dispatcher: any; //: StreamDispatcher = new StreamDispatcher({});
   last_index = 0;
   playing_index = 0;
-  init = false;
+  initialized = false;
   volume = 1;
   paused = true;
   previous_volume = this.volume;
@@ -35,7 +35,7 @@ export default class Player {
 
   async play_song(msg: Message) {
     //Mark the dispatcher as initialized once someone enqueued a song in this session
-    this.init = true;
+    this.initialized = true;
 
     const connection = await utils.channel_join(msg);
     if (!connection) throw new UserNotInChannel();
@@ -61,9 +61,8 @@ export default class Player {
   async handle_next_song(msg: Message) {
     //If there is a song next
     if (this.queue[this.playing_index + 1]) {
-      await msg.channel.send(
-        embeds.now_playing_song(this.queue[this.playing_index + 1])
-      );
+      const embed = embeds.now_playing_song(this.queue[this.playing_index + 1]);
+      await msg.channel.send({ embeds: [embed] });
       this.playing_index++;
       this.play_song(msg);
     } else {
@@ -108,7 +107,7 @@ export default class Player {
         this.enqueue(await yt.get_video(track_names[i]));
         //If this is the first song enqueued, and bot isn`t
         //playing anything, then play, otherwise just enqueue
-        if (i === 0 && (this.paused || !this.init)) {
+        if (i === 0 && (this.paused || !this.initialized)) {
           this.play_song(msg);
           msg.channel.send(
             embeds.now_playing_song(this.queue[this.last_index])
@@ -179,23 +178,22 @@ export default class Player {
     //If all went right
     if (link) {
       //If current song is the last one enqueued and bot isnt playing
-      if (this.last_index - 1 === this.playing_index || !this.init) {
+      if (this.last_index - 1 === this.playing_index || !this.initialized) {
         //Send an embed message saying that that song is now playing
         if (is_yt_playlist /*|| is_sp_playlist*/)
-          msg.channel.send(embeds.now_playing_playlist(link));
+          msg.channel.send({ embeds: [embeds.now_playing_playlist(link)] });
         else
-          msg.channel.send(
-            embeds.now_playing_song(this.queue[this.last_index - 1])
-          );
+          msg.channel.send({
+            embeds: [embeds.now_playing_song(this.queue[this.last_index - 1])],
+          });
         this.play_song(msg);
       } else {
         //Otherwise send an embed message saying that the song was enqueued
         try {
-          msg.channel.send(
-            is_yt_playlist /*|| is_sp_playlist*/
-              ? embeds.enqueued_playlist(link)
-              : embeds.enqueued_song(this.queue[this.last_index - 1])
-          );
+          const embed = is_yt_playlist /*|| is_sp_playlist*/
+            ? [embeds.enqueued_playlist(link)]
+            : [embeds.enqueued_song(this.queue[this.last_index - 1])];
+          msg.channel.send({ embeds: embed });
         } catch (e) {
           console.error(e);
         }
@@ -248,7 +246,7 @@ export default class Player {
   status() {
     return {
       paused: this.paused,
-      init: this.init,
+      init: this.initialized,
     };
   }
 

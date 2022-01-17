@@ -12,15 +12,13 @@ import Utils from './classes/Utils';
 
 //const alias = new Alias();
 const commands = new Commands();
-const emojis = new Emojis();
-const _prefix = new Prefix();
+let prefix = new Prefix().load_prefix();
 //const queues = new Queues();
 const utils = new Utils();
 
 const CHULS_DISCRIMINATOR = '';
 
 //Global vars
-let prefix = _prefix.load_prefix();
 if (!prefix) prefix = 'juakoto';
 //let aliases = null;
 //let custom_queues = null;
@@ -98,7 +96,7 @@ bot.on('message', async msg => {
     //greets
     case 'gracias':
       if (msg.member) {
-        //await msg.channel.send('De nada ' + msg.member.user.username);
+        await msg.channel.send('De nada ' + msg.member.user.username);
         await msg.react('🥰');
       }
       break;
@@ -154,13 +152,13 @@ bot.on('message', async msg => {
     //Mutes the bot
     case 'mute':
       commands.mute();
-      msg.react(emojis.CORTE);
+      msg.react(Emojis.CORTE);
       break;
 
     //Pauses music
     case 'pause':
       commands.pause();
-      msg.react(emojis.PAUSE);
+      msg.react(Emojis.PAUSE);
       break;
 
     //Play song by input (natural language, yt link, spotify link)
@@ -266,7 +264,7 @@ bot.on('message', async msg => {
     case 'earrape':
       await commands.volume_set(msg, ['', '10']);
       await msg.channel.send('Espero que nadie este por hacer un clutch\n');
-      await msg.react(emojis.SPEAKER);
+      await msg.react(Emojis.SPEAKER);
       break;
 
     case 'source':
@@ -306,7 +304,7 @@ bot.on('message', async msg => {
     //Unmutes the bot, setting volume to previous volume
     case 'unmute':
       commands.unmute();
-      msg.react(emojis.SPEAKER);
+      msg.react(Emojis.SPEAKER);
       break;
 
     //Set bot volume
@@ -318,7 +316,7 @@ bot.on('message', async msg => {
     //Greets
     case 'wendia':
       msg.channel.send('AAAAAAAAAH!!!!!!!!!');
-      msg.react(emojis.CORTE);
+      msg.react(Emojis.CORTE);
       break;
 
     /*

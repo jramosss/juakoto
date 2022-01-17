@@ -4,5 +4,11 @@
     "compiler": "typescript",
     "pretty": true,
     "preferTsExts": true
+  },
+  "compilerOptions": {
+    "strict": false,
+    "alwaysStrict": false,
+    "allowUnusedLabels": true,
+    "esModuleInterop": true
   }
 }

@@ -28,7 +28,6 @@ const ULTIMO_PREVIA_Y_CACHENGUE = 35;
 //Objects
 //const alias = new Alias();
 const embeds = new Embeds();
-const emojis = new Emojis();
 const play = new Player();
 const prefix_obj = new Prefix();
 //const queues = new Queues();
@@ -48,18 +47,18 @@ export default class Commands {
       msg.channel.send(
         'No me pasaste argumentos, usage: juakoto alias <alias> <link>'
       );
-      msg.react(emojis.X);
+      msg.react(Emojis.X);
     }
     if (await alias.find(args[1])) {
       msg.channel.send('Alias ' + args[1] + ' ya registrado');
       //TODO ask for input to know if the user wants to redefine the alias
       msg.channel.send('Cambiando valor de ' + args[1] + 'a ' + args[2]);
       alias.redefine(args[1], args[2]);
-      msg.react(emojis.X);
+      msg.react(Emojis.X);
     }
     if (!utils.valid_URL(args[2])) {
       msg.channel.send('Link invalido');
-      msg.react(emojis.X);
+      msg.react(Emojis.X);
     }
     msg.channel.send(
       'Nuevo alias registrado `' + args[1] + '` linkeado a ' + args[2]
@@ -81,7 +80,8 @@ export default class Commands {
 
   leave = async (msg: Message) => {
     if (msg.member && msg.member.voice && msg.member.voice.channel) {
-      msg.member.voice.channel.leave();
+      //! Check if this is what i want
+      msg.member.voice.disconnect();
       play.clear_queue();
     } else msg.channel.send('No estas en un canal');
   };
@@ -116,7 +116,7 @@ export default class Commands {
           args[1] +
           '<titulo del video>'
       );
-      msg.react(emojis.X);
+      msg.react(Emojis.X);
     }
     //const link = await yt.get_song_link(utils.adapt_input(args));
     //msg.channel.send(embeds.link_search(raw_input, link));
@@ -124,8 +124,8 @@ export default class Commands {
   };
 
   display_help = async (msg: Message) => {
-    msg.channel.send(embeds.help(help1));
-    msg.channel.send(embeds.help(help2));
+    //msg.channel.send(embeds.help(help1));
+    //msg.channel.send(embeds.help(help2));
   };
 
   loop = async (msg: Message) => {
@@ -140,7 +140,7 @@ export default class Commands {
   load_queue = async (msg: Message, args) => {
     if (!args[1]) {
       msg.channel.send('No me pasaste argumentos. usage juakoto lq <filename>');
-      msg.react(emojis.X);
+      msg.react(Emojis.X);
     }
 
     try {
@@ -150,7 +150,7 @@ export default class Commands {
     } catch (e) {
       console.error('Exception in load_queue: ' + e);
       msg.channel.send('No existe ninguna cola con ese nombre');
-      msg.react(emojis.X);
+      msg.react(Emojis.X);
     }
   };
   */
@@ -174,7 +174,7 @@ export default class Commands {
       msg.channel.send(
         'Mood que? usage = juakoto mood <mood> (podes listar los mood con juakoto mood list)'
       );
-      msg.react(emojis.X);
+      msg.react(Emojis.X);
     }
     let playlist = '';
     switch (args[1]) {
@@ -235,9 +235,9 @@ export default class Commands {
           'por que me encanta meterme cosas en la cola\n' +
           'usage = juakoto play/p <song name/song youtube link>'
       );
-      msg.react(emojis.X);
+      msg.react(Emojis.X);
     }
-    msg.react(emojis.PLAY);
+    msg.react(Emojis.PLAY);
     try {
       await play.user_enqueue(msg, args);
     } catch (e) {
@@ -248,7 +248,7 @@ export default class Commands {
   playI = async (msg: Message, args: string[]) => {
     if (!args[1]) {
       msg.channel.send('Que queres que reproduzca? No soy adivino pa');
-      msg.react(emojis.X);
+      msg.react(Emojis.X);
     }
     const response1 = await play.user_enqueue(msg, args);
     //TODO fix
@@ -258,7 +258,7 @@ export default class Commands {
   jump = async (msg: Message, args: string[]) => {
     if (!args[1]) {
       msg.channel.send('No me pasaste parametros');
-      msg.react(emojis.X);
+      msg.react(Emojis.X);
     }
     const queue = play.get_queue();
     const num = parseInt(args[1]) - 1;
@@ -283,7 +283,7 @@ export default class Commands {
       msg.channel.send(
         'No especificaste desde donde,terrible mogolico,defaulteando a 1'
       );
-      msg.react(emojis.X);
+      msg.react(Emojis.X);
     }
 
     if (!args[2]) {
@@ -291,7 +291,7 @@ export default class Commands {
         'No especificaste hasta donde,terrible mogolico,defaulteando a ' +
           ULTIMO_PREVIA_Y_CACHENGUE
       );
-      msg.react(emojis.X);
+      msg.react(Emojis.X);
     }
 
     for (let j = from; j <= to; j++)
@@ -303,7 +303,7 @@ export default class Commands {
       msg.channel.send(
         'Parametro inexistente \n' + 'usage juakoto prefix <prefix>'
       );
-      msg.react(emojis.X);
+      msg.react(Emojis.X);
     }
 
     const new_prefix = args[1];
@@ -335,9 +335,11 @@ export default class Commands {
     if (!queue.length) {
       //?Can the bot react to his own message?
       await msg.channel.send('`Cola vacia`');
-      await msg.react(emojis.CORTE);
-    } else
-      await msg.channel.send(embeds.queue_embed(queue, currrent_song_index));
+      await msg.react(Emojis.CORTE);
+    } else {
+      const embed = embeds.queue_embed(queue, currrent_song_index);
+      await msg.channel.send({ embeds: [embed] });
+    }
   };
 
   /*
@@ -361,12 +363,11 @@ export default class Commands {
   next = async (msg: Message) => {
     const queue = play.get_queue();
     const playing_index1 = play.get_playing_index();
-    msg.react('⏭️');
+    msg.react(Emojis.FF);
     if (queue[playing_index1 + 1]) {
       play.queue_shift();
-      await msg.channel.send(
-        embeds.now_playing_song(queue[playing_index1 + 1])
-      );
+      const embed = embeds.now_playing_song(queue[playing_index1 + 1]);
+      await msg.channel.send({ embeds: [embed] });
       await play.play_song(msg);
     } else play.pause();
   };
@@ -377,7 +378,7 @@ export default class Commands {
 
   resume = async (msg: Message) => {
     play.resume();
-    await msg.react(emojis.PLAY);
+    await msg.react(Emojis.PLAY);
   };
 
   spam = async (msg: Message, args: string[]) => {
@@ -386,11 +387,11 @@ export default class Commands {
         'No me mandaste argumentos mogolico\n' +
           'usage = juakoto spam <message> <times>'
       );
-      await msg.react(emojis.X);
+      await msg.react(Emojis.X);
     }
     const message = args[1];
     const times = parseInt(args[2]);
-    await msg.react(emojis.CORTE);
+    await msg.react(Emojis.CORTE);
     for (let i = 0; i < times; i++) {
       await msg.channel.send(message);
       await utils.sleep(1000);
@@ -399,8 +400,8 @@ export default class Commands {
 
   shuffle_queue = async (msg: Message) => {
     const queue = play.get_queue();
-    const dict1 = utils.array_shuffle(queue);
-    play.set_queue(dict1);
+    const dict = utils.array_shuffle(queue);
+    play.set_queue(dict);
     await msg.react('🔀');
   };
 
@@ -409,7 +410,7 @@ export default class Commands {
     const queue1 = play.get_queue();
     if (!args[1]) {
       msg.channel.send('No me pasaste parametros. usage juakoto sq <filename>');
-      msg.react(emojis.X);
+      msg.react(Emojis.X);
     }
     let _links = [];
 
@@ -430,7 +431,7 @@ export default class Commands {
     const prev_volume = play.get_volume();
     play.set_volume(volume);
 
-    await msg.react(emojis.SPEAKER);
+    await msg.react(Emojis.SPEAKER);
     if (volume > prev_volume) await msg.react('➕');
     else if (volume < prev_volume) await msg.react('➖');
     if (volume > 10) await msg.channel.send('Nt pero el volumen maximo es 10');

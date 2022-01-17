@@ -89,17 +89,13 @@ export default class Player {
   }
 
   async handleYoutubePlaylist(link: URL) {
-    try {
-      //Use youtube library to get all songs in the youtube playlist
-      const plist_songs = await yt.get_playlist_songs_info(link);
+    //Use youtube library to get all songs in the youtube playlist
+    const plist_songs = await yt.get_playlist_songs_info(link);
 
-      plist_songs.forEach(song => {
-        this.enqueue(song);
-        this.last_index++;
-      });
-    } catch (e) {
-      console.error('Exception in enqueue yt playlist: ' + e);
-    }
+    plist_songs.forEach(song => {
+      this.enqueue(song);
+      this.last_index++;
+    });
   }
 
   /*
@@ -232,7 +228,7 @@ export default class Player {
 
   set_volume(new_volume: number) {
     this.previous_volume = this.volume;
-    this.dispatcher.setVolume(new_volume);
+    //this.dispatcher.setVolume(new_volume);
     this.volume = new_volume;
   }
 

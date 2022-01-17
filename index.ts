@@ -1,10 +1,5 @@
 import { Client, Intents } from 'discord.js';
 import { config } from 'dotenv';
-//import Alias from '../classes/Alias';
-import Emojis from './utils/emojis';
-import Prefix from './classes/Prefix';
-//import Queues from '../classes/Queues';
-import Utils from './classes/Utils';
 import commands_index from './src/commands_index';
 
 const IF = Intents.FLAGS;
@@ -17,32 +12,17 @@ const bot = new Client({
   ],
 });
 config();
-//const alias = new Alias();
-let prefix = new Prefix().load_prefix();
-//const queues = new Queues();
-const utils = new Utils();
-
-const CHULS_DISCRIMINATOR = '';
 
 //Global vars
-//if (!prefix) prefix = 'juakoto';
-prefix = '.';
-//let aliases = null;
-//let custom_queues = null;
-//let loop = false;
+const CHULS_DISCRIMINATOR = '';
+const prefix = '.';
 
 bot.once('ready', () => {
   console.log('Buendiaaa');
   console.log(prefix);
-  //alias.sync().then(async () => (aliases = await alias.all()));
-  //queues.sync().then(async () => {
-  //  custom_queues = await queues.all();
-  //});
 });
 
-bot.on('disconnect', async () =>
-  /*await commands.clear_queue()*/ console.log('Byee')
-);
+bot.on('disconnect', async () => console.log('Byee'));
 
 //Core Function
 bot.on('messageCreate', async msg => {
@@ -64,8 +44,6 @@ bot.on('messageCreate', async msg => {
   }
 
   //Handle aliases
-  //const aliass = await alias.find(args[0]);
-  //if (aliass) await commands.play(msg, aliass);
   const command = args[0];
   const index = commands_index(msg, args, raw_input);
   index[command];

@@ -9,16 +9,13 @@ export default class Embeds {
     let opt = queue.length > 10;
     for (let i = opt ? current_song : 0; i <= len; i++)
       if (queue[i])
-        if (i === current_song)
-          fields.push({
-            name: '-> ' + (i + 1) + ':  ' + queue[i].title,
-            value: queue[i].duration.timestamp,
-          });
-        else
-          fields.push({
-            name: i + 1 + ':  ' + queue[i].title,
-            value: queue[i].duration.timestamp,
-          });
+        fields.push({
+          name:
+            i === current_song
+              ? '-> ' + (i + 1) + ':  ' + queue[i].title
+              : i + 1 + ':  ' + queue[i].title,
+          value: queue[i].duration.timestamp,
+        });
     return fields;
   }
 

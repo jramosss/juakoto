@@ -4,47 +4,30 @@
  */
 
 //https://www.npmjs.com/package/yt-search
-const yt = require('yt-search');
+import yt from 'yt-search';
 import { URL } from '../utils/types';
 
 export default class YoutubeUtils {
-  constructor() {}
-
-  is_playlist = (link: string) => {
-    const regexp = /^.*(youtu.be\/|list=)([^#\&\?]*).*/;
-    const match = link.match(regexp);
-    return match && match[2];
+  isPlaylist = (link: string) => {
+    const regexp = new RegExp(/^.*(youtu.be\/|list=)([^#\&\?]*).*/);
+    return link.match(regexp) !== null;
   };
 
   //Get video info by natural input or link
-  get_video = async (args: String[] | URL) => (await yt(args)).videos[0];
+  getVideoData = async (args: URL[]) => (await yt(args.toString())).videos[0];
 
-  get_list_id = (link: URL) => {
+  //TODO surely there's a better way to do this
+  getListID = (link: URL) => {
     const splitted = link.split('&');
     for (const s of splitted)
       if (s.startsWith('list=')) return s.replace('list=', '');
   };
 
-  get_song_link = async (args: String[] | string): Promise<URL> => {
-    let info = await this.get_video(args);
-    return info.url;
-  };
+  getPlaylistSongInfo = async (playlist: URL) => {
+    let songs = [];
+    const plist = await yt(this.getListID(playlist));
+    plist.videos.forEach(song => songs.push(song));
 
-  /**
-   * @param {playlist} playlist the playlist url
-   * @returns {links} the obtained links from playlist
-   */
-  get_playlist_songs_info = async (playlist: URL) => {
-    let songs: any[] = [];
-    const plist = await yt({ listId: this.get_list_id(playlist) });
-    plist.videos.forEach(async (song: any) => {
-      try {
-        const full_song = await yt({ videoId: song.videoId });
-        songs.push(full_song);
-      } catch (e) {
-        console.error('Exception in Youtube.get_playlist_songs_info: ' + e);
-      }
-    });
     return songs;
   };
 }

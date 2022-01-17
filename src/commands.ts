@@ -24,7 +24,7 @@ export default class Commands {
   leave = async (msg: Message) => {
     if (msg.member.voice.channel) {
       //! Check if this is what i want
-      msg.member.voice.disconnect();
+      // msg.member.voice.disconnect();
       play.clear_queue();
     } else msg.channel.send('No estas en un canal');
   };

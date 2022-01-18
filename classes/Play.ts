@@ -90,7 +90,7 @@ export default class Player {
 
   async handleYoutubePlaylist(link: URL) {
     //Use youtube library to get all songs in the youtube playlist
-    const plist_songs = await yt.get_playlist_songs_info(link);
+    const plist_songs = await yt.getPlaylistSongInfo(link);
 
     plist_songs.forEach(song => {
       this.enqueue(song);
@@ -135,7 +135,7 @@ export default class Player {
   async user_enqueue(msg: Message, args: string[]) {
     //Check if the user is in a channel, otherwise the bot doesn`t know
     //where he should enter to play the song
-    if (msg.member && msg.member.voice && !msg.member.voice.channel) {
+    if (!msg.member.voice.channel) {
       msg.channel.send('No estas en un canal bro');
       return;
     }
@@ -149,7 +149,7 @@ export default class Player {
     //  : await utils.handle_args(args);
     const link = await utils.handle_args(args);
 
-    const is_yt_playlist = yt.is_playlist(link);
+    const is_yt_playlist = yt.isPlaylist(link);
     //const is_sp_playlist = sp.is_playlist(link);
 
     if (is_yt_playlist)
@@ -178,7 +178,7 @@ export default class Player {
       //this.queue[this.last_index] = utils.object_is_video(args)
       //  ? args
       //  : await yt.get_video(link);
-      this.enqueue(await yt.get_video(link));
+      this.enqueue(await yt.getVideoData([link]));
       this.last_index++;
     }
     //If all went right
@@ -257,9 +257,10 @@ export default class Player {
   }
 
   //?
-  get_song_number(name: string | string[]) {
+  get_song_number(name: string[]) {
+    const song_name = name.toString();
     for (let i = 0; i < this.queue.length; i++)
-      if (this.queue[i].title === name) return i;
+      if (this.queue[i].title === song_name) return i;
     return null;
   }
 

@@ -1,6 +1,6 @@
 import { Client, Intents } from 'discord.js';
 import { config } from 'dotenv';
-import commands_index from './src/commands_index';
+import route from './src/router';
 
 const IF = Intents.FLAGS;
 const bot = new Client({
@@ -26,27 +26,16 @@ bot.on('disconnect', async () => console.log('Byee'));
 
 //Core Function
 bot.on('messageCreate', async msg => {
-  if (msg.author.bot) return;
+  if (msg.author.bot || !msg.content.startsWith(prefix)) return;
   const args = msg.content.substring(prefix.length + 1).split(' ');
   const raw_input = msg.content
     .substring(prefix.length + 1)
     .replace(args[0], '');
 
-  if (!msg.content.startsWith(prefix)) return;
-
   console.log('Message: ', args, ' Sent by ', msg.author.username);
-
   //TODO blacklist
-  if (msg.author.id === '342858177064337409') {
-    await msg.reply('No le hago caso a gente cara de verga');
-    msg.react('❌');
-    return;
-  }
 
-  //Handle aliases
-  const command = args[0];
-  const index = commands_index(msg, args, raw_input);
-  index[command];
+  route(msg, args, raw_input);
 });
 
 bot.login(process.env.BOT_TOKEN);

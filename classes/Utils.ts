@@ -63,7 +63,8 @@ export default class Utils {
           msg.channel.send('Me sacaste los permisos imbecil');
           throw new BotNotAllowed();
         }
-      } else if (msg.guild.available) {
+      }
+      if (msg.guild.available) {
         /*
         if (msg.member.voice.channel.id === msg.guild.) {
           msg.channel.send('Ya estoy en el canal pa, sos estupido?');

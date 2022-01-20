@@ -28,7 +28,6 @@
   "homepage": "https://github.com/jramosss/juakoto#readme",
   "dependencies": {
     "@discordjs/voice": "^0.7.5",
-    "@types/spotify-web-api-node": "^5.0.6",
     "@types/yt-search": "^2.3.2",
     "dependencies": "^0.0.1",
     "discord.js": "^13.6.0",
@@ -37,7 +36,6 @@
     "ffmpeg-static": "^4.2.7",
     "opusscript": "0.0.7",
     "spotify-url-info": "^2.2.3",
-    "spotify-web-api-node": "^5.0.2",
     "yt-search": "^2.10.3",
     "ytdl-core": "^4.8.3"
   },

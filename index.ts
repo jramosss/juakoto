@@ -31,11 +31,10 @@ bot.on('messageCreate', async msg => {
   const raw_input = msg.content
     .substring(prefix.length + 1)
     .replace(args[0], '');
-
   console.log('Message: ', args, ' Sent by ', msg.author.username);
   //TODO blacklist
 
-  route(msg, args, raw_input);
+  route(msg, args[0], args.slice(1), raw_input);
 });
 
 bot.login(process.env.BOT_TOKEN);

@@ -1,24 +1,17 @@
-import { Client, Message } from 'discord.js';
-import fs from 'fs';
+import { Message } from 'discord.js';
 import YoutubeUtils from './Youtube';
-import {
-  BotAlreadyInChannel,
-  BotInAnotherChannel,
-  BotNotAllowed,
-} from '../utils/exceptions';
+import { BotNotAllowed } from '../utils/exceptions';
 import { YTVideos } from '../utils/types';
 import Emojis from '../utils/emojis';
-import {
-  DiscordGatewayAdapterCreator,
-  joinVoiceChannel,
-} from '@discordjs/voice';
+import { joinVoiceChannel } from '@discordjs/voice';
+import { usages } from '../src/errors';
 
 const yt = new YoutubeUtils();
 
 export default class Utils {
   sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
   //Check if a string is an url
-  valid_URL(str: string) {
+  validURL(str: string) {
     const pattern = new RegExp(
       '^(https?:\\/\\/)?' + // protocol
         '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|' + // domain name
@@ -48,7 +41,7 @@ export default class Utils {
    * @param {opt}: is to recognize when the user sent the command
    * play and not the command "hola"
    **/
-  async channel_join(msg: Message, opt = false) {
+  async channelJoin(msg: Message, opt = false) {
     if (msg.member.voice) {
       const vc = msg.member.voice.channel;
 
@@ -83,33 +76,8 @@ export default class Utils {
     }
   }
 
-  //object_is_video = obj => this.str_arr_contains(Object.keys(obj), 'ago');
-
-  /**
-   * *Returns a link based on natural language input
-   * @param link or natural language input
-   * @returns link
-   */
-  /*
-  async handle_args(args: string[] | string) {
-    //TODO should be a smarter & shorter way to do this
-    if (this.object_is_video(args)) return args.url;
-    else if (args[1]) {
-      if (this.object_is_video(args[1])) return args[1].url;
-      else if (this.valid_URL(args)) return args;
-      else if (this.valid_URL(args[0])) return args[0];
-      else if (this.valid_URL(args[1])) return args[1];
-      else return await yt.get_song_link(this.adapt_input(args));
-    }
-  }*/
-
-  async handle_args(args: string[]): Promise<string> {
-    if (this.valid_URL(args[0])) return args[0];
-    //else return await yt.get_song_link(this.adapt_input(args));
-  }
-
   //Used to shuffle the queue, I obviously copied this.
-  array_shuffle(array: YTVideos) {
+  arrayShuffle(array: YTVideos) {
     var currentIndex = array.length,
       temporaryValue,
       randomIndex;
@@ -124,5 +92,15 @@ export default class Utils {
     }
 
     return array;
+  }
+
+  checkParams(msg: Message, args: string[], fun: any) {
+    if (args.length === 0) {
+      const message = usages[fun.name];
+      if (message) msg.channel.send(message);
+      msg.react(Emojis.X);
+      return true;
+    }
+    return false;
   }
 }

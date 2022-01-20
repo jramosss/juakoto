@@ -2,8 +2,13 @@ import { Message } from 'discord.js';
 import Commands from './commands';
 const commands = new Commands();
 
-export default function route(msg: Message, args: string[], raw_input: string) {
-  switch (args[0]) {
+export default function route(
+  msg: Message,
+  command: string,
+  args: string[],
+  raw_input: string
+) {
+  switch (command) {
     case 'andate':
     case 'leave':
     case 'tomatela':
@@ -49,7 +54,7 @@ export default function route(msg: Message, args: string[], raw_input: string) {
       commands.previa_y_cachengue(msg, args);
       break;
     case 'prefix':
-      commands.change_prefix(msg, args);
+      commands.changePrefix(msg, args);
       break;
     case 'showprefix':
       break;

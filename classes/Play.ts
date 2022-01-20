@@ -47,8 +47,9 @@ export default class Player {
     //Mark the dispatcher as initialized once someone enqueued a song in this session
     this.initialized = true;
 
-    const connection = await utils.channel_join(msg);
-    if (!connection) throw new UserNotInChannel();
+    //const connection = await utils.channelJoin(msg);
+    //if (!connection) throw new UserNotInChannel();
+    //replace for something like checkConnection()
 
     try {
       const current_song_link = this.queue[this.playing_index].url;
@@ -67,7 +68,13 @@ export default class Player {
     this.dispatcher.setVolumeLogarithmic(5 / 5);
   }
 
-  enqueue = (song: YTVideo) => this.queue.push(song);
+  enqueue = (song: YTVideo) => {
+    this.queue.push(song);
+    if (this.queue.length !== 1) {
+      this.last_index++;
+      this.play_song(null);
+    }
+  };
 
   async handle_next_song(msg: Message) {
     //If there is a song next
@@ -147,7 +154,8 @@ export default class Player {
     //const link = utils.object_is_video(args)
     //  ? args.url
     //  : await utils.handle_args(args);
-    const link = await utils.handle_args(args);
+    //const link = await utils.handle_args(args);
+    const link = '';
 
     const is_yt_playlist = yt.isPlaylist(link);
     //const is_sp_playlist = sp.is_playlist(link);

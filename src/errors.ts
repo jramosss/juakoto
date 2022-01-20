@@ -1,30 +1,12 @@
-import { EmojiIdentifierResolvable, Message } from 'discord.js';
-
-export class MissingArguments extends Error {}
-
-const usages: Object = {
-  leave: '',
+export const usages: Object = {
+  mood: 'Mood que? usage = juakoto mood <mood> (podes listar los mood con juakoto mood list)',
+  play:
+    'Que queres que meta en la cola? Pasame algo,' +
+    'por que me encanta meterme cosas en la cola\n' +
+    'usage = juakoto play/p <song name/song youtube link>',
+  playI: 'Que queres que reproduzca? No soy adivino pa',
+  jump: 'No me pasaste parametros',
+  find: 'No me pasaste parametros',
+  changePrefix: 'Parametro inexistente usage juakoto prefix <prefix>',
+  spam: 'No me mandaste argumentos mogolico usage = juakoto spam <message> <times>',
 };
-
-const usagesWithArgs = (args: string[]): Object => {
-  return {
-    find: args[1] + '<titulo del video>',
-    leave: '',
-  };
-};
-
-export const errorMessages = {
-  MissingArguments: 'No me pasaste argumentos',
-};
-
-export default function errorHandler(
-  msg: Message,
-  function_name: string,
-  error: Error,
-  args?: string[],
-  reaction?: EmojiIdentifierResolvable
-) {
-  let usagess: Object = args ? usagesWithArgs(args) : usages;
-  msg.channel.send(errorMessages[error.name] + ' ' + usagess[function_name]);
-  if (reaction) msg.react(reaction);
-}

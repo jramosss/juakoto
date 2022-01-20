@@ -4,29 +4,13 @@
  * This is the library i use https://www.npmjs.com/package/spotify-url-info
  */
 
-/*
-const sp_url_info = require('spotify-url-info');
-import { Spotify } from 'spotify-info.js';
-const dotenv = require('dotenv').config();
-
-const infos = new Spotify({
-  clientID: process.env.SPOTIFY_CLIENT_ID,
-  //This is your Spotify api key, you can get yours here
-  //https://developer.spotify.com/documentation/general/guides/authorization-guide/
-  clientSecret: process.env.SPOTIFY_KEY,
-  //and this is an enviroment variable, you should create your own
-});
+import { getData, getPreview, getTracks, Tracks } from 'spotify-url-info';
 
 export default class SpotifyUtils {
-  constructor() {}
-
-  async get_song_name(link: string): Promise<string> {
-    const info = await sp_url_info.getPreview(link);
-    return info.title;
-  }
+  get_song_name = async (link: string) => (await getPreview(link)).title;
 
   async get_playlist_name_and_image(link: string): Promise<[string, string]> {
-    const plist = await infos.getPlaylistByURL(link);
+    const plist = await getData(link);
     return [plist.name, plist.images[0].url];
   }
 
@@ -44,10 +28,9 @@ export default class SpotifyUtils {
   }
 
   async get_playlist_track_names(pl_link: string): Promise<string[]> {
-    const playlist = await infos.getPlaylistByURL(pl_link);
+    const playlist = await getTracks(pl_link);
     let songs: any = [];
-    playlist.tracks.items.forEach((song: any) => songs.push(song.track.name));
+    playlist.forEach((song: Tracks) => songs.push(song.name));
     return songs;
   }
 }
-*/
